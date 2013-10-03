@@ -14,9 +14,9 @@
   # MINISAT2 *only* specifies if the minisat2(...) builtins are exposed -
   # they are implemented by GlueMiniSat or CryptoMiniSat (or MiniSat2 if
   # neither option is used)
-MINISAT2 = 1 #comment out to exclude minisat2 builtins.
-GLUEMINISAT = 1 #use GlueMiniSat 2.2.5 *instead* of MiniSat2
-#CRYPTOMINISAT = 1 #use CryptoMiniSat 2.9.5 *instead* of MiniSat2
+#MINISAT2 = 1 #comment out to exclude minisat2 builtins.
+#GLUEMINISAT = 1 #use GlueMiniSat 2.2.5 *instead* of MiniSat2
+CRYPTOMINISAT = 1 #use CryptoMiniSat 2.9.5 *instead* of MiniSat2
 
 ####### start of reduction-finding options #######
 ####### note that the choice of MiniSat2-compatible solver affects

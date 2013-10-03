@@ -1,0 +1,6 @@
+*.o
+cmsat/cmsat/*
+cmsat/build
+zchaff/
+deps
+de
