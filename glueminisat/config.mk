@@ -1,0 +1,9 @@
+BUILD_DIR?=build
+MBINDC_RELSYM?=-g
+MBINDC_REL?=-O3 -D NDEBUG
+MBINDC_DEB?=-O0 -D DEBUG 
+MBINDC_PRF?=-O3 -D NDEBUG
+MBINDC_FPIC?=-fpic
+MINISAT_INCLUDE?=-I`pwd`/minisat
+MINISAT_LIB?=-lminisat
+prefix?=/usr/local

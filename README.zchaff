@@ -1,0 +1,12 @@
+The zChaff license forbids redistribution, so it must be downloaded separately.
+
+To use zChaff in DE:
+  1) Download https://www.princeton.edu/~chaff/zchaff/zchaff.2004.5.13.tar.gz
+  2) Uncompress it and place the sources in the ./zchaff/ directory of DE
+     (i.e., ./zchaff/zchaff_base.cpp should exist).
+  3) Uncomment the ZCHAFF=1 line in DE's Makefile.
+  4) make DE in the usual way.
+
+You may need to add
+#include <stdlib.h>
+to zchaff/zchaff_base.cpp and zchaff/zchaff_dbase.cpp .
