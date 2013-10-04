@@ -7,27 +7,16 @@
 #CC = c89
 #CXX = CC
 
-### a MiniSat2-compatible solver is required.  Default is Minisat2.
-  # choose GlueMiniSat *or* CryptoMiniSat if you prefer.
-  # MINISAT2 *only* specifies if the minisat2(...) builtins are exposed -
-  # they are implemented by GlueMiniSat or CryptoMiniSat (or MiniSat2 if
-  # neither option is used)
-#MINISAT2 = 1 #comment out to exclude minisat2 builtins.
-#GLUEMINISAT = 1 #use GlueMiniSat 2.2.5 *instead* of MiniSat2
+### a MiniSat2-compatible solver is required. 
+  # CryptoMiniSat seems to be the most alive - jjfiv f2013
 CRYPTOMINISAT = 1 #use CryptoMiniSat 2.9.5 *instead* of MiniSat2
 
 ####### start of reduction-finding options #######
 ####### note that the choice of MiniSat2-compatible solver affects
 ####### reduction-finding
 
-REDFIND_DEBUG = 1#comment out to exclude redfind debugging output
+#REDFIND_DEBUG = 1#comment out to exclude redfind debugging output
 #REDFIND_DEBUG2 = 1#comment out to exclude extra redfind debugging output
-
-### Reduction-candidate finding can also be done with BDDs using CUDD.
-  # Default is to use the MiniSat2 compatible solver chosen above.
-  # Counter-example finding is always done with SAT.
-#REDFIND_CUDD = 1# comment out to use SAT-based redfind(...), otherwise
-	        # use CUDD.  
 
 #REDFIND_OLDRANGE=1 # when looking at a range of sizes, never reset to n1
 #REDFIND_MINEX= 1  # comment out to disable greedily-minimizing examples
@@ -35,7 +24,6 @@ REDFIND_DEBUG = 1#comment out to exclude redfind debugging output
 REDFIND_ALTEX= 1  # comment out to disable alternating minimizing,maximizing
 		   # examples
 #REDFIND_MINRED= 1 # comment out to disable greedily-minimizing hypotheses
-		  # REDFIND_MINRED has no effect if REDFIND_CUDD is set
 #REDFIND_IGNTF= 1  # when minimizing hypotheses, it's okay to add \f to
 		  # clauses (try to remove clauses without lengthening others)
 #REDFIND_IGNALL= 1 # not recommended, too slow.
@@ -61,8 +49,6 @@ REDFIND_FV_0max = 1 #if REDFIND_FEWVARS is also set, re-enables literals "x=0"
 		    #and "x=max" (otherwise no effect).
 
 ####### end of reduction-finding options #######
-
-#FDIST=1 #formula distance
 
 #Linux, gcc
 CC = gcc
@@ -90,9 +76,6 @@ OCFLAGS += -DREDFIND_FEWVARS
 endif
 ifdef REDFIND_FV_0max
 OCFLAGS += -DREDFIND_FV_0max
-endif
-ifdef FDIST
-OCFLAGS += -DFDISTANCE
 endif
 ifdef REDFIND_OLDRANGE
 OCFLAGS += -DREDFIND_OLDRANGE
@@ -133,39 +116,15 @@ ifdef REDFIND_RANDEX
 OCFLAGS += -DREDFIND_RANDEX=$(REDFIND_RANDEX)
 endif
 
-#Linux, icc
-#CC = icc
-#CXX = icpc
-#OCFLAGS = -O3 -march=pentium4 -axN -xN -ipo0 -prof_gen
-#OCFLAGS = -O3 -static -no-prec-div -ipo0 -march=pentium4 -mcpu=pentium4 -mtune=pentium4 -msse2 -axN -xN -vec-report3 -parallel -par-report3 -opt-report -opt-report-phaseall -prof_use #-g
-#WCFLAGS=-ansi
-
-#IRIX/mips, MIPSpro
-#CC = c89
-#CXX = CC -woff 3649,3625
-#OCFLAGS = -r16000 -n32 -mips4 -O3 -Ofast=ip35 -IPA -INLINE #-g3 #-apo -INLINE
-#WCFLAGS = -ansi -fullwarn -pedantic
-
-#UNICOS/cray, Cray Standard C
-#CC=cc
-#OCFLAGS= -Gn -O0 #-O3 
-#WFLAGS=
-
 # byacc and flex's output doesn't look good with -Wall -ansi -pedantic :P
 CFL = ${OCFLAGS}
-ifdef MINISAT2
-	CFL += -DMINISAT2
-endif
 
-CFLAGS = ${CFL} ${WCFLAGS}  -Wall 
+CFLAGS = ${CFL} ${WCFLAGS} -Wall 
 
 INCLUDES = -Iinclude  -I.
 
 #LFLAGS = -L../lib
 
-ifdef GLUEMINISAT
-LIBS = -L./glueminisat/build/release/lib -lminisat-c -L./glueminisat/minisat/build/release/lib/ -lglueminisat -lm
-else
 ifdef CRYPTOMINISAT
 LIBS = -L./cmsat/build/release/lib -lminisat-c ./cmsat/cmsat/cmsat/.libs/libcryptominisat.a -lz -fopenmp
 else
@@ -173,32 +132,14 @@ LIBS = -L./minisat2/build/release/lib -lminisat-c -L./minisat2/minisat/build/rel
 endif
 endif
 
-ifdef REDFIND_CUDD
-        REDFIND_SOURCE = redfind/redfind_bdd.c
-	INCLUDES += -Icudd/include
-	LIBS += -Lcudd/cudd -lcudd -Lcudd/mtr -lmtr -Lcudd/util -lutil \
-		-Lcudd/epd -lepd -Lcudd/st -lst
-	OCFLAGS += -DREDFIND_CUDD
-	CUDD = ./cudd/cudd/libcudd.a
-else
-        REDFIND_SOURCE = redfind/redfind.c
-endif
-
-ifdef FDIST
-	INCLUDES += -Icudd/include
-	LIBS += -Lcudd/cudd -lcudd -Lcudd/mtr -lmtr -Lcudd/util -lutil \
-                -Lcudd/epd -lepd -Lcudd/st -lst
-	CUDD = ./cudd/cudd/libcudd.a
-	FDIST_SOURCE = fd/fd.c
-endif
-
 # define the C source files
 
-EXTERN_SRCS := extern/minisat/solver.c
+EXTERN_SRCS := extern/minisat/solver.c \
+	             extern/limboole/limboole.c
 
 CORE_SRCS := y.tab.c lex.yy.c 
 
-SRCS = reduc/reduc.c cmd/cmd.c file/file.c hash/hash.c init/init.c parse/parse.c env/env.c help/help.c logic/eval.c test/main.c logic/interp.c logic/relation.c util/util.c logic/constant.c logic/tuple.c mace/usemace.c limboole/limboole.c redfind/getex.c ${REDFIND_SOURCE} logic/check.c ${FDIST_SOURCE} ${CORE_SRCS} ${EXTERN_SRCS}
+SRCS = reduc/reduc.c cmd/cmd.c file/file.c hash/hash.c init/init.c parse/parse.c env/env.c help/help.c logic/eval.c test/main.c logic/interp.c logic/relation.c util/util.c logic/constant.c logic/tuple.c mace/usemace.c redfind/getex.c ${REDFIND_SOURCE} logic/check.c ${CORE_SRCS} ${EXTERN_SRCS}
 
 OBJS = $(SRCS:.c=.o)
 
