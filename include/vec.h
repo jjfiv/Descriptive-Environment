@@ -1,5 +1,5 @@
 /**************************************************************************************************
-MiniSat -- Copyright (c) 2005, Niklas Sorensson
+  MiniSat -- Copyright (c) 2005, Niklas Sorensson
 http://www.cs.chalmers.se/Cs/Research/FormalMethods/MiniSat/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,7 +16,7 @@ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPO
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-**************************************************************************************************/
+ **************************************************************************************************/
 /* Modified to compile with MS Visual Studio 6.0 by Alan Mishchenko */
 /* Modified for C89 compliance by Skip Jordan */
 
@@ -27,16 +27,16 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 /* vector of 32-bit intergers (added for 64-bit portability) */
 struct veci_t {
-    int    size;
-    int    cap;
-    int*   ptr;
+  int    size;
+  int    cap;
+  int*   ptr;
 };
 typedef struct veci_t veci;
 
 static inline void veci_new (veci* v) {
-    v->size = 0;
-    v->cap  = 4;
-    v->ptr  = malloc((v->cap) * sizeof(int));
+  v->size = 0;
+  v->cap  = 4;
+  v->ptr  = malloc((v->cap) * sizeof(int));
 }
 
 static inline void   veci_delete (veci* v)          { free(v->ptr);   }
@@ -45,28 +45,28 @@ static inline int    veci_size   (veci* v)          { return v->size; }
 static inline void   veci_resize (veci* v, int k)   { v->size = k;    } /* only safe to shrink !! */
 static inline void   veci_push   (veci* v, int e)
 {
-    if (v->size == v->cap) {
-        int newsize = v->cap * 2+1;
-        v->ptr = realloc(v->ptr,newsize * sizeof(int));
-        v->cap = newsize; }
-    v->ptr[v->size++] = e;
+  if (v->size == v->cap) {
+    int newsize = v->cap * 2+1;
+    v->ptr = realloc(v->ptr,newsize * sizeof(int));
+    v->cap = newsize; }
+  v->ptr[v->size++] = e;
 }
 
 
 /* vector of 32- or 64-bit pointers */
 struct vecp_t {
-    int    size;
-    int    cap;
-    void** ptr;
+  int    size;
+  int    cap;
+  void** ptr;
 };
 typedef struct vecp_t vecp;
 
 /* undefine unused bits to remove warnings compiling DE */
 #ifndef DE_MINISAT
 static inline void vecp_new (vecp* v) {
-    v->size = 0;
-    v->cap  = 4;
-    v->ptr  = (void**)malloc(v->cap * sizeof(void*));
+  v->size = 0;
+  v->cap  = 4;
+  v->ptr  = (void**)malloc(v->cap * sizeof(void*));
 }
 
 static inline void   vecp_delete (vecp* v)          { free(v->ptr);   }
@@ -75,11 +75,11 @@ static inline int    vecp_size   (vecp* v)          { return v->size; }
 static inline void   vecp_resize (vecp* v, int   k) { v->size = k;    } /* only safe to shrink !! */
 static inline void   vecp_push   (vecp* v, void* e)
 {
-    if (v->size == v->cap) {
-        int newsize = v->cap * 2+1;
-        v->ptr = realloc(v->ptr,newsize * sizeof(void*));
-        v->cap = newsize; }
-    v->ptr[v->size++] = e;
+  if (v->size == v->cap) {
+    int newsize = v->cap * 2+1;
+    v->ptr = realloc(v->ptr,newsize * sizeof(void*));
+    v->cap = newsize; }
+  v->ptr[v->size++] = e;
 }
 #endif /* DE_MINISAT */
 

@@ -1,18 +1,18 @@
 /*
-Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
+   Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
+   Permission to use, copy, modify, and/or distribute this software for any
+   purpose with or without fee is hereby granted, provided that the above
+   copyright notice and this permission notice appear in all copies.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+   WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   */
 /* interp.c
  * Skip Jordan
  *
@@ -33,97 +33,97 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 struct interp *new_interp(const struct structure *struc)
 {
-	struct interp *interp = malloc(sizeof(struct interp));
-	struct interp_symbol *symb;
-	struct constant *cons;
-	if (!interp)
-		return 0;
-	interp->rel_symbols = NULL;
-	if (!struc)
-	{
-		interp->symbols = NULL;
-		return interp;
-	}
-	cons = struc->cons;
+  struct interp *interp = malloc(sizeof(struct interp));
+  struct interp_symbol *symb;
+  struct constant *cons;
+  if (!interp)
+    return 0;
+  interp->rel_symbols = NULL;
+  if (!struc)
+  {
+    interp->symbols = NULL;
+    return interp;
+  }
+  cons = struc->cons;
 
-	if (!cons)
-	{
-		interp->symbols = NULL;
-		return interp;
-	}
-	symb = malloc(sizeof(struct interp_symbol));
-	interp->symbols = symb;
-	while (cons)
-	{
-		symb->value= cons->value;
-		symb->name = dupstr(cons->name);
-		cons = cons->next;
-		if (cons)
-		{
-			symb->next=malloc(sizeof(struct interp_symbol));
-			symb=symb->next;
-		}
-	}
-	symb->next = NULL;
+  if (!cons)
+  {
+    interp->symbols = NULL;
+    return interp;
+  }
+  symb = malloc(sizeof(struct interp_symbol));
+  interp->symbols = symb;
+  while (cons)
+  {
+    symb->value= cons->value;
+    symb->name = dupstr(cons->name);
+    cons = cons->next;
+    if (cons)
+    {
+      symb->next=malloc(sizeof(struct interp_symbol));
+      symb=symb->next;
+    }
+  }
+  symb->next = NULL;
 
-	return interp;
+  return interp;
 }
 
 /* return the value of x{i} in interp */
 int get_xi_interp_value(int i, struct interp *interp)
 {
-	struct interp_symbol *is = interp->symbols;
-	char *name;
+  struct interp_symbol *is = interp->symbols;
+  char *name;
 
-	for (is=interp->symbols; is; is=is->next)
-	{
-		name=is->name;
-		if (name[0]!='x' || !isdigit(name[1]))
-			continue;
-		if (atoi(name+1)==i)
-			return is->value;
-	}
+  for (is=interp->symbols; is; is=is->next)
+  {
+    name=is->name;
+    if (name[0]!='x' || !isdigit(name[1]))
+      continue;
+    if (atoi(name+1)==i)
+      return is->value;
+  }
 
-	return -1;
+  return -1;
 }
 
 int *get_xi_ival(int i, struct interp *interp)
 {
-	struct interp_symbol *is = interp->symbols;
-        char *name;
+  struct interp_symbol *is = interp->symbols;
+  char *name;
 
-        for (is=interp->symbols; is; is=is->next)
-        {
-                name=is->name;
-                if (name[0]!='x' || !isdigit(name[1]))
-                        continue;
-                if (atoi(name+1)==i)
-			return &(is->value);
-	}
-	return NULL;
+  for (is=interp->symbols; is; is=is->next)
+  {
+    name=is->name;
+    if (name[0]!='x' || !isdigit(name[1]))
+      continue;
+    if (atoi(name+1)==i)
+      return &(is->value);
+  }
+  return NULL;
 }
 
 void add_xi_interp(int i, struct interp *interp, int val)
 {
-	char *name=malloc(sizeof(char)*(2+numdigits(i)));
-	sprintf(name,"x%d",i);
-	add_symb_to_interp(interp, name, val);
-	free(name);
-	return;
+  char *name=malloc(sizeof(char)*(2+numdigits(i)));
+  sprintf(name,"x%d",i);
+  add_symb_to_interp(interp, name, val);
+  free(name);
+  return;
 }
 
 
 int get_interp_value(const char *name, const struct interp *interp)
 {
-	struct interp_symbol *is = interp->symbols;
+  struct interp_symbol *is = interp->symbols;
 
-	while (is && strcmp(is->name, name))
-		is = is->next;
+  while (is && strcmp(is->name, name))
+    is = is->next;
 
-	if (is)
-		return is->value;
+  if (is)
+    return is->value;
 
-	return -1;
+  return -1;
 }
 
 /* the tuple (x1,...,xarity) is probably already in the interp.  
@@ -131,19 +131,19 @@ int get_interp_value(const char *name, const struct interp *interp)
  * values to tup.  Add things not there (should not happen).
  */
 struct interp *fake_add_tup_to_interp(struct interp *interp, int *tup,
-				      int arity)
+    int arity)
 {
-	char *name = malloc(sizeof(char)+2+numdigits(arity));
-	struct interp *ret=interp;
-	int i;
+  char *name = malloc(sizeof(char)+2+numdigits(arity));
+  struct interp *ret=interp;
+  int i;
 
-	for (i=1; i<=arity; i++)
-	{
-		sprintf(name,"x%d",i);
-		ret = fake_add_symb_to_interp(ret, name, tup[i-1]);
-	}
+  for (i=1; i<=arity; i++)
+  {
+    sprintf(name,"x%d",i);
+    ret = fake_add_symb_to_interp(ret, name, tup[i-1]);
+  }
 
-	return ret;
+  return ret;
 }
 
 /* the symbol is probably already in the interp.  Take it out and reinsert at
@@ -151,46 +151,46 @@ struct interp *fake_add_tup_to_interp(struct interp *interp, int *tup,
  * If it's not already in there, add it to the start (should not happen) 
  */
 struct interp *fake_add_symb_to_interp(struct interp *interp, const char *symb,
-				       const int value)
+    const int value)
 {
-	struct interp_symbol *is, *pre=NULL;
-	for (is=interp->symbols; is; is=is->next)
-	{
-		if (!strcmp(symb, is->name))
-		{
-			if (!pre)
-			{
-				is->value = value;
-				return interp;
-			}
-			pre->next=is->next;
-			is->next=interp->symbols;
-			interp->symbols=is;
-			is->value = value;
-			return interp;
-		}
-		pre=is;
-	}
-	/* should be unreachable */
-	printf("D: Adding new symbol %s(=%d) to interpretation\n",
-	       symb, value);
-	return add_symb_to_interp(interp, symb, value);
+  struct interp_symbol *is, *pre=NULL;
+  for (is=interp->symbols; is; is=is->next)
+  {
+    if (!strcmp(symb, is->name))
+    {
+      if (!pre)
+      {
+        is->value = value;
+        return interp;
+      }
+      pre->next=is->next;
+      is->next=interp->symbols;
+      interp->symbols=is;
+      is->value = value;
+      return interp;
+    }
+    pre=is;
+  }
+  /* should be unreachable */
+  printf("D: Adding new symbol %s(=%d) to interpretation\n",
+      symb, value);
+  return add_symb_to_interp(interp, symb, value);
 }
 
 struct interp *add_symb_to_interp(struct interp *interp, const char *symb, 
-				  const int value)
+    const int value)
 {
-	struct interp_symbol *is = malloc(sizeof(struct interp_symbol));
-	if (!is)
-	{
-		return 0;
-	}
-	is->next = interp->symbols;
-	is->name = dupstr(symb);
-	is->value = value;
-	interp->symbols = is;
+  struct interp_symbol *is = malloc(sizeof(struct interp_symbol));
+  if (!is)
+  {
+    return 0;
+  }
+  is->next = interp->symbols;
+  is->name = dupstr(symb);
+  is->value = value;
+  interp->symbols = is;
 
-	return interp;
+  return interp;
 }
 
 
@@ -202,31 +202,31 @@ struct interp *add_symb_to_interp(struct interp *interp, const char *symb,
  */
 struct interp *add_tup_to_interp(struct interp *interp, const int *tup, const int arity)
 {
-	struct interp_symbol *is;
-	char *vname;
-	int order, i;
+  struct interp_symbol *is;
+  char *vname;
+  int order, i;
 
-	if (arity<9)
-		order=1;
-	else if(arity<99)
-		order=2;
-	else
-		order=get_order(arity+1);
+  if (arity<9)
+    order=1;
+  else if(arity<99)
+    order=2;
+  else
+    order=get_order(arity+1);
 
-	vname = malloc((order+1+1)*sizeof(char)); /* x+i+\0 */
+  vname = malloc((order+1+1)*sizeof(char)); /* x+i+\0 */
 
-	for (i=0; i<arity; i++)
-	{
-		is = malloc(sizeof(struct interp_symbol));
-		is->next = interp->symbols;
-		interp->symbols = is;
-		
-		is->value = tup[i];
-		sprintf(vname, "x%d", i+1);
-		is->name = dupstr(vname);
-	}
+  for (i=0; i<arity; i++)
+  {
+    is = malloc(sizeof(struct interp_symbol));
+    is->next = interp->symbols;
+    interp->symbols = is;
 
-	return interp;
+    is->value = tup[i];
+    sprintf(vname, "x%d", i+1);
+    is->name = dupstr(vname);
+  }
+
+  return interp;
 }
 
 /* returns the number of digits in the decimal representation of arity */
@@ -235,68 +235,68 @@ struct interp *add_tup_to_interp(struct interp *interp, const int *tup, const in
  */
 int get_order(int arity)
 {
-	if (arity<10)
-		return 1;
-	else if (arity<100)
-		return 2;
-	return floor(log10(arity))+1;
+  if (arity<10)
+    return 1;
+  else if (arity<100)
+    return 2;
+  return floor(log10(arity))+1;
 }
 
 /* return a duplicate copy of the interpretation */
 /* ignores rel_symbols :-/ */
 struct interp *dup_interp(struct interp *interp)
 {
-	struct interp_symbol *is, *nis;
-	struct interp *n;
+  struct interp_symbol *is, *nis;
+  struct interp *n;
 
-	n = new_interp(NULL);
-	for (is=interp->symbols; is; is=is->next)
-	{
-		nis = malloc(sizeof(struct interp_symbol));
-		nis->name = dupstr(is->name);
-		nis->value = is->value;
-		nis->next = n->symbols;
-		n->symbols = nis;
-	}
+  n = new_interp(NULL);
+  for (is=interp->symbols; is; is=is->next)
+  {
+    nis = malloc(sizeof(struct interp_symbol));
+    nis->name = dupstr(is->name);
+    nis->value = is->value;
+    nis->next = n->symbols;
+    n->symbols = nis;
+  }
 
-	return n;
+  return n;
 }
 
 /* remove the first arity tuples from interp, freeing all memory */
 struct interp *free_remove_tup(struct interp *interp, int arity)
 {
-	struct interp_symbol *is;
-	struct interp_symbol *nis;
-	int i;
+  struct interp_symbol *is;
+  struct interp_symbol *nis;
+  int i;
 
-	is = interp->symbols;
-	for (i=0; i<arity; i++)
-	{
-		assert(is);
-		nis = is->next;
-		free(is->name);
-		free(is);
-		is=nis;
-	}
-	interp->symbols = is;
+  is = interp->symbols;
+  for (i=0; i<arity; i++)
+  {
+    assert(is);
+    nis = is->next;
+    free(is->name);
+    free(is);
+    is=nis;
+  }
+  interp->symbols = is;
 
-	return interp;
+  return interp;
 }
 
 void free_interp(struct interp *interp)
 {
-	int i=0;
-	struct interp_symbol *is = interp->symbols;
+  int i=0;
+  struct interp_symbol *is = interp->symbols;
 
-	while (is)
-	{
-		is = is->next;
-		i++;
-	}
+  while (is)
+  {
+    is = is->next;
+    i++;
+  }
 
-	interp = free_remove_tup(interp, i);
+  interp = free_remove_tup(interp, i);
 
-	free(interp);
+  free(interp);
 
-	return;
+  return;
 }

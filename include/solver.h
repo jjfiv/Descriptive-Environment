@@ -1,5 +1,5 @@
 /**************************************************************************************************
-MiniSat -- Copyright (c) 2005, Niklas Sorensson
+  MiniSat -- Copyright (c) 2005, Niklas Sorensson
 http://www.cs.chalmers.se/Cs/Research/FormalMethods/MiniSat/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -16,7 +16,7 @@ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPO
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-**************************************************************************************************/
+ **************************************************************************************************/
 /* Modified to compile with MS Visual Studio 6.0 by Alan Mishchenko */
 /* Modified for C89 compliance by Skip Jordan */
 #ifndef solver_h
@@ -82,8 +82,8 @@ extern void    solver_setnvars(solver* s,int n);
 
 struct stats_t
 {
-    uint64   starts, decisions, propagations, inspects, conflicts;
-    uint64   clauses, clauses_literals, learnts, learnts_literals, max_literals, tot_literals;
+  uint64   starts, decisions, propagations, inspects, conflicts;
+  uint64   clauses, clauses_literals, learnts, learnts_literals, max_literals, tot_literals;
 };
 typedef struct stats_t stats;
 
@@ -94,46 +94,46 @@ typedef struct clause_t clause;
 
 struct solver_t
 {
-    int      size;          /* nof variables */
-    int      cap;           /* size of varmaps */
-    int      qhead;         /* Head index of queue. */
-    int      qtail;         /* Tail index of queue. */
+  int      size;          /* nof variables */
+  int      cap;           /* size of varmaps */
+  int      qhead;         /* Head index of queue. */
+  int      qtail;         /* Tail index of queue. */
 
-    /*clauses */
-    vecp     clauses;       /*List of problem constraints. (contains: clause*)*/
-    vecp     learnts;       /* List of learnt clauses. (contains: clause*) */
+  /*clauses */
+  vecp     clauses;       /*List of problem constraints. (contains: clause*)*/
+  vecp     learnts;       /* List of learnt clauses. (contains: clause*) */
 
-    /*activities */
-    double   var_inc;       /* Amount to bump next variable with. */
-    double   var_decay;     /* INVERSE decay factor for variable activity: stores 1/decay. */
-    float    cla_inc;       /* Amount to bump next clause with. */
-    float    cla_decay;     /* INVERSE decay factor for clause activity: stores 1/decay. */
+  /*activities */
+  double   var_inc;       /* Amount to bump next variable with. */
+  double   var_decay;     /* INVERSE decay factor for variable activity: stores 1/decay. */
+  float    cla_inc;       /* Amount to bump next clause with. */
+  float    cla_decay;     /* INVERSE decay factor for clause activity: stores 1/decay. */
 
-    vecp*    wlists;         
-    double*  activity;      /* A heuristic measurement of the activity of a variable. */
-    lbool*   assigns;       /* Current values of variables. */
-    int*     orderpos;      /* Index in variable order. */
-    clause** reasons;       
-    int*     levels;        
-    lit*     trail;
+  vecp*    wlists;         
+  double*  activity;      /* A heuristic measurement of the activity of a variable. */
+  lbool*   assigns;       /* Current values of variables. */
+  int*     orderpos;      /* Index in variable order. */
+  clause** reasons;       
+  int*     levels;        
+  lit*     trail;
 
-    clause*  binary;        /* A temporary binary clause */
-    lbool*   tags;          
-    veci     tagged;        /* (contains: var) */
-    veci     stack;         /* (contains: var) */
+  clause*  binary;        /* A temporary binary clause */
+  lbool*   tags;          
+  veci     tagged;        /* (contains: var) */
+  veci     stack;         /* (contains: var) */
 
-    veci     order;         /* Variable order. (heap) (contains: var) */
-    veci     trail_lim;     /* Separator indices for different decision levels in 'trail'. (contains: int) */
-    veci     model;         /* If problem is solved, this vector contains the model (contains: lbool). */
+  veci     order;         /* Variable order. (heap) (contains: var) */
+  veci     trail_lim;     /* Separator indices for different decision levels in 'trail'. (contains: int) */
+  veci     model;         /* If problem is solved, this vector contains the model (contains: lbool). */
 
-    int      root_level;    /* Level of first proper decision. */
-    int      simpdb_assigns;/* Number of top-level assignments at last 'simplifyDB()'. */
-    int      simpdb_props;  /* Number of propagations before next 'simplifyDB()'. */
-    double   random_seed;
-    double   progress_estimate;
-    int      verbosity;     /* Verbosity level. 0=silent, 1=some progress report, 2=everything */
+  int      root_level;    /* Level of first proper decision. */
+  int      simpdb_assigns;/* Number of top-level assignments at last 'simplifyDB()'. */
+  int      simpdb_props;  /* Number of propagations before next 'simplifyDB()'. */
+  double   random_seed;
+  double   progress_estimate;
+  int      verbosity;     /* Verbosity level. 0=silent, 1=some progress report, 2=everything */
 
-    stats    stats;
+  stats    stats;
 };
 
 #endif

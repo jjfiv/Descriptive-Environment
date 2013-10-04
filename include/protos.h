@@ -1,19 +1,19 @@
 /*
-Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
-Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
+   Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
+   Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
+   Permission to use, copy, modify, and/or distribute this software for any
+   purpose with or without fee is hereby granted, provided that the above
+   copyright notice and this permission notice appear in all copies.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+   WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   */
 
 #include "types.h"
 #include <stdio.h> /* for FILE * */
@@ -70,13 +70,13 @@ extern int init_env(void);
 /* check.c */
 extern char *free_var(struct node *, struct vocab *);
 extern char *free_var_fast(struct node *, struct interp *, 
-			   const struct structure *);
+    const struct structure *);
 extern char *free_var_fastq(struct node *, struct interp *, 
-			    const struct structure *);
+    const struct structure *);
 extern char *free_var_fasttc(struct node *, struct interp *, 
-			     const struct structure *);
+    const struct structure *);
 extern char *free_var_fastsoe(struct node *, struct interp *, 
-			     const struct structure *);
+    const struct structure *);
 extern struct list *d_free_var(struct node *, struct vocab *);
 extern struct list *join_lists(struct list *, struct list *);
 extern struct list *remove_args(struct list *, struct node *);
@@ -94,15 +94,15 @@ extern int eval_tc(struct node *, struct interp *, const struct structure *);
 extern int eval_ifp(struct node *, struct interp *, const struct structure *);
 extern int eval_soe(struct node *, struct interp *, const struct structure *);
 extern void eval_init_form(struct node *, struct interp *, 
-			   const struct structure *);
+    const struct structure *);
 extern void eval_init_form_q(struct node *, struct interp *,
-			     const struct structure *);
+    const struct structure *);
 extern void eval_init_form_tc(struct node *, struct interp *,
-			      const struct structure *);
+    const struct structure *);
 extern void eval_init_form_pred(struct node *, struct interp *,
-				const struct structure *);
+    const struct structure *);
 extern void eval_init_form_soe(struct node *, struct interp *,
-			       const struct structure *);
+    const struct structure *);
 extern void free_tc_caches(struct node *);
 
 /* interp.c */
@@ -120,14 +120,14 @@ extern struct interp *remove_xi_interp(int, struct interp *);
 extern int *get_xi_ival(int, struct interp *);
 extern void free_interp(struct interp *);
 extern struct interp *fake_add_symb_to_interp(struct interp *, const char *,
-					      const int);
+    const int);
 extern void add_xi_interp(int, struct interp *, int);
 extern struct interp *add_symb_to_interp(struct interp *, const char *,
-					 const int);
+    const int);
 
 /* tuple.c */
 int *make_next_tuple(int *, const struct reduc_map *, const int, const int,
-		     int *, const int, const int);
+    int *, const int, const int);
 int tuple_cindex(const int *, const int, const int);
 int *next_tuple(int *, const int, const int);
 char *add_tup_to_output(char *, const int *, const int, const int);

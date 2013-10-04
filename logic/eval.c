@@ -1,18 +1,18 @@
 /*
-Copyright (c) 2006-2012, Charles Jordan <skip@alumni.umass.edu>
+   Copyright (c) 2006-2012, Charles Jordan <skip@alumni.umass.edu>
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
+   Permission to use, copy, modify, and/or distribute this software for any
+   purpose with or without fee is hereby granted, provided that the above
+   copyright notice and this permission notice appear in all copies.
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-*/
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+   WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   */
 /* eval.c
  * Skip Jordan
  * Evaluates SOE formulas.  At the moment, only propositional. :P
@@ -39,15 +39,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * since many terms are simple
  */
 #define setlr()         forml = form->l; \
-                        formr = form->r; \
-                        if (forml->label==VAR || forml->label==CONSTANT) \
-                                l = *(forml->ival);\
-                        else\
-                                l = teval(forml,interp,struc);\
-                        if (formr->label==VAR || formr->label==CONSTANT)\
-                                r = *(formr->ival);\
-                        else\
-                                r = teval(formr,interp,struc);
+                                formr = form->r; \
+if (forml->label==VAR || forml->label==CONSTANT) \
+l = *(forml->ival);\
+else\
+l = teval(forml,interp,struc);\
+if (formr->label==VAR || formr->label==CONSTANT)\
+r = *(formr->ival);\
+else\
+r = teval(formr,interp,struc);
 
 /* struct node *parse(char *formula)
  *
@@ -56,12 +56,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 /* 
-struct node *parse(char *formula)
-{
-	return NULL;
+   struct node *parse(char *formula)
+   {
+   return NULL;
 
-}
-*/
+   }
+   */
 
 /* initiate interp to have one element for each variable and constant symbol
  * that we need to interpret in form.  For each node, set a pointer to the 
@@ -90,163 +90,163 @@ struct node *parse(char *formula)
  * interpretation (so be careful with parallel/interleaving calls to eval_rec).
  */
 void eval_init_form(struct node *form, struct interp *interp, 
-		    const struct structure *struc)
+    const struct structure *struc)
 {
-	struct interp_symbol *is;
-	char *name;
+  struct interp_symbol *is;
+  char *name;
 
-	switch (form->label)
-	{
-		case TRUE:
-		case FALSE:
-		case NUMBER:
-			return;
-		case LT:
-		case LTE:
-		case NEQUALS:
-		case EQUALS:
-		case AND:
-		case OR:
-		case IMPLIES:
-		case IFF:
-		case XOR:
-		case MULT:
-		case PLUS:
-		case MINUS:
-			eval_init_form(form->r, interp, struc);
-		case NOT:
-			eval_init_form(form->l, interp, struc);
-			return;
-		case CONSTANT:
-		case VAR:
-			name = (char *)form->data;
-			for (is=interp->symbols; is; is=is->next)
-				if (!strcmp(is->name,name))
-				{
-					form->ival=&(is->value);
-					return;
-				}
-			is = malloc(sizeof(struct interp_symbol));
-			is->name=dupstr(name);
-			is->value=-2;
-			if (!strcmp("max",name))
-				is->value = struc->size-1;
-			form->ival=&(is->value);
-			is->next = interp->symbols;
-			interp->symbols = is;
-			return;
-		case EXISTS:
-		case FORALL:
-			eval_init_form_q(form,interp,struc);
-			return;
-		case PRED:
-			eval_init_form_pred(form,interp,struc);
-			return;
-		case TC:
-			eval_init_form_tc(form,interp,struc);
-			return;
-		case SOE:
-			eval_init_form_soe(form,interp,struc);
-			return;
-		case IFP:
-		default:
-			printf("61: Unknown node preparing fast interp\n");
-			exit(0);
-	}
+  switch (form->label)
+  {
+    case TRUE:
+    case FALSE:
+    case NUMBER:
+      return;
+    case LT:
+    case LTE:
+    case NEQUALS:
+    case EQUALS:
+    case AND:
+    case OR:
+    case IMPLIES:
+    case IFF:
+    case XOR:
+    case MULT:
+    case PLUS:
+    case MINUS:
+      eval_init_form(form->r, interp, struc);
+    case NOT:
+      eval_init_form(form->l, interp, struc);
+      return;
+    case CONSTANT:
+    case VAR:
+      name = (char *)form->data;
+      for (is=interp->symbols; is; is=is->next)
+        if (!strcmp(is->name,name))
+        {
+          form->ival=&(is->value);
+          return;
+        }
+      is = malloc(sizeof(struct interp_symbol));
+      is->name=dupstr(name);
+      is->value=-2;
+      if (!strcmp("max",name))
+        is->value = struc->size-1;
+      form->ival=&(is->value);
+      is->next = interp->symbols;
+      interp->symbols = is;
+      return;
+    case EXISTS:
+    case FORALL:
+      eval_init_form_q(form,interp,struc);
+      return;
+    case PRED:
+      eval_init_form_pred(form,interp,struc);
+      return;
+    case TC:
+      eval_init_form_tc(form,interp,struc);
+      return;
+    case SOE:
+      eval_init_form_soe(form,interp,struc);
+      return;
+    case IFP:
+    default:
+      printf("61: Unknown node preparing fast interp\n");
+      exit(0);
+  }
 }
 
 /* form is \forall or \exists, handle it */
 void eval_init_form_q(struct node *form, struct interp *interp, const struct structure *struc)
 {
-	struct node *varlist = form->l->l;
-	struct node *restr = form->l->r;
-	struct node *phi = form->r;
-	struct node *tnode;
-	char *name;
+  struct node *varlist = form->l->l;
+  struct node *restr = form->l->r;
+  struct node *phi = form->r;
+  struct node *tnode;
+  char *name;
 
-	struct interp_symbol *is;
+  struct interp_symbol *is;
 
-	for (tnode=varlist; tnode; tnode=tnode->r)
-	{
-		name = tnode->data;
-		for (is=interp->symbols; is; is=is->next)
-                        if (!strcmp(is->name,name))
-                        {
-                		tnode->ival=&(is->value);
-				break;
-                        }
-		 if (is)
-			continue;
-                 is = malloc(sizeof(struct interp_symbol));
-                 is->name=dupstr(name);
-                 is->value=-2;
-                 tnode->ival=&(is->value);
-                 is->next = interp->symbols;
-                 interp->symbols = is;
-	}
+  for (tnode=varlist; tnode; tnode=tnode->r)
+  {
+    name = tnode->data;
+    for (is=interp->symbols; is; is=is->next)
+      if (!strcmp(is->name,name))
+      {
+        tnode->ival=&(is->value);
+        break;
+      }
+    if (is)
+      continue;
+    is = malloc(sizeof(struct interp_symbol));
+    is->name=dupstr(name);
+    is->value=-2;
+    tnode->ival=&(is->value);
+    is->next = interp->symbols;
+    interp->symbols = is;
+  }
 
-	if (restr)
-		eval_init_form(restr, interp, struc);
-	eval_init_form(phi, interp, struc);
+  if (restr)
+    eval_init_form(restr, interp, struc);
+  eval_init_form(phi, interp, struc);
 
-	return;
+  return;
 }
 
 void eval_init_form_tc(struct node *form, struct interp *interp,
-		       const struct structure *struc)
+    const struct structure *struc)
 {
-	struct node *tcargs = form->l->l;
-	struct node *tcform = form->l->r;
-	struct node *relargs = form->r;
-	struct node *tmp;
+  struct node *tcargs = form->l->l;
+  struct node *tcform = form->l->r;
+  struct node *relargs = form->r;
+  struct node *tmp;
 
-	for (tmp=tcargs; tmp; tmp=tmp->r)
-	{
-		eval_init_form(tmp->l->l, interp, struc);
-		if (tmp->l->r)
-			eval_init_form(tmp->l->r, interp, struc);
-	}
-	eval_init_form(tcform, interp, struc);
-	for (tmp=relargs; tmp; tmp=tmp->r)
-		eval_init_form(tmp->l, interp, struc);
-	return;
+  for (tmp=tcargs; tmp; tmp=tmp->r)
+  {
+    eval_init_form(tmp->l->l, interp, struc);
+    if (tmp->l->r)
+      eval_init_form(tmp->l->r, interp, struc);
+  }
+  eval_init_form(tcform, interp, struc);
+  for (tmp=relargs; tmp; tmp=tmp->r)
+    eval_init_form(tmp->l, interp, struc);
+  return;
 }
 
 void eval_init_form_pred(struct node *form, struct interp *interp,
-			 const struct structure *struc)
+    const struct structure *struc)
 {
-	struct node *relargs=form->r;
-	struct node *tnode;
-	struct relation *rel;
-	int i, a;
+  struct node *relargs=form->r;
+  struct node *tnode;
+  struct relation *rel;
+  int i, a;
 
-	for (tnode=relargs; tnode; tnode=tnode->r)
-		eval_init_form(tnode->l, interp, struc);
+  for (tnode=relargs; tnode; tnode=tnode->r)
+    eval_init_form(tnode->l, interp, struc);
 
-	rel = get_relation(form->data, interp, struc);
-	if (!rel) /* SO variable */
-		return;
-	
-	if (rel->parse_cache)
-		eval_init_form(rel->parse_cache, interp, struc);
+  rel = get_relation(form->data, interp, struc);
+  if (!rel) /* SO variable */
+    return;
 
-	a=rel->arity;
-	for (i=1; i<=a; i++)
-		if (get_xi_interp_value(i,interp)==-1)
-			add_xi_interp(i,interp,-2);
-	return;
+  if (rel->parse_cache)
+    eval_init_form(rel->parse_cache, interp, struc);
+
+  a=rel->arity;
+  for (i=1; i<=a; i++)
+    if (get_xi_interp_value(i,interp)==-1)
+      add_xi_interp(i,interp,-2);
+  return;
 }
 
 void eval_init_form_soe(struct node *form, struct interp *interp,
-			const struct structure *struc)
+    const struct structure *struc)
 {
-	struct node *restr=form->l->r;
-	struct node *phi = form->r;
+  struct node *restr=form->l->r;
+  struct node *phi = form->r;
 
-	if (restr)
-		eval_init_form(restr, interp, struc);
-	eval_init_form(phi, interp, struc);
-	return;
+  if (restr)
+    eval_init_form(restr, interp, struc);
+  eval_init_form(phi, interp, struc);
+  return;
 }
 
 /* int eval(struct node *form)
@@ -259,645 +259,645 @@ void eval_init_form_soe(struct node *form, struct interp *interp,
  */
 int eval(struct node *form, struct interp *interp, const struct structure *struc)
 {
-	char *fv;
-	eval_init_form(form, interp, struc);
-	fv = free_var_fast(form,interp,struc);
-	if (fv)
-	{
-                printf("??: Symbol %s occurs free in formula.\n",fv);
-                return 0;
-        }
-	return eval_rec(form, interp, struc);
+  char *fv;
+  eval_init_form(form, interp, struc);
+  fv = free_var_fast(form,interp,struc);
+  if (fv)
+  {
+    printf("??: Symbol %s occurs free in formula.\n",fv);
+    return 0;
+  }
+  return eval_rec(form, interp, struc);
 }
 
 int eval_rec(struct node *form, struct interp *interp, const struct structure *struc)
 {
-	int l,r;
-	struct node *forml, *formr;
+  int l,r;
+  struct node *forml, *formr;
 #if 0 /* this really should never happen */
-	if (!form)
-	{
-		return 0;
-	}
+  if (!form)
+  {
+    return 0;
+  }
 #endif
-	switch (form->label)
-	{
-		case TRUE:
-			return 1;
-		case FALSE:
-			return 0;
-		case LT:
-			setlr();
-			return l<r;
-		case LTE:
-			setlr();
-			return l<=r;
-		case NEQUALS:
-			setlr();
-			return l!=r;
-		case EQUALS:
-			setlr();
-			return l==r;
+  switch (form->label)
+  {
+    case TRUE:
+      return 1;
+    case FALSE:
+      return 0;
+    case LT:
+      setlr();
+      return l<r;
+    case LTE:
+      setlr();
+      return l<=r;
+    case NEQUALS:
+      setlr();
+      return l!=r;
+    case EQUALS:
+      setlr();
+      return l==r;
 
-		case NOT:
-			return !eval_rec(form->l, interp, struc);
-		case AND:
-			return eval_rec(form->l, interp, struc) && eval_rec(form->r, interp, struc);
-		case OR:
-			return eval_rec(form->l, interp, struc) || eval_rec(form->r, interp, struc);
-	
-		case IMPLIES:
-			/* a->b <-> ~a | b */
-			return ((!eval_rec(form->l, interp, struc))||(eval_rec(form->r, interp, struc)));
-		case IFF:
-			/* a<->b is ~(a xor b) */
-			return !(eval_rec(form->l, interp, struc) ^ eval_rec(form->r, interp, struc));
-		case XOR:
-			return eval_rec(form->l,interp,struc) ^ eval_rec(form->r,interp,struc);
-		case PRED:
-			return eval_pred(form,interp,struc);
+    case NOT:
+      return !eval_rec(form->l, interp, struc);
+    case AND:
+      return eval_rec(form->l, interp, struc) && eval_rec(form->r, interp, struc);
+    case OR:
+      return eval_rec(form->l, interp, struc) || eval_rec(form->r, interp, struc);
 
-		case EXISTS:
-			return eval_exists(form,interp,struc);
+    case IMPLIES:
+      /* a->b <-> ~a | b */
+      return ((!eval_rec(form->l, interp, struc))||(eval_rec(form->r, interp, struc)));
+    case IFF:
+      /* a<->b is ~(a xor b) */
+      return !(eval_rec(form->l, interp, struc) ^ eval_rec(form->r, interp, struc));
+    case XOR:
+      return eval_rec(form->l,interp,struc) ^ eval_rec(form->r,interp,struc);
+    case PRED:
+      return eval_pred(form,interp,struc);
 
-		case FORALL:
-			return eval_forall(form,interp,struc);
-		case TC:
-			return eval_tc(form,interp,struc);
-		case IFP:
-			return eval_ifp(form,interp,struc);
-		case SOE:
-			return eval_soe(form, interp, struc);
+    case EXISTS:
+      return eval_exists(form,interp,struc);
 
-		default:
-			printf("5: Unknown logical node (%d)\n",form->label);
-			if (form->l)
-				return eval_rec(form->l, interp, struc);
-			if (form->r)
-				return eval_rec(form->r, interp, struc);
-			return -1;
-	}
+    case FORALL:
+      return eval_forall(form,interp,struc);
+    case TC:
+      return eval_tc(form,interp,struc);
+    case IFP:
+      return eval_ifp(form,interp,struc);
+    case SOE:
+      return eval_soe(form, interp, struc);
+
+    default:
+      printf("5: Unknown logical node (%d)\n",form->label);
+      if (form->l)
+        return eval_rec(form->l, interp, struc);
+      if (form->r)
+        return eval_rec(form->r, interp, struc);
+      return -1;
+  }
 }
 
 /* Evaluate transitive closure with Warshall's Algorithm *
  * Note that this is reflexive.
  */
 int eval_tc(struct node *form, struct interp *interp,
-	    const struct structure *struc)
+    const struct structure *struc)
 {
-	int *tc_cache;
-	int num_args;
-	int tup_arity;
-	int size;
-	int csize;
-	int *tup1=NULL;
-	int *tup2=NULL;
-	int res;
-	struct node *tmp;
-	struct node *tcargs;
-	struct node *tcform;
-	struct node *relargs;
-	char **t1names;
-	char **t2names;
-	int i, j, ii;
-	int num_tuples;
-	int *old_values1, *old_values2;
-	int **values1, **values2;
+  int *tc_cache;
+  int num_args;
+  int tup_arity;
+  int size;
+  int csize;
+  int *tup1=NULL;
+  int *tup2=NULL;
+  int res;
+  struct node *tmp;
+  struct node *tcargs;
+  struct node *tcform;
+  struct node *relargs;
+  char **t1names;
+  char **t2names;
+  int i, j, ii;
+  int num_tuples;
+  int *old_values1, *old_values2;
+  int **values1, **values2;
 
-	size = struc->size;
-	tcargs = form->l->l;
-	tcform = form->l->r;
-	relargs = form->r;
+  size = struc->size;
+  tcargs = form->l->l;
+  tcform = form->l->r;
+  relargs = form->r;
 
-	for (tup_arity=0,tmp=tcargs; tmp; tup_arity++)
-		tmp=tmp->r;
-	for (i=0, tmp=relargs; tmp; i++)
-		tmp = tmp->r;
-	num_args = tup_arity<<1; /* parser does it with qnode */
-	if (i!=num_args)
-	{
-		printf("14:TC of arity %d given %d arguments\n",num_args,i);
-		return -1;
-	}
-	num_tuples = trpow(size,tup_arity);
+  for (tup_arity=0,tmp=tcargs; tmp; tup_arity++)
+    tmp=tmp->r;
+  for (i=0, tmp=relargs; tmp; i++)
+    tmp = tmp->r;
+  num_args = tup_arity<<1; /* parser does it with qnode */
+  if (i!=num_args)
+  {
+    printf("14:TC of arity %d given %d arguments\n",num_args,i);
+    return -1;
+  }
+  num_tuples = trpow(size,tup_arity);
 
-	if (form->data) /* check for a cache */
-	{
-	        tup1 = next_tuple(NULL,tup_arity, size);
-	        tup2 = next_tuple(NULL,tup_arity, size);
-	        tmp = relargs;
+  if (form->data) /* check for a cache */
+  {
+    tup1 = next_tuple(NULL,tup_arity, size);
+    tup2 = next_tuple(NULL,tup_arity, size);
+    tmp = relargs;
 
-	        for (i=0; i<tup_arity; i++,tmp=tmp->r)
-	                tup1[i] = teval(tmp->l,interp,struc);
-	        for (i=0; i<tup_arity; i++,tmp=tmp->r)
-	                tup2[i] = teval(tmp->l,interp,struc);
+    for (i=0; i<tup_arity; i++,tmp=tmp->r)
+      tup1[i] = teval(tmp->l,interp,struc);
+    for (i=0; i<tup_arity; i++,tmp=tmp->r)
+      tup2[i] = teval(tmp->l,interp,struc);
 
-	        i = tuple_cindex(tup1, tup_arity, size);
-	        j = tuple_cindex(tup2, tup_arity, size);
+    i = tuple_cindex(tup1, tup_arity, size);
+    j = tuple_cindex(tup2, tup_arity, size);
 
-	        res = ((int *)(form->data))[i*num_tuples+j];
+    res = ((int *)(form->data))[i*num_tuples+j];
 
-		free(tup1);
-		free(tup2);
+    free(tup1);
+    free(tup2);
 
-		if (res!=-1)
-			return res;
-	}
+    if (res!=-1)
+      return res;
+  }
 
-	csize = num_tuples * num_tuples;
-	tc_cache = malloc(csize * sizeof(int));
-	t1names = malloc(tup_arity * sizeof(char *));
-	t2names = malloc(tup_arity * sizeof(char *));
-	old_values1 = malloc(tup_arity * sizeof(int));
-	old_values2 = malloc(tup_arity * sizeof(int));
-	values1 = malloc(tup_arity * sizeof(int *));
-	values2 = malloc(tup_arity * sizeof(int *));
-	/* TODO check all those pointers :P */
-	tmp = tcargs;
-	for (i=0; ;tmp=tmp->r)
-	{
-		values1[i] = tmp->l->l->ival;
-		old_values1[i]=*(values1[i]);
-		t1names[i] = tmp->l->l->data;
-		if (++i<tup_arity)
-		{
-			t1names[i] = tmp->l->r->data;
-			values1[i] = tmp->l->r->ival;
-			old_values1[i]=*(values1[i]);
-			i++; /* chj new CHECK */
-		}
-		else
-			break;
-	}
-	if (tup_arity&1) /* odd arity means we split one */
-	{
-		t2names[0]=tmp->l->r->data;
-		values2[0]=tmp->l->r->ival;
-		old_values2[0]=*(values2[0]);
-		i=1;
-	}
-	else
-		i=0;
-	for (tmp=tmp->r; ;tmp=tmp->r)
-	{
-		if (!tmp)
-			break;
-		values2[i] = tmp->l->l->ival;
-		old_values2[i]=*(values2[i]);
-		t2names[i] = tmp->l->l->data;
-		if (++i<tup_arity)
-		{
-			values2[i] = tmp->l->r->ival;
-			old_values2[i] = *(values2[i]);
-			t2names[i] = tmp->l->r->data;
-			i++;
-		}
-		else
-			break;
-	}
+  csize = num_tuples * num_tuples;
+  tc_cache = malloc(csize * sizeof(int));
+  t1names = malloc(tup_arity * sizeof(char *));
+  t2names = malloc(tup_arity * sizeof(char *));
+  old_values1 = malloc(tup_arity * sizeof(int));
+  old_values2 = malloc(tup_arity * sizeof(int));
+  values1 = malloc(tup_arity * sizeof(int *));
+  values2 = malloc(tup_arity * sizeof(int *));
+  /* TODO check all those pointers :P */
+  tmp = tcargs;
+  for (i=0; ;tmp=tmp->r)
+  {
+    values1[i] = tmp->l->l->ival;
+    old_values1[i]=*(values1[i]);
+    t1names[i] = tmp->l->l->data;
+    if (++i<tup_arity)
+    {
+      t1names[i] = tmp->l->r->data;
+      values1[i] = tmp->l->r->ival;
+      old_values1[i]=*(values1[i]);
+      i++; /* chj new CHECK */
+    }
+    else
+      break;
+  }
+  if (tup_arity&1) /* odd arity means we split one */
+  {
+    t2names[0]=tmp->l->r->data;
+    values2[0]=tmp->l->r->ival;
+    old_values2[0]=*(values2[0]);
+    i=1;
+  }
+  else
+    i=0;
+  for (tmp=tmp->r; ;tmp=tmp->r)
+  {
+    if (!tmp)
+      break;
+    values2[i] = tmp->l->l->ival;
+    old_values2[i]=*(values2[i]);
+    t2names[i] = tmp->l->l->data;
+    if (++i<tup_arity)
+    {
+      values2[i] = tmp->l->r->ival;
+      old_values2[i] = *(values2[i]);
+      t2names[i] = tmp->l->r->data;
+      i++;
+    }
+    else
+      break;
+  }
 
-	/* okay, now we initialize the cache */
-	/* this is a bit scary. */
-	/* tup_arity is usually very small, so
-	 * the for loops should be very short */
-	i=j=-1;
-	while ((tup1=next_tuple(tup1, tup_arity, size)))
-	{
-		i++;
-		for (ii=0; ii<tup_arity; ii++)
-			*(values1[ii])=tup1[ii];
-		j=-1;
-		while ((tup2=next_tuple(tup2, tup_arity, size)))
-		{
-			j++;
-			if (i==j) /* reflexive! */
-			{
-				tc_cache[i*num_tuples+j]=1;
-				continue;
-			}
-			for (ii=0; ii<tup_arity; ii++)
-				*(values2[ii]) = tup2[ii];
-			res = eval_rec(tcform, interp, struc);
-			tc_cache[i*num_tuples+j] = res;
-		}
-	}
-	for (ii=0; ii<tup_arity; ii++)
-	{
-		*(values1[ii])=old_values1[ii];
-		*(values2[ii])=old_values2[ii];
-	}
+  /* okay, now we initialize the cache */
+  /* this is a bit scary. */
+  /* tup_arity is usually very small, so
+   * the for loops should be very short */
+  i=j=-1;
+  while ((tup1=next_tuple(tup1, tup_arity, size)))
+  {
+    i++;
+    for (ii=0; ii<tup_arity; ii++)
+      *(values1[ii])=tup1[ii];
+    j=-1;
+    while ((tup2=next_tuple(tup2, tup_arity, size)))
+    {
+      j++;
+      if (i==j) /* reflexive! */
+      {
+        tc_cache[i*num_tuples+j]=1;
+        continue;
+      }
+      for (ii=0; ii<tup_arity; ii++)
+        *(values2[ii]) = tup2[ii];
+      res = eval_rec(tcform, interp, struc);
+      tc_cache[i*num_tuples+j] = res;
+    }
+  }
+  for (ii=0; ii<tup_arity; ii++)
+  {
+    *(values1[ii])=old_values1[ii];
+    *(values2[ii])=old_values2[ii];
+  }
 
-	/* wow, look at that.  hope that graph is sparse. */
+  /* wow, look at that.  hope that graph is sparse. */
 #if 0	
-	for (i=0; i<num_tuples; i++)
-		for (j=0; j<num_tuples; j++)
+  for (i=0; i<num_tuples; i++)
+    for (j=0; j<num_tuples; j++)
 #endif
-	for (j=0; j<num_tuples; j++)
-		for (i=0; i<num_tuples; i++)
-			if (tc_cache[i*num_tuples+j]==1)
-				for (ii=0; ii<num_tuples; ii++)
-					if (tc_cache[j*num_tuples+ii]==1)
-						tc_cache[i*num_tuples+ii] = 1;
+      for (j=0; j<num_tuples; j++)
+        for (i=0; i<num_tuples; i++)
+          if (tc_cache[i*num_tuples+j]==1)
+            for (ii=0; ii<num_tuples; ii++)
+              if (tc_cache[j*num_tuples+ii]==1)
+                tc_cache[i*num_tuples+ii] = 1;
 
-	tup1 = next_tuple(NULL,tup_arity, size);
-	tup2 = next_tuple(NULL,tup_arity, size);
-	tmp = relargs;
+  tup1 = next_tuple(NULL,tup_arity, size);
+  tup2 = next_tuple(NULL,tup_arity, size);
+  tmp = relargs;
 
-	for (i=0; i<tup_arity; i++,tmp=tmp->r)
-		tup1[i] = teval(tmp->l,interp,struc);
-	for (i=0; i<tup_arity; i++,tmp=tmp->r)
-		tup2[i] = teval(tmp->l,interp,struc);
+  for (i=0; i<tup_arity; i++,tmp=tmp->r)
+    tup1[i] = teval(tmp->l,interp,struc);
+  for (i=0; i<tup_arity; i++,tmp=tmp->r)
+    tup2[i] = teval(tmp->l,interp,struc);
 
-	i = tuple_cindex(tup1, tup_arity, size);
-	j = tuple_cindex(tup2, tup_arity, size);
+  i = tuple_cindex(tup1, tup_arity, size);
+  j = tuple_cindex(tup2, tup_arity, size);
 
-	res = tc_cache[i*num_tuples+j];
+  res = tc_cache[i*num_tuples+j];
 
-	if (form->data)
-		free(form->data);
-	form->data = tc_cache;
+  if (form->data)
+    free(form->data);
+  form->data = tc_cache;
 
-	free(tup1);
-	free(tup2);
-	free(t1names);
-	free(t2names);
-	free(old_values1);
-	free(old_values2);
-	free(values1);
-	free(values2);
+  free(tup1);
+  free(tup2);
+  free(t1names);
+  free(t2names);
+  free(old_values1);
+  free(old_values2);
+  free(values1);
+  free(values2);
 
-	return res;
+  return res;
 }
 
 /* Nonsense body to remove warnings of unused parameters */
 /* Of course, implement IFP later */
 int eval_ifp(struct node *form, struct interp *interp,
-            const struct structure *struc)
+    const struct structure *struc)
 {
-	if (form && interp && struc)
-		return 0;
-	return 1;
+  if (form && interp && struc)
+    return 0;
+  return 1;
 }
 
 /* We begin by guessing 0-, then 0-...1, then 0-...10, etc.
  * Yay for exponential time.
  */
 int eval_soe(struct node *form, struct interp *interp,
-	     const struct structure *struc)
+    const struct structure *struc)
 {
-	char *varname=form->l->l->l->l->data;
-	int res=0;
-	int size = struc->size;
-	int arity=*(int *)(form->l->l->l->r->data);
-	int *cache;
-	int i;
+  char *varname=form->l->l->l->l->data;
+  int res=0;
+  int size = struc->size;
+  int arity=*(int *)(form->l->l->l->r->data);
+  int *cache;
+  int i;
 
-	struct node *restr=form->l->r;
-	struct node *phi = form->r;
-	struct relation *sov;
+  struct node *restr=form->l->r;
+  struct node *phi = form->r;
+  struct relation *sov;
 
-	int tc_size=trpow(size, arity);
-	cache = malloc(tc_size * sizeof(int));
-	for (i=0; i<tc_size; i++) 
-		cache[i]=0;
-	sov = malloc(sizeof(struct relation));
-	sov->name = varname;
-	sov->arity = arity;
-	sov->next = interp->rel_symbols;;
-	sov->cache = cache;
-	sov->parse_cache = 0;
-	interp->rel_symbols=sov;
-	if (restr)		
-		do {
-			if ((res=(eval_rec(restr,interp,struc))))
-				res = eval_rec(phi, interp, struc);
-			for (i=tc_size-1; i>=0; i--)
-			{
-				if ((cache[i]=cache[i]^1))
-					break;
-			}
-		} while (!res && !(i==-1 && cache[i+1]==0));
-	else
-		do {
-			res = eval_rec(phi, interp, struc);
-		        for (i=tc_size-1; i>=0; i--)
-                        {
-                                if ((cache[i]=cache[i]^1))
-                                        break;
-                        }
-                } while (!res && !(i==-1 && cache[i+1]==0));
-	free(cache);
-	interp->rel_symbols = sov->next;
-	free(sov);
-	return res;
+  int tc_size=trpow(size, arity);
+  cache = malloc(tc_size * sizeof(int));
+  for (i=0; i<tc_size; i++) 
+    cache[i]=0;
+  sov = malloc(sizeof(struct relation));
+  sov->name = varname;
+  sov->arity = arity;
+  sov->next = interp->rel_symbols;;
+  sov->cache = cache;
+  sov->parse_cache = 0;
+  interp->rel_symbols=sov;
+  if (restr)		
+    do {
+      if ((res=(eval_rec(restr,interp,struc))))
+        res = eval_rec(phi, interp, struc);
+      for (i=tc_size-1; i>=0; i--)
+      {
+        if ((cache[i]=cache[i]^1))
+          break;
+      }
+    } while (!res && !(i==-1 && cache[i+1]==0));
+  else
+    do {
+      res = eval_rec(phi, interp, struc);
+      for (i=tc_size-1; i>=0; i--)
+      {
+        if ((cache[i]=cache[i]^1))
+          break;
+      }
+    } while (!res && !(i==-1 && cache[i+1]==0));
+  free(cache);
+  interp->rel_symbols = sov->next;
+  free(sov);
+  return res;
 }
-	
+
 int eval_forall(struct node *form, struct interp *interp, 
-		const struct structure *struc)
+    const struct structure *struc)
 {
-	struct node *not = node(NOT, form->r, 0);
-	int res=0;
-	if (!not)
-		return -1;
-	form->r=not;
-	form->label = EXISTS;
-	
-	res = !eval_exists(form,interp,struc);
+  struct node *not = node(NOT, form->r, 0);
+  int res=0;
+  if (!not)
+    return -1;
+  form->r=not;
+  form->label = EXISTS;
 
-	form->r = not->l;
-	form->label = FORALL;
-	free(not);
+  res = !eval_exists(form,interp,struc);
 
-	return res;
+  form->r = not->l;
+  form->label = FORALL;
+  free(not);
+
+  return res;
 }
 
 int eval_exists(struct node *form, struct interp *interp, 
-		const struct structure *struc)
+    const struct structure *struc)
 {
-	char **varnames;
-	int size=struc->size;
-	int arity=0;
-	int i;
-	int res=0;
+  char **varnames;
+  int size=struc->size;
+  int arity=0;
+  int i;
+  int res=0;
 
-	struct node *restr = form->l->r;
-	struct node *varlist = form->l->l;
-	struct node *phi = form->r;
-	struct node *tnode=varlist;
-	int *first;
-	int *old_values;
-	int **values;
+  struct node *restr = form->l->r;
+  struct node *varlist = form->l->l;
+  struct node *phi = form->r;
+  struct node *tnode=varlist;
+  int *first;
+  int *old_values;
+  int **values;
 
-	while (tnode)
-	{
-		arity++;
-		tnode = tnode->r;
-	}
+  while (tnode)
+  {
+    arity++;
+    tnode = tnode->r;
+  }
 
-	old_values = malloc(arity*(sizeof(int)+sizeof(int *)+sizeof(char *)));
-	values = (int **)(old_values+arity);
-	varnames = (char **)(values+arity);
+  old_values = malloc(arity*(sizeof(int)+sizeof(int *)+sizeof(char *)));
+  values = (int **)(old_values+arity);
+  varnames = (char **)(values+arity);
 
-	tnode = varlist;
+  tnode = varlist;
 
-	for (i=0; i<arity; i++)
-	{
-		varnames[i]=tnode->data;
-		values[i]=tnode->ival;
-		old_values[i]=*(values[i]);
-		*(values[i])=0;
-		tnode = tnode->r;
-	}
+  for (i=0; i<arity; i++)
+  {
+    varnames[i]=tnode->data;
+    values[i]=tnode->ival;
+    old_values[i]=*(values[i]);
+    *(values[i])=0;
+    tnode = tnode->r;
+  }
 
-	first = values[0];
-	*first = -1;
-	
-	if (restr)
-	    while (1)
-	    {
-		(*first)++;
-		if (*first>=size)
-		{
-			*first=0;
-			for (i=1; i<arity; i++)
-			{
-				res = ++(*values[i]);
-				if (res < size)
-					break;
-				res=(*values[i]) = 0;
-			}
-			if (!res && i==arity)
-				break;
-		}
-			
-		res = eval_rec(restr, interp, struc);
-		if (res)
-			res = eval_rec(phi,interp,struc);
+  first = values[0];
+  *first = -1;
 
-		/* TODO res==-1 error catching */
+  if (restr)
+    while (1)
+    {
+      (*first)++;
+      if (*first>=size)
+      {
+        *first=0;
+        for (i=1; i<arity; i++)
+        {
+          res = ++(*values[i]);
+          if (res < size)
+            break;
+          res=(*values[i]) = 0;
+        }
+        if (!res && i==arity)
+          break;
+      }
 
-		if (res) /* found one */
-		{
-			for (i=0; i<arity; i++)
-				*(values[i])=old_values[i];
-			/* free(vartuple); */
-			free(old_values);
-			/* free(values); */
-			/* free(varnames); */
-			return 1;
-		}
-	   }
-	else /* !restr */
-            while (1)
-            {
-		(*first)++;
-                if (*first>=size)
-                {
-                        *first=0;
-                        for (i=1; i<arity; i++)
-                        {
-                                res = ++(*values[i]);
-                                if (res < size)
-                                        break;
-                                res=(*values[i]) = 0;
-                        }
-                        if (!res && i==arity)
-                                break;
-                }
+      res = eval_rec(restr, interp, struc);
+      if (res)
+        res = eval_rec(phi,interp,struc);
 
-                res = eval_rec(phi,interp,struc);
+      /* TODO res==-1 error catching */
 
-                /* TODO res==-1 error catching */
+      if (res) /* found one */
+      {
+        for (i=0; i<arity; i++)
+          *(values[i])=old_values[i];
+        /* free(vartuple); */
+        free(old_values);
+        /* free(values); */
+        /* free(varnames); */
+        return 1;
+      }
+    }
+  else /* !restr */
+    while (1)
+    {
+      (*first)++;
+      if (*first>=size)
+      {
+        *first=0;
+        for (i=1; i<arity; i++)
+        {
+          res = ++(*values[i]);
+          if (res < size)
+            break;
+          res=(*values[i]) = 0;
+        }
+        if (!res && i==arity)
+          break;
+      }
 
-                if (res) /* found one */
-                {
-			for (i=0; i<arity; i++)
-                                *(values[i])=old_values[i];
-			/* free(values); */
-			free(old_values);
-                        /* free(varnames); */
-                        return 1;
-                }
-           }
+      res = eval_rec(phi,interp,struc);
+
+      /* TODO res==-1 error catching */
+
+      if (res) /* found one */
+      {
+        for (i=0; i<arity; i++)
+          *(values[i])=old_values[i];
+        /* free(values); */
+        free(old_values);
+        /* free(varnames); */
+        return 1;
+      }
+    }
 
 
-	for (i=0; i<arity; i++)
-		*(values[i])=old_values[i];
-	/* free(values); */
-	free(old_values);
-	/* free(varnames); */
-	return 0;
+  for (i=0; i<arity; i++)
+    *(values[i])=old_values[i];
+  /* free(values); */
+  free(old_values);
+  /* free(varnames); */
+  return 0;
 }
 
 int eval_pred(struct node *form, struct interp *interp, const struct structure *struc)
 {
-	struct relation *rel;
-	int arity, i, res;
-	int *tup;
-	int size;
-	int num;
-	struct node *relargs;
-	int *old_values;	
-	int **values;
+  struct relation *rel;
+  int arity, i, res;
+  int *tup;
+  int size;
+  int num;
+  struct node *relargs;
+  int *old_values;	
+  int **values;
 
-	/* get the relation definition, in struc if a real predicate,
-	 * in interp if it's a local variable that's part of a fixed-point,
-	 * or so formula.
-	 */
-	rel = get_relation(form->data, interp, struc);
-	if (!rel)
-	{
-		printf("4:Relation symbol %s is undefined\n",(char *)form->l->data);
-		return -1;
-	}
-	arity = rel->arity;
-	tup = malloc(arity * sizeof(int));
-	relargs = form->r;
-	size = struc->size;
+  /* get the relation definition, in struc if a real predicate,
+   * in interp if it's a local variable that's part of a fixed-point,
+   * or so formula.
+   */
+  rel = get_relation(form->data, interp, struc);
+  if (!rel)
+  {
+    printf("4:Relation symbol %s is undefined\n",(char *)form->l->data);
+    return -1;
+  }
+  arity = rel->arity;
+  tup = malloc(arity * sizeof(int));
+  relargs = form->r;
+  size = struc->size;
 
-	for (i=0; relargs && i<arity; i++)
-	{
-		tup[i] = teval(relargs->l, interp, struc);
-		if (tup[i]>=struc->size || tup[i]<0)
-		{
+  for (i=0; relargs && i<arity; i++)
+  {
+    tup[i] = teval(relargs->l, interp, struc);
+    if (tup[i]>=struc->size || tup[i]<0)
+    {
 #ifdef DEBUG
-			printf("d: %dth argument to %s out of range\n",i,rel->name);
+      printf("d: %dth argument to %s out of range\n",i,rel->name);
 #endif
-			free(tup);
-			return 0; /* out of range means false      */
-				  /* TODO should still check arity */
-		}
-		relargs = relargs->r;
-	}
-	if (relargs || i!=arity)
-	{
-		printf("6: Relation symbol %s used with incorrect arity\n",rel->name);
-		free(tup);
-		return -1;
-	}
+      free(tup);
+      return 0; /* out of range means false      */
+      /* TODO should still check arity */
+    }
+    relargs = relargs->r;
+  }
+  if (relargs || i!=arity)
+  {
+    printf("6: Relation symbol %s used with incorrect arity\n",rel->name);
+    free(tup);
+    return -1;
+  }
 
-	if (rel->cache)
-	{
-		num = tuple_cindex(tup, arity, size);
-		if (rel->cache[num]>=0)
-		{
-			free(tup);
-			return rel->cache[num];
-		}
-	}
+  if (rel->cache)
+  {
+    num = tuple_cindex(tup, arity, size);
+    if (rel->cache[num]>=0)
+    {
+      free(tup);
+      return rel->cache[num];
+    }
+  }
 
-	old_values = malloc((sizeof(int)+sizeof(int *))*arity);
-	/* instead of two small mallocs, cast for clarity */
-	values = (int **)(old_values+arity);
+  old_values = malloc((sizeof(int)+sizeof(int *))*arity);
+  /* instead of two small mallocs, cast for clarity */
+  values = (int **)(old_values+arity);
 
-	for (i=0; i<arity; i++)
-	{
-		values[i] = get_xi_ival(i+1,interp);
-		old_values[i] = *(values[i]);
-		*(values[i]) = tup[i];
-	}
+  for (i=0; i<arity; i++)
+  {
+    values[i] = get_xi_ival(i+1,interp);
+    old_values[i] = *(values[i]);
+    *(values[i]) = tup[i];
+  }
 
-	res = eval_rec(rel->parse_cache, interp, struc);
+  res = eval_rec(rel->parse_cache, interp, struc);
 
-	for (i=0; i<arity; i++)
-		*(values[i]) = old_values[i];
+  for (i=0; i<arity; i++)
+    *(values[i]) = old_values[i];
 
-	if (rel->cache)
-	{
-		num = tuple_cindex(tup, arity, size);
-		rel->cache[num]=res;
-	}
-	free(tup);
-	free(old_values);
-	return res;
+  if (rel->cache)
+  {
+    num = tuple_cindex(tup, arity, size);
+    rel->cache[num]=res;
+  }
+  free(tup);
+  free(old_values);
+  return res;
 }
 
 int teval(struct node *form, struct interp *interp, const struct structure *struc)
 {
-	int l, r;
-	struct node *forml, *formr;
+  int l, r;
+  struct node *forml, *formr;
 #if 0 /* this really should never happen */
-	char *name;
-	int value;
-	if (!form)
-		return -1;
+  char *name;
+  int value;
+  if (!form)
+    return -1;
 #endif
-	switch (form->label)
-	{
-		case CONSTANT:
-                case VAR:
-			return *(form->ival);
+  switch (form->label)
+  {
+    case CONSTANT:
+    case VAR:
+      return *(form->ival);
 #if 0 /* none of that should ever happen */
-                        name = (char *)form->data;
-                        /* max, but NULL struc may be used in redfind.
-                         * we'll add it to the interpretation in that case.
-                         */
-                        if (form->ival)
-                                return *(form->ival);
-                        if (!strcmp(name,"max") && struc)
-                                return struc->size-1;
-                        value = get_interp_value(name,interp);
-                        if (value<0)
-                        {
-                                printf("9:Symbol %s not in interpretation.\n",name);
-                                return -1;
-                        }
-                        return value;
+      name = (char *)form->data;
+      /* max, but NULL struc may be used in redfind.
+       * we'll add it to the interpretation in that case.
+       */
+      if (form->ival)
+        return *(form->ival);
+      if (!strcmp(name,"max") && struc)
+        return struc->size-1;
+      value = get_interp_value(name,interp);
+      if (value<0)
+      {
+        printf("9:Symbol %s not in interpretation.\n",name);
+        return -1;
+      }
+      return value;
 #endif
-		case NUMBER:
-                        return form->ndata;
+    case NUMBER:
+      return form->ndata;
 
-		case MULT:
-			setlr();
-			return l*r;
-		case PLUS:
-			setlr();
-			return l+r;
-		case MINUS:
-			setlr();
-			return l-r;
-		default:
-			return -1;
-	}
+    case MULT:
+      setlr();
+      return l*r;
+    case PLUS:
+      setlr();
+      return l+r;
+    case MINUS:
+      setlr();
+      return l-r;
+    default:
+      return -1;
+  }
 
 }
 
 /* free the TC caches in form */
 void free_tc_caches(struct node *form)
 {
-        switch (form->label)
-        {
-		case NOT:
-			free_tc_caches(form->l);
-			return;
-		case AND:
-		case OR:
-		case IMPLIES:
-		case IFF:
-		case XOR:
-			free_tc_caches(form->l);
-			free_tc_caches(form->r);
-			return;
-		case EXISTS:
-		case FORALL:
-		case SOE:
-			if (form->l->r)
-				free_tc_caches(form->l->r);
-			free_tc_caches(form->r);
-			return;
-		case TC:
-			free(form->data);
-			form->data = 0;
-			return;
-		case TRUE:
-		case FALSE:
-		case LT:
-		case LTE:
-		case NEQUALS:
-		case EQUALS:
-		case PRED:
-		case IFP:
-		default:
-			return;
-	}
+  switch (form->label)
+  {
+    case NOT:
+      free_tc_caches(form->l);
+      return;
+    case AND:
+    case OR:
+    case IMPLIES:
+    case IFF:
+    case XOR:
+      free_tc_caches(form->l);
+      free_tc_caches(form->r);
+      return;
+    case EXISTS:
+    case FORALL:
+    case SOE:
+      if (form->l->r)
+        free_tc_caches(form->l->r);
+      free_tc_caches(form->r);
+      return;
+    case TC:
+      free(form->data);
+      form->data = 0;
+      return;
+    case TRUE:
+    case FALSE:
+    case LT:
+    case LTE:
+    case NEQUALS:
+    case EQUALS:
+    case PRED:
+    case IFP:
+    default:
+      return;
+  }
 }
