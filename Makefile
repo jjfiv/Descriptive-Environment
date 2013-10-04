@@ -1,11 +1,8 @@
-# 'make depend' uses makedepend to automatically generate dependencies 
-#               (dependencies are added to end of Makefile)
 # 'make'        build executable file 'mycc'
 # 'make clean'  removes all .o and executable files
 #
 
-#CC = c89
-#CXX = CC
+SHELL:=/bin/bash
 
 ####### start of reduction-finding options #######
 
@@ -45,8 +42,13 @@ REDFIND_FV_0max = 1 #if REDFIND_FEWVARS is also set, re-enables literals "x=0"
 ####### end of reduction-finding options #######
 
 #Linux, gcc
+ifdef CLANG
+CC = clang
+CXX = clang++
+else
 CC = gcc
 CXX = g++
+endif
 WCFLAGS = -Wextra -ansi -pedantic
 
 OCFLAGS = -O3 -fomit-frame-pointer #-g #-pg#-s 
@@ -131,7 +133,8 @@ OBJS = $(SRCS:.c=.o)
 # define the executable file 
 MAIN = de 
 
-.PHONY: depend clean
+.PHONY: clean all
+.DEFAULT: all
 
 all:	$(MAIN)
 
@@ -146,7 +149,7 @@ $(SATBIND_LIB): $(SAT_LIB) $(SAT_HEADER)
 	$(MAKE) -C ./extern/minisat-c lr MINISAT_LIB=../../$(MINISAT_LIB)
 
 
-$(MAIN):   $(SAT) $(SATBIND_LIB) $(OBJS)
+$(MAIN): $(SAT) $(SATBIND_LIB) lex.yy.c $(OBJS)
 	$(CXX) $(CFLAGS) $(INCLUDES) -o $(MAIN) ${OBJS} $(LPATH) $(LIBS) 
 
 .cpp.o:
@@ -175,8 +178,5 @@ clean:
 	$(RM) -rf ./extern/minisat2/build
 	$(RM) -rf ./extern/minisat-c/build
 	$(RM) -rf ./extern/minisat-c/minisat
+	$(RM) -rf y.tab.c y.tab.h lex.yy.c
 
-depend: $(SRCS)
-	makedepend $(INCLUDES) $^
-
-# DO NOT DELETE THIS LINE -- make depend needs it
