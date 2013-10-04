@@ -1,3 +1,9 @@
 [submodule "extern/cmsat"]
 	path = extern/cmsat
 	url = git@github.com:msoos/cryptominisat.git
+[submodule "extern/minisat2"]
+	path = extern/minisat2
+	url = git@github.com:niklasso/minisat
+[submodule "extern/minisat-c"]
+	path = extern/minisat-c
+	url = git@github.com:niklasso/minisat-c-bindings

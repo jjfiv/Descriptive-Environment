@@ -105,7 +105,6 @@ int do_cmd(struct node *command)
 		case REDFIND:
 			return do_redfind(command);
 		case FD:
-			return do_fd(command);
                 default:
                         printf("1: Unrecognized command (%d)\n",command->label);
                         return 0;

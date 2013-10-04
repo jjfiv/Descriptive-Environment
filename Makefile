@@ -7,13 +7,7 @@
 #CC = c89
 #CXX = CC
 
-### a MiniSat2-compatible solver is required. 
-  # CryptoMiniSat seems to be the most alive - jjfiv f2013
-CRYPTOMINISAT = 1 #use CryptoMiniSat 2.9.5 *instead* of MiniSat2
-
 ####### start of reduction-finding options #######
-####### note that the choice of MiniSat2-compatible solver affects
-####### reduction-finding
 
 #REDFIND_DEBUG = 1#comment out to exclude redfind debugging output
 #REDFIND_DEBUG2 = 1#comment out to exclude extra redfind debugging output
@@ -82,19 +76,13 @@ OCFLAGS += -DREDFIND_OLDRANGE
 endif
 
 ifdef REDFIND_MINEX
-ifndef CRYPTOMINISAT
 OCFLAGS += -DRF_minex=1 -DREDFIND_EXIMPROVE
-endif
 else
-ifdef REDFIND_MAXEX
 ifndef CRYPTOMINISAT
 OCFLAGS += -DRF_maxex=1 -DREDFIND_EXIMPROVE
-endif
 else
 ifdef REDFIND_ALTEX
-ifndef CRYPTOMINISAT
 OCFLAGS += -DRF_altex=1 -DREDFIND_EXIMPROVE
-endif
 endif
 endif
 endif
@@ -123,21 +111,18 @@ CFLAGS = ${CFL} ${WCFLAGS} -Wall
 
 INCLUDES = -Iinclude  -I.
 
-#LFLAGS = -L../lib
-
-ifdef CRYPTOMINISAT
-LIBS = -L./cmsat/build/release/lib -lminisat-c ./cmsat/cmsat/cmsat/.libs/libcryptominisat.a -lz -fopenmp
-else
-LIBS = -L./minisat2/build/release/lib -lminisat-c -L./minisat2/minisat/build/release/lib/ -lminisat -lm #pow
-endif
-endif
+SAT_LIB:=./extern/minisat2/build/release/lib/libminisat.a
+SATBIND_LIB:=./extern/minisat-c/build/release/lib/libminisat-c.a
+SAT_HEADER:=./extern/minisat-c/minisat/simp/SimpSolver.h
+LPATH= -L$(dir $(SATBIND_LIB)) -L$(dir $(SAT_LIB))
+LIBS = -lminisat-c -lminisat -lm #pow
 
 # define the C source files
 
-EXTERN_SRCS := extern/minisat/solver.c \
-	             extern/limboole/limboole.c
+EXTERN_SRCS := extern/limboole/limboole.c solver/solver.c
 
 CORE_SRCS := y.tab.c lex.yy.c 
+REDFIND_SOURCE := redfind/redfind.c
 
 SRCS = reduc/reduc.c cmd/cmd.c file/file.c hash/hash.c init/init.c parse/parse.c env/env.c help/help.c logic/eval.c test/main.c logic/interp.c logic/relation.c util/util.c logic/constant.c logic/tuple.c mace/usemace.c redfind/getex.c ${REDFIND_SOURCE} logic/check.c ${CORE_SRCS} ${EXTERN_SRCS}
 
@@ -146,46 +131,23 @@ OBJS = $(SRCS:.c=.o)
 # define the executable file 
 MAIN = de 
 
-ifdef GLUEMINISAT
-SATBIND = ./glueminisat/build/release/lib/libminisat-c.a
-SAT = ./glueminisat/minisat/build/release/lib/libglueminisat.a
-else
-ifdef CRYPTOMINISAT
-SATBIND = ./cmsat/build/release/lib/libminisat-c.a 
-SAT = ./cmsat/cmsat/cmsat/.libs/libcryptominisat.a 
-else
-SATBIND = ./extern/minisat2/build/release/lib/libminisat-c.a
-SAT = ./extern/minisat2/minisat/build/release/lib/libminisat.a
-endif
-endif
-
 .PHONY: depend clean
 
-all:	${CUDD}  $(MAIN)
+all:	$(MAIN)
 
-./cmsat/build/release/lib/libminisat-c.a:
-	cd cmsat; ${MAKE} static; cd ..
+# copy minisat2 headers to minisat-c
+$(SAT_HEADER): $(SAT_LIB)
+	cp -R ./extern/minisat2/minisat ./extern/minisat-c/minisat
 
-./cmsat/cmsat/cmsat/.libs/libcryptominisat.a:
-	cd cmsat/cmsat; ./configure; ${MAKE}; cd ../..
+$(SAT_LIB):
+	$(MAKE) -C ./extern/minisat2
 
-./glueminisat/build/release/lib/libminisat-c.a:
-	cd glueminisat; ${MAKE} static; cd ..
+$(SATBIND_LIB): $(SAT_LIB) $(SAT_HEADER)
+	$(MAKE) -C ./extern/minisat-c lr MINISAT_LIB=../../$(MINISAT_LIB)
 
-./extern/minisat2/build/release/lib/libminisat-c.a:   
-	cd minisat2; ${MAKE} static; cd ..
 
-./extern/minisat2/minisat/build/release/lib/libminisat.a:
-	cd minisat2/minisat; ${MAKE} lr; cd ../..
-
-./glueminisat/minisat/build/release/lib/libglueminisat.a:
-	cd glueminisat/minisat; ${MAKE} lr; cd ../..
-
-./cudd/cudd/libcudd.a:
-	cd cudd; ${MAKE}; cd ..
-
-de:   $(CUDD) $(SAT) $(SATBIND) $(OBJS)
-	$(CXX) $(CFLAGS) $(INCLUDES) -o $(MAIN) ${OBJS} $(LFLAGS) $(LIBS) 
+$(MAIN):   $(SAT) $(SATBIND_LIB) $(OBJS)
+	$(CXX) $(CFLAGS) $(INCLUDES) -o $(MAIN) ${OBJS} $(LPATH) $(LIBS) 
 
 .cpp.o:
 	${CXX} ${CFLAGS} $(INCLUDES) -o ${<:.cpp=.o} -c $<
@@ -209,10 +171,10 @@ lex.yy.o: lex.yy.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o ${<:.c=.o} -c $<
 
 clean:
-	$(RM) -r ${OBJS} $(MAIN) ./redfind/redfind*.o ./extern/minisat2/build ./extern/minisat2/minisat/build ./cmsat/build ./glueminisat/build ./glueminisat/minisat/build
-	cd cudd; ${MAKE} distclean; cd ..
-	cd glueminisat/minisat; ./clean.sh; cd ../..
-	cd cmsat/cmsat; ${MAKE} distclean; cd ../..
+	$(RM) -r ${OBJS} $(MAIN) ./redfind/redfind*.o
+	$(RM) -rf ./extern/minisat2/build
+	$(RM) -rf ./extern/minisat-c/build
+	$(RM) -rf ./extern/minisat-c/minisat
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^
