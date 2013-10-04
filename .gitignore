@@ -1,7 +1,5 @@
 *.o
-cmsat/cmsat/*
-cmsat/build
-zchaff/
+build
 deps
 de
 lex.yy.c
