@@ -25,7 +25,7 @@
 #include "solver.h"
 #include "minisat.h"
 
-#define CMD_BUF_SIZE (1024 * 16)
+#define CMD_BUF_SIZE 4096
 
 void command_loop(void)
 {
