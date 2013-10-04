@@ -3,6 +3,7 @@
 #
 
 SHELL:=/bin/bash
+RM:=rm
 
 ####### start of reduction-finding options #######
 
@@ -43,15 +44,15 @@ REDFIND_FV_0max = 1 #if REDFIND_FEWVARS is also set, re-enables literals "x=0"
 
 #Linux, gcc
 ifdef CLANG
-CC = clang
-CXX = clang++
+CC := clang
+CXX := clang++
 else
-CC = gcc
-CXX = g++
+CC := gcc
+CXX := g++
 endif
-WCFLAGS = -Wextra -ansi -pedantic
+WCFLAGS:=-Wextra -ansi -pedantic
 
-OCFLAGS = -O3 -fomit-frame-pointer #-g #-pg#-s 
+OCFLAGS:=-O3 -fomit-frame-pointer
 #OCFLAGS = -O3 -g 
 #OCFLAGS = -O0 -g
 
@@ -107,39 +108,43 @@ OCFLAGS += -DREDFIND_RANDEX=$(REDFIND_RANDEX)
 endif
 
 # byacc and flex's output doesn't look good with -Wall -ansi -pedantic :P
-CFL = ${OCFLAGS}
+CFL:=${OCFLAGS}
 
-CFLAGS = ${CFL} ${WCFLAGS} -Wall 
+CFLAGS:=${CFL} ${WCFLAGS} -Wall 
 
-INCLUDES = -Iinclude  -I.
+MY_INCLUDES:=-Iinclude -Isrc
 
 SAT_LIB:=./extern/minisat2/build/release/lib/libminisat.a
 SATBIND_LIB:=./extern/minisat-c/build/release/lib/libminisat-c.a
 SAT_HEADER:=./extern/minisat-c/minisat/simp/SimpSolver.h
-LPATH= -L$(dir $(SATBIND_LIB)) -L$(dir $(SAT_LIB))
-LIBS = -lminisat-c -lminisat -lm #pow
+LPATH:= -L$(dir $(SATBIND_LIB)) -L$(dir $(SAT_LIB))
+LIBS:= -lminisat-c -lminisat -lm
 
 # define the C source files
 
 EXTERN_SRCS := extern/limboole/limboole.c extern/solver/solver.c extern/hash/hash.c 
 
-LEX_SRCS := y.tab.c lex.yy.c 
+LEX_SRCS := src/soe_parse.c src/soe_lex.c src/soe_parse.h
 REDFIND_SRCS := $(shell ls redfind/*.c)
 LOGIC_SRCS := $(shell ls logic/*.c)
-
 CORE_SRCS := $(shell ls src/*.c)
 
-SRCS := $(LOGIC_SRCS) ${REDFIND_SRCS} ${CORE_SRCS} ${EXTERN_SRCS} $(LEX_SRCS)
+SRCS := $(LOGIC_SRCS) ${REDFIND_SRCS} ${CORE_SRCS} ${EXTERN_SRCS}
 
 OBJS = $(SRCS:.c=.o)
 
 # define the executable file 
 MAIN = de 
 
-.PHONY: clean all
+.PHONY: clean all depclean generate compile
 .DEFAULT: all
 
-all:	$(MAIN)
+# generate files, and then run main
+all: generate 
+	@$(MAKE) --no-print-directory compile
+
+generate: $(LEX_SRCS) $(SATBIND_LIB)
+compile: $(MAIN)
 
 # copy minisat2 headers to minisat-c
 $(SAT_HEADER): $(SAT_LIB)
@@ -151,35 +156,32 @@ $(SAT_LIB):
 $(SATBIND_LIB): $(SAT_LIB) $(SAT_HEADER)
 	$(MAKE) -C ./extern/minisat-c lr MINISAT_LIB=../../$(MINISAT_LIB)
 
+$(MAIN): $(SATBIND_LIB) $(OBJS)
+	$(CXX) $(CFLAGS) $(MY_INCLUDES) -o $(MAIN) ${OBJS} $(LPATH) $(LIBS) 
 
-$(MAIN): $(SAT) $(SATBIND_LIB) lex.yy.c $(OBJS)
-	$(CXX) $(CFLAGS) $(INCLUDES) -o $(MAIN) ${OBJS} $(LPATH) $(LIBS) 
+# make C and C++ compiles depend on lex and yacc being run first
+%.o:%.cpp
+	${CXX} -c ${CFLAGS} $(MY_INCLUDES) $< -o $@
 
-.cpp.o:
-	${CXX} ${CFLAGS} $(INCLUDES) -o ${<:.cpp=.o} -c $<
 
-y.tab.c:
-	yacc -d soe.y
+%.o:%.c
+	$(CC) -c $(CFLAGS) $(MY_INCLUDES) $< -o $@
 
-y.tab.h:
-	yacc -d soe.y
+%.c:%.y
+	bison -d $< -o $@
 
-lex.yy.c: y.tab.h
-	lex soe.l
+%.h:%.y
+	bison -d $< -o $@
 
-y.tab.o: y.tab.c
-	${CC} ${CFL} ${INCLUDES} -c -o y.tab.o y.tab.c
+%.c:%.l
+	flex -o $@ $<
 
-lex.yy.o: lex.yy.c
-	${CC} ${CFL} ${INCLUDES} -c -o lex.yy.o lex.yy.c
-
-.c.o:
-	$(CC) $(CFLAGS) $(INCLUDES) -o ${<:.c=.o} -c $<
-
-clean:
-	$(RM) -r ${OBJS} $(MAIN) ./redfind/redfind*.o
+depclean: clean
 	$(RM) -rf ./extern/minisat2/build
 	$(RM) -rf ./extern/minisat-c/build
 	$(RM) -rf ./extern/minisat-c/minisat
-	$(RM) -rf y.tab.c y.tab.h lex.yy.c
+
+clean:
+	$(RM) -rf ${OBJS} $(MAIN)
+	$(RM) -rf $(LEX_SRCS)
 

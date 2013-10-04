@@ -34,7 +34,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 %{
-#include "y.tab.h"
+#include "soe_parse.h"
 #include <string.h>
  /*extern int yylval;*/
  /*extern YYSTYPE yylval;*/
