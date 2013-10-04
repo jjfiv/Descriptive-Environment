@@ -121,12 +121,15 @@ LIBS = -lminisat-c -lminisat -lm #pow
 
 # define the C source files
 
-EXTERN_SRCS := extern/limboole/limboole.c solver/solver.c
+EXTERN_SRCS := extern/limboole/limboole.c extern/solver/solver.c extern/hash/hash.c 
 
-CORE_SRCS := y.tab.c lex.yy.c 
-REDFIND_SOURCE := redfind/redfind.c
+LEX_SRCS := y.tab.c lex.yy.c 
+REDFIND_SRCS := $(shell ls redfind/*.c)
+LOGIC_SRCS := $(shell ls logic/*.c)
 
-SRCS = reduc/reduc.c cmd/cmd.c file/file.c hash/hash.c init/init.c parse/parse.c env/env.c help/help.c logic/eval.c test/main.c logic/interp.c logic/relation.c util/util.c logic/constant.c logic/tuple.c mace/usemace.c redfind/getex.c ${REDFIND_SOURCE} logic/check.c ${CORE_SRCS} ${EXTERN_SRCS}
+CORE_SRCS := $(shell ls src/*.c)
+
+SRCS := $(LOGIC_SRCS) ${REDFIND_SRCS} ${CORE_SRCS} ${EXTERN_SRCS} $(LEX_SRCS)
 
 OBJS = $(SRCS:.c=.o)
 
