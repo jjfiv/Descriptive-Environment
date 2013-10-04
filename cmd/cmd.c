@@ -1,4 +1,5 @@
 /*
+Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
 Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -13,34 +14,7 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-/* cmd.c
- * Skip Jordan
- *
- * Commands.
- * chj  11/14/06        created
- * chj  11/17/06        added list tuples
- * chj  11/25/06        added reductions
- * chj  11/28/06        boolean queries
- * chj  11/29/06        minisat for builtin sat queries
- * chj  12/4/06         slightly better performance for applying reductions
- * chj  12/4/06         hardcode threecolorwithsat
- * chj  12/21/06        back to C89, fixes for UNICOS
- * chj  3/8/07          sanity check new ids, tiny leaks plugged, etc
- * chj  3/9/07          option for zchaff for builtin sat queries
- * chj  3/12/07         hardcode threecolorwithchaff
- * chj  11/1/11         load
- * chj  11/3/11         save
- * chj  12/1/11         mace4
- * chj  12/5/11         draw
- * chj	 4/3/12		redfind
- * chj	 7/6/12		minisat2 versions of minisat() and threecolorwithsat()
- * chj	7/13/12		fast interpretations
- * chj	7/18/12		fast interpretations in do_apply_assign too
- * chj 11/12/12		support searching range of sizes in redfind
- * chj	1/24/13		formula distance stub
- */
 
-/*#include "logic.h"*/
 #include "parse.h"
 #include "types.h"
 #include <stdlib.h>
@@ -49,14 +23,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "protos.h"
 #define DE_MINISAT /* omit unused bits of MiniSat to avoid warnings */
 #include "solver.h"
-
-#ifdef ZCHAFF
-#include "SAT_C.h"
-#endif
-
-#ifdef MINISAT2
 #include "minisat.h"
-#endif
 
 int command_loop(void)
 {
@@ -168,18 +135,10 @@ int do_abquery_command(struct node *command)
          */
         else if (!strcmp(bname, "threecolorwithsat"))
                 return do_threecolorsat_query(struc);
-#ifdef ZCHAFF
-        else if (!strcmp(bname, "zchaff"))
-                return do_zchaff_query(struc);
-        else if (!strcmp(bname, "threecolorwithchaff"))
-                return do_threecolorchaff_query(struc);
-#endif
-#ifdef MINISAT2
 	else if (!strcmp(bname, "minisat2"))
 		return do_minisat2_query(struc);
 	else if (!strcmp(bname, "threecolorwithsat2"))
 		return do_threecolor_sat2_query(struc);
-#endif
 
         interp = new_interp(struc);
         res = eval(bq->form, interp, struc);
@@ -314,210 +273,6 @@ int do_threecolorsat_query(const struct structure *struc)
         return i;
 }
 
-#ifdef ZCHAFF
-/* Three color using ZChaff instead of MiniSAT */
-/* based on the one above */
-int do_threecolorchaff_query(const struct structure *struc)
-{
-        int i, i1, i2;
-        int j;
-        int n=struc->size;
-        struct interp *interp=new_interp(struc);
-        int *iv, *jv;
-        struct node *e;
-        int ii, jj;
-        int r;
-        struct relation *er=get_relation("E",NULL,struc);
-        int *ec = er->cache;
-        int clause[3];
-        SAT_Manager *solver = SAT_InitManager();
-        enum SAT_StatusT eres;
-
-        if (!solver)
-        {
-                err("24: Error, insufficient memory\n");
-                return -1;
-        }
-
-        SAT_SetNumVariables(solver, 3*n);
-        e = er->parse_cache;
-
-        i1 = n;
-        i2 = 2*n;
-        /* P */
-        for (i=1; i<=n; i++)
-        {
-                clause[0]=(i<<1);
-                clause[1]=(i+i1)<<1;
-                clause[2]=(i+i2)<<1;
-                SAT_AddClause(solver, clause, 3, 0);
-        }
-        interp = add_symb_to_interp(interp, "x1", 0);
-        interp = add_symb_to_interp(interp, "x2", 0);
-        jv = &(interp->symbols->value);
-        iv = &(interp->symbols->next->value);
-        /* N */
-        /* same tricks as above */
-        for (i=ii=0; i<n; i++,ii+=n)
-        {
-                *iv = i;
-                for (j=jj=i; j<n; j++,jj+=n)
-                {
-                        r = ec[ii+j];
-                        if (r==1 || (r==-1 && (*jv=j,eval(e,interp,struc))))
-                        {
-                                clause[0]=(i<<1)+1;
-                                clause[1]=(j<<1)+1;
-                                SAT_AddClause(solver, clause, 2, 0);
-                                clause[0]+=(i1<<1);
-                                clause[1]+=(i1<<1);
-                                SAT_AddClause(solver, clause, 2, 0);
-                                clause[0]=((i+i2)<<1)+1;
-                                clause[1]=((j+i2)<<1)+1;
-                                SAT_AddClause(solver, clause, 2, 0);
-                        }
-                        if (i==j)
-                                continue;
-                        r = ec[jj+i];
-                        if (r==1 || (r==-1 && (*iv=j,*jv=i,eval(e,interp,struc))))
-                        {
-                                clause[0]=(i<<1)+1;
-                                clause[1]=(j<<1)+1;
-                                SAT_AddClause(solver, clause, 2, 0);
-                                clause[0]+=(i1<<1);
-                                clause[1]+=(i1<<1);
-                                SAT_AddClause(solver, clause, 2, 0);
-                                clause[0]=((i+i2)<<1)+1;
-                                clause[1]=((j+i2)<<1)+1;
-                                SAT_AddClause(solver, clause, 2, 0);
-                        }
-                        *iv=i;
-                }
-        }
-
-        free_interp(interp);
-        eres = SAT_Solve(solver);
-        SAT_ReleaseManager(solver);
-        switch (eres)
-        {
-                case SATISFIABLE:
-                        printf(":\\t\n");
-                        return 1;
-                case UNSATISFIABLE:
-                        printf(":\\f\n");
-                        return 0;
-                case UNDETERMINED:
-                        printf(":\\?\n");
-                        return -1;
-                case TIME_OUT:
-                        err("24:Error, ZCHAFF time out\n");
-                        return -1;
-                case MEM_OUT:
-                        err("25:Error, ZCHAFF memory out\n");
-                        return -1;
-                case ABORTED:
-                        err("26:Error, ZCHAFF aborted\n");
-                        return -1;
-                default:
-                        err("27:Novel, undefined ZCHAFF error!\n");
-                        return -1;
-        }
-        return -1;
-}
-
-int do_zchaff_query(const struct structure *struc)
-{
-        int c,v,q;
-        int size;
-        struct interp *interp;
-        int res;
-        int i;
-        struct relation *pr = get_relation("P",NULL,struc);
-        struct relation *nr = get_relation("N",NULL,struc);
-        struct node *p=pr->parse_cache;
-        struct node *n=nr->parse_cache;
-        int *pc = pr->cache;
-        int *nc = nr->cache;
-        int *clause;
-        SAT_Manager *solver = SAT_InitManager();
-        enum SAT_StatusT eres;
-        size = struc->size;
-        clause = malloc(sizeof(int)*size);
-        SAT_SetNumVariables(solver, size);
-
-        if (!solver || !clause)
-        {
-                err("23: Error, insufficient memory\n");
-                /* TODO free as needed */
-                return -1;
-        }
-
-        interp = new_interp(struc);
-        interp = add_symb_to_interp(interp, "x2", 0);
-        interp = add_symb_to_interp(interp, "x1", 0);
-        i = -1;
-
-        /* for each clause */
-        for (c=0; c<size; c++)
-        {
-                q=0;
-                interp->symbols->value = c; /* set x1 */
-                for (v=0; v<size; v++)
-                {
-                        i++;
-                        interp->symbols->next->value = v; /* set x2 */
-                        if ((res=pc[i])==-1) /* uncached */
-                                res = eval(p, interp, struc);
-                        if (res)
-                        {
-                                clause[q++] = (v+1)<<1;
-                                continue;
-                        }
-
-                        if ((res=nc[i])==-1)
-                                res = eval(n, interp, struc);
-                        if (res)
-                        {
-                                clause[q++] = ((v+1)<<1)+1;
-                        }
-                }
-                if (!q)
-                        continue;
-                SAT_AddClause(solver, clause, q, 0);
-        }
-        free_interp(interp);
-        free(clause);
-        eres = SAT_Solve(solver);
-        SAT_ReleaseManager(solver);
-        switch (eres)
-        {
-                case SATISFIABLE:
-                        printf(":\\t\n");
-                        return 1;
-                case UNSATISFIABLE:
-                        printf(":\\f\n");
-                        return 0;
-                case UNDETERMINED:
-                        printf(":\\?\n");
-                        return -1;
-                case TIME_OUT:
-                        err("24:Error, ZCHAFF time out\n");
-                        return -1;
-                case MEM_OUT:
-                        err("25:Error, ZCHAFF memory out\n");
-                        return -1;
-                case ABORTED:
-                        err("26:Error, ZCHAFF aborted\n");
-                        return -1;
-                default:
-                        err("27:Novel, undefined ZCHAFF error!\n");
-                        return -1;
-        }
-        return -1;
-}
-#endif /* #ifdef ZCHAFF */
-
-#ifdef MINISAT2
 /* based on do_minisat_query */
 int do_minisat2_query(const struct structure *struc)
 {
@@ -714,7 +469,6 @@ int do_threecolor_sat2_query(const struct structure *struc)
 	printf(i==1?":\\t\n":":\\f\n");
         return i;
 }
-#endif /* #ifdef MINISAT2 */
 
 /* TODO ALL MY SAT STUFF ASSUMES NO LIT OCCURS BOTH POS AND NEG IN SAME CLAUSE */
 int do_minisat_query(const struct structure *struc)
@@ -1704,3 +1458,4 @@ int do_mace(struct node *command)
 		clock = command->r->r->ndata;
 	return usemace(form,vocab, command->l->data, clock);
 }
+

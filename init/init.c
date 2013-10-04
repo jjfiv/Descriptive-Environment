@@ -1,4 +1,5 @@
 /*
+Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
 Copyright (c) 2006-2012, Charles Jordan <skip@alumni.umass.edu>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -13,13 +14,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-/* init.c
- * Skip Jordan
- *
- * Initialize the environment.
- * chj	11/14/06	created
- * chj	 3/12/07	zchaff
- */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,14 +45,8 @@ int init_env(void)
 	INIT_COMMAND("minisat is new bquery{sat, \\t}.\n");
 	INIT_COMMAND("graph is new vocabulary{E:2,s,t}.\n");
 	INIT_COMMAND("threecolorwithsat is new bquery{graph, \\t}.\n");
-#ifdef ZCHAFF
-	INIT_COMMAND("zchaff is new bquery{sat, \\t}.\n");
-	INIT_COMMAND("threecolorwithchaff is new bquery{graph, \\t}.\n");
-#endif
-#ifdef MINISAT2
 	INIT_COMMAND("minisat2 is new bquery{sat, \\t}.\n");
 	INIT_COMMAND("threecolorwithsat2 is new bquery{graph, \\t}.\n");
-#endif
 	
 	return 1;
 }

@@ -97,10 +97,6 @@ The following builtins are available:
    MiniSat-2 compatible solvers (MiniSat-2, GlueMiniSat and CryptoMiniSat
    are compile-time choices).
  - help is (an as of yet unhelpful) command (help.)
- - zchaff is a boolean query on structures with vocabulary sat that uses the
-   ZChaff SAT solver.  However, redistribution of ZChaff is forbidden, so you
-   must place the source in ./zchaff/ and define ZCHAFF when compiling to
-   enable this.
 Examples are in the "tests" file.
 
 I welcome questions and comments, skip@ist.hokudai.ac.jp

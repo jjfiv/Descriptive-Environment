@@ -79,10 +79,6 @@ ntc100 is new structure{graph,100, E:2 is (x1=76 & x2=79) | ~\E x:(x2=x1+3*x|x1=
 
 tc1000  is new structure{graph,1000, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
 ntc1000 is new structure{graph,1000, E:2 is (x1=76 & x2=79) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-threecolorwithchaff(tc1000).
-threecolorwithchaff(tc100).
-threecolorwithchaff(ntc100).
-threecolorwithchaff(ntc1000).
 threecolorwithsat(tc1000).
 threecolorwithsat(tc100).
 threecolorwithsat(ntc100).
@@ -93,7 +89,6 @@ cliquetosat is new reduction{clique,sat,4, x1<k&x2<k, P:2 is x1=0&x2=0&x3=0&x4<k
 k5 is new structure{clique, 5, E:2 is \t, s is 0, t is 4, k is 3}.
 s5 is cliquetosat(k5).
 minisat(s5).
-zchaff(s5).
 
 sattoclique is new reduction{sat, clique, 3, (x3<=2)|(x1=1&x2=1&x3=3), E:2 is (x1!=x4 & x3<3 & x6<3 & (x2=x5-> x3=x6))|((x3=3&x6=1)&P(x4,x5))|((x3=3&x6=2)&N(x4,x5)), s is x1=0 & x2=0 & x3=0, t is x1=0 & x2=1 & x3=0, k is x1=0 & x2=1 & x3=0}.
 kclique is new bquery{clique, \E R:2.\A x, y, z : ((R(x,y)&R(z,y))->x=z):\Aw,x,y,z.(R(w,y)&R(x,z)):((w!=x&y<k&z<k)->E(w,x))}.

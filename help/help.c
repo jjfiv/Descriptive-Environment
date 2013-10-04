@@ -1,4 +1,5 @@
 /*
+Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
 Copyright (c) 2006-2011, Charles Jordan <skip@alumni.umass.edu>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -13,14 +14,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-/* help.c
- * Skip Jordan
- *
- * Gives help to the user
- * chj	11/14/06	created
- * chj	12/7/11		added a little from the README
- * chj   6/15/12	unify MiniSAT->MiniSat
- */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,10 +33,6 @@ int do_help(const char *inp)
 "   vocabulary sat that uses the MiniSat SAT solver.\n"
 " - threecolorwithsat is a boolean query on graphs using\n" 
 "   a reduction to sat and the MiniSat SAT solver.\n"
-#ifdef ZCHAFF
-" - zchaff is a boolean query on structures with\n"
-"   vocabulary sat that uses the zChaff SAT solver.\n"
-#endif
 "\n"
 "Type \"quit\" to quit.\n"
 "See the README, and the paper and file \"tests\" for examples.\n\n");

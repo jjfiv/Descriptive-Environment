@@ -1,4 +1,5 @@
 /*
+Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
 Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -13,12 +14,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
-/* protos.h
- * Skip Jordan
- *
- * Prototypes to remove warnings when compiling with -Wall.
- * chj	11/16/06	created
- */
 
 #include "types.h"
 #include <stdio.h> /* for FILE * */
@@ -47,16 +42,10 @@ extern int do_listtuple_command(struct node *);
 extern int do_apply_assign(struct node *);
 extern int do_bquery_assign(struct node *);
 extern int do_abquery_command(struct node *);
-#ifdef ZCHAFF
-extern int do_zchaff_query(const struct structure *);
-extern int do_threecolorchaff_query(const struct structure *);
-#endif
 extern int do_minisat_query(const struct structure *);
 extern int do_threecolorsat_query(const struct structure *);
-#ifdef MINISAT2
 extern int do_minisat2_query(const struct structure *);
 extern int do_threecolor_sat2_query(const struct structure *);
-#endif
 extern int do_mace(struct node *);
 extern int do_fd(struct node *);
 extern int do_redfind(struct node *);
@@ -163,9 +152,6 @@ extern void yy_delete_buffer(void *);
 
 /* redfind.c */
 extern int redfind(const struct bquery *,const struct bquery *,int,int,int,int);
-
-/* fd.c */
-extern int fdistance(struct structure *, struct structure *, int, int, int);
 
 /* usemace.c */
 extern int usemace(struct node *, struct vocab *, char *, int);
