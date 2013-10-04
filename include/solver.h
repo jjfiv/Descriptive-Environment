@@ -22,8 +22,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef solver_h
 #define solver_h
 
-#define inline /* C89 compliance */
-
 #if 0
 #ifdef _WIN32
 #define inline __inline /* compatible with MS VS 6.0 */

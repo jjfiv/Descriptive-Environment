@@ -1,3 +1,6 @@
+#ifndef _DE_PROTOS_H
+#define _DE_PROTOS_H
+
 /*
    Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
    Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
@@ -30,7 +33,7 @@ int yyparse(void);
 #define numdigits(i) (i==0?1:floor(log10(i))+1)
 
 /* cmd.c */
-extern int command_loop(void);
+extern void command_loop(void);
 extern int do_cmd(struct node *);
 extern int do_assign_command(struct node *);
 extern int do_vocab_assign(struct node *);
@@ -165,3 +168,6 @@ extern int need_arithmetic(struct node *);
 extern char *dupstr(const char *);
 extern long de_pow(int x, short p);
 extern struct list *free_list(struct list *);
+
+#endif
+

@@ -1,4 +1,7 @@
+#ifndef _PARSE_H
+#define _PARSE_H
 /*
+   Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
    Copyright (c) 2006-2011, Charles Jordan <skip@alumni.umass.edu>
 
    Permission to use, copy, modify, and/or distribute this software for any
@@ -42,4 +45,6 @@ struct node *vlnode(int, char*, struct node *);
 struct node *qnode(int, struct node*, struct node*, struct node*);
 struct node *arg_node(int, struct node *);
 struct node *fournode(int, struct node*, struct node*, struct node*, struct node*);
+
+#endif
 

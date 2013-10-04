@@ -23,16 +23,49 @@
  */
 
 #include "parse.h"
-/* #include "eval.h" */
 #include <stdio.h>
 #include "protos.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "types.h"
+#include <string.h>
+#include "protos.h"
+#include "types.h"
+#include "parse.h"
+
+
+#define INIT_COMMAND(s) \
+  bufstate = yy_scan_string(s); \
+yyparse(); \
+do_cmd(cmdtree->l); \
+yy_delete_buffer(bufstate)
+
+int init_env(void)
+{
+  void *bufstate;
+  printf("Welcome to the DescriptiveEnvironment (DE).\n");
+
+  cur_env = malloc(sizeof(struct env));
+  if (!cur_env)
+    return 0;
+
+  cur_env->id_hash = hash_create(MAX_IDS, (hash_comp_t)strcmp, 0);	
+  cur_env->next_id=0;
+  INIT_COMMAND("sat is new vocabulary{P:2, N:2}.\n");
+  INIT_COMMAND("minisat is new bquery{sat, \\t}.\n");
+  INIT_COMMAND("graph is new vocabulary{E:2,s,t}.\n");
+  INIT_COMMAND("threecolorwithsat is new bquery{graph, \\t}.\n");
+  INIT_COMMAND("minisat2 is new bquery{sat, \\t}.\n");
+  INIT_COMMAND("threecolorwithsat2 is new bquery{graph, \\t}.\n");
+
+  return 1;
+}
 
 int main(int argc, char **argv)
 {
   init_env();
   command_loop();
 
-  // command_loop should never exit
-  return -1;
+  return 0;
 }
 

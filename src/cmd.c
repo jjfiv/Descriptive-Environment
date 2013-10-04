@@ -25,28 +25,42 @@
 #include "solver.h"
 #include "minisat.h"
 
-int command_loop(void)
+#define CMD_BUF_SIZE (1024 * 16)
+
+void command_loop(void)
 {
-  char *inp=malloc(1024*sizeof(char));
+  char data[CMD_BUF_SIZE];
   void *bufstate; /* YY_BUFFER_STATE * */;
-  do
-  {
-    putchar('>');
-    putchar(' ');
-    fgets(inp,1024,stdin);
-    if (!strcmp(inp,"quit\n"))
-      return 1;
-    else if (!strncmp(inp,"help",4))
-    {
-      do_help(inp);
+
+  while(1) {
+    // print prompt & flush
+    printf("> "); fflush(stdout);
+
+    // clear the buffer
+    memset(data, 0, CMD_BUF_SIZE);
+    if(NULL == fgets(data,CMD_BUF_SIZE,stdin)) {
+      // EOF sent
+      return;
+    }
+
+    // ignore empty strings
+    if(data[0] == '\n') continue;
+
+    if (0 == strncmp(data,"quit",4))
+      return;
+    
+    if (0 == strncmp(data,"help",4)) {
+      do_help(data);
       continue;
     }
-    bufstate = yy_scan_string(inp);
+
+    bufstate = yy_scan_string(data);
     if (yyparse())
       continue;
+
     do_cmd(cmdtree->l);
     yy_delete_buffer(bufstate);
-  } while (1);
+  }
 }
 
 /* Executes the command pointed to by command.
@@ -55,28 +69,18 @@ int do_cmd(struct node *command)
 {
   switch (command->label)
   {
-    case ASSIGN:
-      return do_assign_command(command);
-    case EXCONS:
-      return do_excons_command(command);
-    case EXPRED:
-      return do_expred_command(command);
-    case EXPREDALL:
-      return do_listtuple_command(command);
-    case ABQUERY:
-      return do_abquery_command(command);
-    case SAVE:
-      return do_save_command(command);
-    case DRAW:
-      return do_draw_command(command);
-    case REDFIND:
-      return do_redfind(command);
-    case FD:
-    default:
-      printf("1: Unrecognized command (%d)\n",command->label);
-      return 0;
+    case ASSIGN:    return do_assign_command(command);
+    case EXCONS:    return do_excons_command(command);
+    case EXPRED:    return do_expred_command(command);
+    case EXPREDALL: return do_listtuple_command(command);
+    case ABQUERY:   return do_abquery_command(command);
+    case SAVE:      return do_save_command(command);
+    case DRAW:      return do_draw_command(command);
+    case REDFIND:   return do_redfind(command);
+    default: break;
   }
-  /* return 1; unreachable, comment to remove mipspro warn */
+  printf("1: Unrecognized command (%d)\n",command->label);
+  return 0;
 }
 
 /* int do_draw_command(struct node *command) */

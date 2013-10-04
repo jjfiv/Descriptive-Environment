@@ -1,3 +1,6 @@
+#ifndef _RED_PROTOS_H
+#define _RED_PROTOS_H
+
 /*
    Copyright (c) 2012, Charles Jordan <skip@alumni.umass.edu>
 
@@ -147,55 +150,34 @@ extern void red_printex(struct example *, struct redsearch *);
 extern int red_checkp1p2(const struct bquery *, const struct bquery *);
 extern int red_checkfreetcvars(struct node *, struct vocab *);
 extern int red_checknestedtc(struct node *, int);
-extern struct red_bvarlist 
-*red_add_veqv(struct redsearch *, struct red_bvarlist *, 
-    const char *, int, int, int, int, int, int);
-extern struct red_bvarlist 
-*red_add_veqi(struct redsearch *, struct red_bvarlist *, 
-    const char *, int, int, int, int, int);
-extern struct red_bvarlist 
-*red_add_veqc(struct redsearch *, struct red_bvarlist *, 
-    const char *, int, struct cons_symbol *, int, 
-    int, int);
-extern struct red_bvarlist 
-*red_add_ceqc(struct redsearch *,
-    struct red_bvarlist *, const char *, int,
-    const char *, const char *, int);
-extern struct red_bvarlist 
-*red_add_pred(struct redsearch *,
-    struct red_bvarlist *, 
-    const struct rel_symbol *, int, const char *, 
-    int, int, struct cons_symbol *, int);
+
+extern struct red_bvarlist *red_add_veqv(struct redsearch *, struct red_bvarlist *, const char *, int, int, int, int, int, int); 
+
+extern struct red_bvarlist *red_add_veqi(struct redsearch *, struct red_bvarlist *, const char *, int, int, int, int, int); 
+
+extern struct red_bvarlist *red_add_veqc(struct redsearch *, struct red_bvarlist *, const char *, int, struct cons_symbol *, int, int, int);
+
+extern struct red_bvarlist *red_add_ceqc(struct redsearch *, struct red_bvarlist *, const char *, int, const char *, const char *, int); extern struct red_bvarlist *red_add_pred(struct redsearch *, struct red_bvarlist *, const struct rel_symbol *, int, const char *, int, int, struct cons_symbol *, int);
 extern char *red_printtup(struct redsearch *, const struct red_tuple *, int);
 extern int red_tupstrlen(const struct red_tuple *);
 extern struct red_tuple *red_nexttuple(struct redsearch *, struct red_tuple *, 
     int, int, int, struct cons_symbol *);
-extern char *red_rf_getrelvar(struct redsearch *rsearch, const char *relname,                       struct red_tuple *tup);
-extern int red_abort_nomem(struct redsearch *rsearch,
-    struct red_bvarlist *bvars);
-extern struct minisat_solver_t *get_init_form(int, const struct bquery *, 
-    const struct bquery *, int, int,
-    struct list *);
+extern char *red_rf_getrelvar(struct redsearch *rsearch, const char *relname, struct red_tuple *tup);
+extern int red_abort_nomem(struct redsearch *rsearch, struct red_bvarlist *bvars);
+extern struct minisat_solver_t *get_init_form(int, const struct bquery *, const struct bquery *, int, int, struct list *);
 extern void free_rsearch_tc2(struct redsearch *);
-extern char *red_maketcform(struct redsearch *, const struct example *, 
-    struct tc_def *);
-extern struct redsearch *red_init_rsearch(const struct bquery *,
-    const struct bquery *, int, int, int, int);
+extern char *red_maketcform(struct redsearch *, const struct example *, struct tc_def *);
+extern struct redsearch *red_init_rsearch(const struct bquery *, const struct bquery *, int, int, int, int);
 extern int set_init_form(struct redsearch *);
 extern struct red_hypot *red_getsatred(struct redsearch *);
 extern int free_ex(struct example *);
 extern int red_relform_relevantvar(struct red_bvarlist *, const char *);
-extern int red_minisat_truevar(struct redsearch *, struct minisat_solver_t *, 
-    struct red_bvarlist *, int);
+extern int red_minisat_truevar(struct redsearch *, struct minisat_solver_t *, struct red_bvarlist *, int);
 extern void red_clausei_notempty(struct redsearch *, char *, int);
 extern int red_getclause(struct red_bvarlist *);
-extern struct red_relforms *red_addrelform(struct red_relforms *, 
-    struct rel_symbol *rel, 
-    struct redsearch *rsearch);
-extern struct list *red_addconsform(struct list *, struct cons_symbol *, 
-    struct redsearch *rsearch);
-extern struct reduction *red_hypottored(struct redsearch *rsearch, 
-    struct red_hypot *hyp);
+extern struct red_relforms *red_addrelform(struct red_relforms *, struct rel_symbol *rel, struct redsearch *rsearch);
+extern struct list *red_addconsform(struct list *, struct cons_symbol *, struct redsearch *rsearch);
+extern struct reduction *red_hypottored(struct redsearch *rsearch, struct red_hypot *hyp);
 extern int red_isnegvar(const char *);
 extern minisat_Lit red_getposLit(struct env *, const char *);
 extern minisat_Lit red_getnegLit(struct env *, const char *);
@@ -253,7 +235,6 @@ extern char *red_cf_getconsform(struct cons_symbol *,struct red_bvarlist *,int);
 extern struct red_relforms *red_relform_addlit(struct red_relforms *,
     struct red_bvarlist *,
     struct rel_symbol *, int, int, int);
-#ifndef REDFIND_CUDD
 extern char *make_rf_tc(struct redsearch *, struct node *, struct interp *,
     const struct example *);
 extern char *red_rf_addconsclause(char *, const char *, struct red_tuple *);
@@ -284,50 +265,6 @@ extern char *red_form_addconstuple(char *, struct red_tuple *, char *, char *);
 extern char *red_p2_lfpf_join(struct redsearch *, char *, const char *,
     const int *, int, const int *, char **,
     const struct example *, struct interp *);
-#else
-extern void red_add_final_tc(struct redsearch *, struct tc_def *,
-    int *, int, DdNode *);
-extern DdNode *red_tcp1_disti(struct redsearch *, struct tc_def *,
-    int *, int, DdNode ***);
-extern DdNode *make_rf_tc(struct redsearch *, struct node *, struct interp *,
-    const struct example *);
-extern DdNode *red_rf_addconsclause(struct redsearch *, DdNode *, const char *, 
-    struct red_tuple *);
-extern DdNode *make_rf_teqt(struct redsearch *, struct node *);
-extern DdNode *red_form_addconstuple(struct redsearch *, DdNode *, struct red_tuple *, 
-    char *, char *);
-extern DdNode *make_rf_eq(struct redsearch *, const struct example *,
-    struct node *, struct interp *);
-extern DdNode *make_rf_teqi(struct redsearch *, const struct example *,
-    struct node *, int);
-extern struct red_bvarlist *red_addtolist(struct red_bvarlist *, char *,
-    DdManager *, struct env *);
-extern struct red_bvarlist *red_addconsbvar(struct redsearch *rsearch,
-    struct red_bvarlist *,
-    DdManager *,
-    struct env *, char *, struct red_tuple *);
-extern DdNode *red_getposDdn(struct env *, const char *);
-extern DdNode *red_getnegDdn(struct env *, const char *);
-extern DdNode *red_rf_pred_inconsclause(struct redsearch *,int,
-    struct cons_bvars *, struct ex_rel *);
-extern struct ex_rel *red_get_exrel(char *, char *, struct red_tuple *);
-extern DdNode *make_rf_exists(struct redsearch *, const struct example *,
-    struct node *, struct interp *);
-extern DdNode *make_rf_forall(struct redsearch *, const struct example *,
-    struct node *, struct interp *);
-extern DdNode *make_redform(struct redsearch *, const struct example *);
-extern void fake_minisat_set(struct redsearch *, DdHalfWord, minisat_Lit);
-extern DdNode *make_rf_rec(struct redsearch *, const struct example *,
-    struct node *, struct interp *);
-extern DdNode *make_rf_pred(struct redsearch *, const struct example *,
-    struct node *, struct interp *);
-extern minisat_bool fake_minisatred(struct redsearch *);
-extern DdNode *red_getconsbvarlit(struct env *, char *, struct red_tuple *);
-extern DdNode *red_p2_lfpf_join(struct redsearch *, DdNode *, const char *,
-    const int *, int, const int *, char **,
-    const struct example *, struct interp *,
-    struct tc_def *);
-extern DdNode *red_get_tc_dd(struct redsearch *, const char *, struct interp *, 
-    struct tc_def *, const int *, int, 
-    const struct example *);
+
 #endif
+
