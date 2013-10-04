@@ -133,7 +133,7 @@ OBJS = $(SRCS:.c=.o)
 # define the executable file 
 MAIN = de 
 
-.PHONY: clean all depclean generate compile tags
+.PHONY: clean all depclean generate compile tags run
 .DEFAULT: all
 
 # generate files, and then run main
@@ -171,6 +171,14 @@ $(MAIN): $(SATBIND_LIB) $(OBJS)
 
 %.tab.c:%.l
 	flex -o $@ $<
+
+mace4/p9m4-v05.tar.gz:
+	wget -P mace4 http://www.cs.unm.edu/~mccune/prover9/gui/p9m4-v05.tar.gz
+mace4/p9m4-v05/bin/mace4: mace4/p9m4-v05.tar.gz
+	tar -C mace4 -xf $<
+
+run: all mace4/p9m4-v05/bin/mace4
+	@PATH=$(PATH):mace4/p9m4-v05/bin rlwrap ./$(MAIN)
 
 tags:
 	ctags src/* include/* logic/* redfind/* extern/solver/* extern/hash/* extern/limboole/*

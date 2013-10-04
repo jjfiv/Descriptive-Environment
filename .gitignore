@@ -1,7 +1,10 @@
 *.o
 build
-deps
 de
 lex.yy.c
 y.tab.c
 y.tab.h
+mace4
+tags
+*.tab.c
+*.tab.h

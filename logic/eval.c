@@ -42,11 +42,11 @@
                                 formr = form->r; \
 if (forml->label==VAR || forml->label==CONSTANT) \
 l = *(forml->ival);\
-else\
+else \
 l = teval(forml,interp,struc);\
 if (formr->label==VAR || formr->label==CONSTANT)\
 r = *(formr->ival);\
-else\
+else \
 r = teval(formr,interp,struc);
 
 /* struct node *parse(char *formula)
