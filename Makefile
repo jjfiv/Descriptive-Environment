@@ -7,8 +7,6 @@
 #CC = c89
 #CXX = CC
 
-#ZCHAFF = 1#comment out to exclude zchaff, otherwise put source in zchaff/ 
-
 ### a MiniSat2-compatible solver is required.  Default is Minisat2.
   # choose GlueMiniSat *or* CryptoMiniSat if you prefer.
   # MINISAT2 *only* specifies if the minisat2(...) builtins are exposed -
@@ -69,9 +67,7 @@ REDFIND_FV_0max = 1 #if REDFIND_FEWVARS is also set, re-enables literals "x=0"
 #Linux, gcc
 CC = gcc
 CXX = g++
-ifndef ZCHAFF
 WCFLAGS = -Wextra -ansi -pedantic
-endif
 
 OCFLAGS = -O3 -fomit-frame-pointer #-g #-pg#-s 
 #OCFLAGS = -O3 -g 
@@ -156,11 +152,7 @@ endif
 #WFLAGS=
 
 # byacc and flex's output doesn't look good with -Wall -ansi -pedantic :P
-ifdef ZCHAFF
-	CFL = ${OCFLAGS} -DZCHAFF
-else
-	CFL = ${OCFLAGS}
-endif
+CFL = ${OCFLAGS}
 ifdef MINISAT2
 	CFL += -DMINISAT2
 endif
@@ -201,20 +193,14 @@ ifdef FDIST
 endif
 
 # define the C source files
-SRCS = y.tab.c lex.yy.c minisat/solver.c reduc/reduc.c cmd/cmd.c file/file.c hash/hash.c init/init.c parse/parse.c env/env.c help/help.c logic/eval.c test/main.c logic/interp.c logic/relation.c util/util.c logic/constant.c logic/tuple.c mace/usemace.c limboole/limboole.c redfind/getex.c ${REDFIND_SOURCE} logic/check.c ${FDIST_SOURCE}
+
+EXTERN_SRCS := extern/minisat/solver.c
+
+CORE_SRCS := y.tab.c lex.yy.c 
+
+SRCS = reduc/reduc.c cmd/cmd.c file/file.c hash/hash.c init/init.c parse/parse.c env/env.c help/help.c logic/eval.c test/main.c logic/interp.c logic/relation.c util/util.c logic/constant.c logic/tuple.c mace/usemace.c limboole/limboole.c redfind/getex.c ${REDFIND_SOURCE} logic/check.c ${FDIST_SOURCE} ${CORE_SRCS} ${EXTERN_SRCS}
 
 OBJS = $(SRCS:.c=.o)
-
-# define ZCHAFF sources and objects
-ZCHAFF_SRCS = extern/zchaff/zchaff_utils.cpp \
-							extern/zchaff/zchaff_solver.cpp \
-							extern/zchaff/zchaff_base.cpp \
-							extern/zchaff/zchaff_dbase.cpp \
-							extern/zchaff/zchaff_c_wrapper.cpp \
-							extern/zchaff/zchaff_cpp_wrapper.cpp
-
-ZCHAFF_OBJS = $(ZCHAFF_SRCS:.cpp=.o)
-
 
 # define the executable file 
 MAIN = de 
@@ -227,8 +213,8 @@ ifdef CRYPTOMINISAT
 SATBIND = ./cmsat/build/release/lib/libminisat-c.a 
 SAT = ./cmsat/cmsat/cmsat/.libs/libcryptominisat.a 
 else
-SATBIND = ./minisat2/build/release/lib/libminisat-c.a
-SAT = ./minisat2/minisat/build/release/lib/libminisat.a
+SATBIND = ./extern/minisat2/build/release/lib/libminisat-c.a
+SAT = ./extern/minisat2/minisat/build/release/lib/libminisat.a
 endif
 endif
 
@@ -245,10 +231,10 @@ all:	${CUDD}  $(MAIN)
 ./glueminisat/build/release/lib/libminisat-c.a:
 	cd glueminisat; ${MAKE} static; cd ..
 
-./minisat2/build/release/lib/libminisat-c.a:   
+./extern/minisat2/build/release/lib/libminisat-c.a:   
 	cd minisat2; ${MAKE} static; cd ..
 
-./minisat2/minisat/build/release/lib/libminisat.a:
+./extern/minisat2/minisat/build/release/lib/libminisat.a:
 	cd minisat2/minisat; ${MAKE} lr; cd ../..
 
 ./glueminisat/minisat/build/release/lib/libglueminisat.a:
@@ -257,13 +243,8 @@ all:	${CUDD}  $(MAIN)
 ./cudd/cudd/libcudd.a:
 	cd cudd; ${MAKE}; cd ..
 
-ifdef ZCHAFF
-de:   $(OBJS) $(ZCHAFF_OBJS) $(CUDD) $(SAT) $(SATBIND)
-	$(CXX) ${CFLAGS} ${INCLUDES} -o ${MAIN} ${OBJS} ${ZCHAFF_OBJS} ${LFLAGS} ${LIBS}
-else
 de:   $(CUDD) $(SAT) $(SATBIND) $(OBJS)
 	$(CXX) $(CFLAGS) $(INCLUDES) -o $(MAIN) ${OBJS} $(LFLAGS) $(LIBS) 
-endif
 
 .cpp.o:
 	${CXX} ${CFLAGS} $(INCLUDES) -o ${<:.cpp=.o} -c $<
@@ -287,7 +268,7 @@ lex.yy.o: lex.yy.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o ${<:.c=.o} -c $<
 
 clean:
-	$(RM) -r ${OBJS} ${ZCHAFF_OBJS} $(MAIN) ./redfind/redfind*.o ./minisat2/build ./minisat2/minisat/build ./cmsat/build ./glueminisat/build ./glueminisat/minisat/build
+	$(RM) -r ${OBJS} $(MAIN) ./redfind/redfind*.o ./extern/minisat2/build ./extern/minisat2/minisat/build ./cmsat/build ./glueminisat/build ./glueminisat/minisat/build
 	cd cudd; ${MAKE} distclean; cd ..
 	cd glueminisat/minisat; ./clean.sh; cd ../..
 	cd cmsat/cmsat; ${MAKE} distclean; cd ../..
