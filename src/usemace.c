@@ -1,4 +1,5 @@
 /*
+Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
 Copyright (c) 2011, Charles Jordan <skip@alumni.umass.edu>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -27,6 +28,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * chj	12/4/11		xor
  * chj	12/6/11		only set(arithmetic) if needed (optimization)
  */
+
+#define _POSIX_C_SOURCE 2
 
 #include "parse.h"
 #include "types.h"
@@ -155,11 +158,14 @@ int usemace(struct node *form, struct vocab *voc, char *name, int clock)
 
 	str = (struct structure *)hash_data->def;
 
-	make_mace_model(str,m);
+  int status = 1;
+	if(1 != make_mace_model(str,m)) {
+    status = -1;
+  }
 
 	pclose(m);
 	remove(tfn);
-	return 1;
+	return status;
 }
 
 /* returns the size of the model found by Mace4, where m is
@@ -186,7 +192,8 @@ int get_mace_model_size(FILE *m)
 				    && (c=getc(m))=='o' && (c=getc(m))=='n'
 				    && (c=getc(m))=='(')
 				{
-					fscanf(m,"%d",&n);
+					if(1 != fscanf(m,"%d",&n))
+            return -1;
 					return n;
 				}
 		else if (c=='E' && (c=getc(m))=='R' && (c=getc(m))=='R'
@@ -383,14 +390,18 @@ int make_mace_model(struct structure *str, FILE *m)
 	int *tuple=NULL;
 
 	n=malloc(sizeof(char)*512);
-	/* TODO check the malloc */
+  if(n == NULL)
+    return -1;
+
 	while ((c=getc(m))!=EOF)
 	{
 		if (c=='f' && (c=getc(m))=='u' && (c=getc(m))=='n' && 
                     (c=getc(m))=='c' && (c=getc(m))=='t' && (c=getc(m))=='i' &&
                     (c=getc(m))=='o' && (c=getc(m))=='n' && (c=getc(m))=='(')
 		{
-			fscanf(m,"%511s [ %d",n,&j);
+			if(2 != fscanf(m,"%511s [ %d",n,&j))
+        return -1;
+
 			/* note that n will end in a comma, and may have (_,_),
 			 * etc. if it's not a constant.
 			 */
@@ -422,7 +433,9 @@ int make_mace_model(struct structure *str, FILE *m)
                     (c=getc(m))=='a' && (c=getc(m))=='t' && (c=getc(m))=='i' &&
                     (c=getc(m))=='o' && (c=getc(m))=='n' && (c=getc(m))=='(')
                 {
-			fscanf(m,"%511s [",n); /* n ends with "(_,_),"/etc. */
+			if(1 != fscanf(m,"%511s [",n)) /* n ends with "(_,_),"/etc. */
+        return -1;
+
 			for (i=0,a=0; n[i]; i++)
 			{
 				if (n[i]=='(') /* name ends at first ( */
@@ -447,12 +460,16 @@ int make_mace_model(struct structure *str, FILE *m)
 			size = str->size;
 			tuple = next_tuple(NULL, a, size);
 			
-			fscanf(m," %d",&i);
+			if(1 != fscanf(m," %d",&i))
+        return -1;
+
 			rel->cache[0]=i;
 			j=1;
 			while ((tuple = next_tuple(tuple,a,size)))
 			{
-				fscanf(m, " , %d",&i);
+				if(1 != fscanf(m, " , %d",&i))
+          return -1;
+
 				rel->cache[j++]=i;
 			}
 		}

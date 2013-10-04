@@ -149,9 +149,9 @@ hash_op (Mgr * mgr, Type type, Node * c0, Node * c1)
 {
   unsigned res;
 
-  res = (unsigned) type;
-  res += 4017271 * (unsigned) c0;
-  res += 70200511 * (unsigned) c1;
+  res = (size_t) type;
+  res += 4017271 * (size_t) c0;
+  res += 70200511 * (size_t) c1;
 
   res &= (mgr->nodes_size - 1);
   assert (res < mgr->nodes_size);
@@ -931,12 +931,10 @@ int
 limboole (char *form, struct minisat_solver_t *solver, 
 	  struct env *env)
 {
-  int max_decisions;
   int error;
   Mgr *mgr;
 
   error = 0;
-  max_decisions = -1;
 
   mgr = init (form,solver);
   mgr->env = env;
@@ -952,3 +950,4 @@ limboole (char *form, struct minisat_solver_t *solver,
 
   return error != 0;
 }
+

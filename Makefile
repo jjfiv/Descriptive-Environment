@@ -50,9 +50,8 @@ else
 CC := gcc
 CXX := g++
 endif
-WCFLAGS:=-Wextra -ansi -pedantic
 
-OCFLAGS:=-O3 -fomit-frame-pointer
+OCFLAGS:=-O3 -fomit-frame-pointer -std=c11
 #OCFLAGS = -O3 -g 
 #OCFLAGS = -O0 -g
 
@@ -107,10 +106,8 @@ ifdef REDFIND_RANDEX
 OCFLAGS += -DREDFIND_RANDEX=$(REDFIND_RANDEX)
 endif
 
-# byacc and flex's output doesn't look good with -Wall -ansi -pedantic :P
-CFL:=${OCFLAGS}
 
-CFLAGS:=${CFL} ${WCFLAGS} -Wall 
+CFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing
 
 MY_INCLUDES:=-Iinclude -Isrc
 
@@ -124,7 +121,7 @@ LIBS:= -lminisat-c -lminisat -lm
 
 EXTERN_SRCS := extern/limboole/limboole.c extern/solver/solver.c extern/hash/hash.c 
 
-LEX_SRCS := src/soe_parse.c src/soe_lex.c src/soe_parse.h
+LEX_SRCS := src/soe_parse.tab.c src/soe_lex.tab.c src/soe_parse.tab.h
 REDFIND_SRCS := $(shell ls redfind/*.c)
 LOGIC_SRCS := $(shell ls logic/*.c)
 CORE_SRCS := $(shell ls src/*.c)
@@ -136,7 +133,7 @@ OBJS = $(SRCS:.c=.o)
 # define the executable file 
 MAIN = de 
 
-.PHONY: clean all depclean generate compile
+.PHONY: clean all depclean generate compile tags
 .DEFAULT: all
 
 # generate files, and then run main
@@ -163,18 +160,20 @@ $(MAIN): $(SATBIND_LIB) $(OBJS)
 %.o:%.cpp
 	${CXX} -c ${CFLAGS} $(MY_INCLUDES) $< -o $@
 
-
 %.o:%.c
 	$(CC) -c $(CFLAGS) $(MY_INCLUDES) $< -o $@
 
-%.c:%.y
+%.tab.c:%.y
 	bison -d $< -o $@
 
-%.h:%.y
+%.tab.h:%.y
 	bison -d $< -o $@
 
-%.c:%.l
+%.tab.c:%.l
 	flex -o $@ $<
+
+tags:
+	ctags src/* include/* logic/* redfind/* extern/solver/* extern/hash/* extern/limboole/*
 
 depclean: clean
 	$(RM) -rf ./extern/minisat2/build

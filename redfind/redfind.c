@@ -2502,7 +2502,7 @@ struct red_tuple *red_getnext_compat_tuple(struct red_tuple *rtup, int *tuple,
 {
 	struct red_tuple *res;
 	struct red_tuple_element *el;
-	int i,j,flag;
+	int i,j=0,flag;
 	struct constant *cons;
 
 	if (!rtup)

@@ -1,4 +1,5 @@
 /*
+Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
 Copyright (c) 2012-2013, Charles Jordan <skip@alumni.umass.edu>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -163,9 +164,9 @@ int ex_randomize_example(struct minisat_solver_t *solver, struct redsearch *rsea
 	int i;
 
 	gettimeofday(&ts, NULL);
-	srandom(ts.tv_usec);
+	srand(ts.tv_usec);
 
-	num = random()%REDFIND_RANDEX;
+	num = rand()%REDFIND_RANDEX;
 	if (num==0)
 		return minisat_l_True;
 
@@ -243,7 +244,7 @@ int ex_improve_example(struct minisat_solver_t *solver,
 	minisat_Lit *assumps;
 	int num_assumps=0;
 	int num_lits=0;
-	int res;
+	int res = minisat_l_False;
 	int len;
 
 	for (tmp=bv; tmp; tmp=tmp->next)
@@ -2671,7 +2672,7 @@ char *ex_p2_lfpf_eqform_c(struct redsearch *rsearch, char *lit)
 {
 	int i, n=rsearch->n;
 	char *tmp=NULL, *cons1, *cons2, *res=NULL;
-	int len1, len2, len, llen=strlen(lit);
+	int len1=0, len2=0, len, llen=strlen(lit);
 	int dlen=0;
 
 	for (i=3; i<llen; i++)

@@ -1,4 +1,5 @@
 /*
+Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
 Copyright (c) 2006-2013, Charles Jordan <skip@alumni.umass.edu>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -34,8 +35,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 %{
-#include "soe_parse.h"
+#define _POSIX_SOURCE 1
+#include "soe_parse.tab.h"
 #include <string.h>
+#include <stdio.h>
  /*extern int yylval;*/
  /*extern YYSTYPE yylval;*/
 %}

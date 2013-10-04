@@ -21,6 +21,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * chj  11/14/06	Fix for byacc-1.9 compatibility.
  */
 
+extern int yylex(void);
+
 struct node {
 	struct node *l;
 	struct node *r;

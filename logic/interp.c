@@ -21,7 +21,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * chj  12/11/06        bug fix to off-by-one error in add_tup_to_interp
  * chj   4/18/12        replace trpow&get_order for trivial performance benefit
  * chj	 7/13/12	changes for fast interpretations
- * chj	 1/25/13	remove_xi_interp (don't use)
  */
 
 #include "types.h"
@@ -113,34 +112,6 @@ void add_xi_interp(int i, struct interp *interp, int val)
 	return;
 }
 
-/* remove first instance of xi */
-/* dangerous, will break fast interpretations in some cases */
-/* don't use if you're using eval_fast, or being used inside eval */
-/* okay to use if you're just using interps for convenience, like in
- * fd/fd.c
- */
-struct interp *remove_xi_interp(int i, struct interp *interp)
-{
-	char *name=malloc(sizeof(char)*(2+numdigits(i)));
-	struct interp_symbol *ret=interp, *is, *isprev=NULL;
-        sprintf(name,"x%d",i);
-	for (is=interp->symbols; is; is=is->next)
-	{
-		if (strcmp(is->name,name))
-		{
-			isprev=is;
-			continue;
-		}
-		free(is->name);
-		if (!isprev)
-			ret = is->next;
-		else
-			isprev->next=is->next;
-		free(is);
-		return ret;
-	}
-	return interp; /* not found anywhere */
-}
 
 int get_interp_value(const char *name, const struct interp *interp)
 {

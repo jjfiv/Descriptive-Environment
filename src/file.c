@@ -27,6 +27,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * chj	 1/28/13	loadstring
  */
 
+#define _POSIX_C_SOURCE 2
+
 #include "parse.h"
 #include "types.h"
 #include <stdlib.h>
@@ -125,7 +127,7 @@ int do_load(struct node *command)
 	char tmp[8];
 	int c;
 	char oc;
-	int n,n2,m, n_digits,buflen;
+	int n,m, n_digits,buflen;
 	struct structure *str;
 	struct relation *rel;
 	struct id *hash_data;
@@ -148,7 +150,9 @@ int do_load(struct node *command)
 		if (oc=='\n' && c=='p')
 			break;
 	
-	fscanf(f,"%7s",tmp);
+	if(1 != fscanf(f,"%7s",tmp))
+    return -1;
+
 	if (strcmp(tmp,"edge"))
 	{
 		err("30: Invalid file.\n");
@@ -157,7 +161,8 @@ int do_load(struct node *command)
 		return -1;
 	}
 
-	fscanf(f,"%d %d",&n,&m);
+	if(2 != fscanf(f,"%d %d",&n,&m))
+    return -1;
 
 	if (n<0 || m<0)
 	{
@@ -185,7 +190,6 @@ int do_load(struct node *command)
 	str = (struct structure *)hash_data->def;
 	rel = get_relation("E", NULL, str);
 
-	n2=n*n;
 	for (i=0; i<n*n;)
 		rel->cache[i++]=0;
 
@@ -195,7 +199,8 @@ int do_load(struct node *command)
 	for (k=0, oc='\0'; (c=fgetc(f))!= EOF; oc=c)
                 if (oc=='\n' && c=='e')
                 {
-			fscanf(f,"%d %d",&i,&j);
+			if(2 != fscanf(f,"%d %d",&i,&j))
+        return -1;
 			if (i>n)
 			{
 #ifdef DEBUG

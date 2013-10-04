@@ -619,7 +619,6 @@ int eval_exists(struct node *form, struct interp *interp,
 	int arity=0;
 	int i;
 	int res=0;
-	int tmp;
 
 	struct node *restr = form->l->r;
 	struct node *varlist = form->l->l;
@@ -653,7 +652,6 @@ int eval_exists(struct node *form, struct interp *interp,
 	first = values[0];
 	*first = -1;
 	
-	tmp = arity-1;
 	if (restr)
 	    while (1)
 	    {
@@ -739,7 +737,6 @@ int eval_pred(struct node *form, struct interp *interp, const struct structure *
 	int size;
 	int num;
 	struct node *relargs;
-	struct interp *ninterp;
 	int *old_values;	
 	int **values;
 

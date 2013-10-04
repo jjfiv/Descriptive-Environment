@@ -17,7 +17,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "types.h"
 #include <stdio.h> /* for FILE * */
-#include "soe_parse.h"
+#include "soe_parse.tab.h"
 
 #ifdef DEBUG
 #define err printf
