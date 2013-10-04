@@ -206,9 +206,12 @@ SRCS = y.tab.c lex.yy.c minisat/solver.c reduc/reduc.c cmd/cmd.c file/file.c has
 OBJS = $(SRCS:.c=.o)
 
 # define ZCHAFF sources and objects
-ZCHAFF_SRCS = zchaff/zchaff_utils.cpp zchaff/zchaff_solver.cpp \
-            zchaff/zchaff_base.cpp zchaff/zchaff_dbase.cpp \
-            zchaff/zchaff_c_wrapper.cpp zchaff/zchaff_cpp_wrapper.cpp
+ZCHAFF_SRCS = extern/zchaff/zchaff_utils.cpp \
+							extern/zchaff/zchaff_solver.cpp \
+							extern/zchaff/zchaff_base.cpp \
+							extern/zchaff/zchaff_dbase.cpp \
+							extern/zchaff/zchaff_c_wrapper.cpp \
+							extern/zchaff/zchaff_cpp_wrapper.cpp
 
 ZCHAFF_OBJS = $(ZCHAFF_SRCS:.cpp=.o)
 
