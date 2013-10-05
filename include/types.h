@@ -22,18 +22,18 @@
 #define assert(x);
 #endif
 #endif
-struct interp {
+typedef struct interp {
   struct interp_symbol *symbols;
   struct relation *rel_symbols;
-};
+} Interp;
 
-struct interp_symbol {
+typedef struct interp_symbol {
   struct interp_symbol *next;
   char *name;
   int value;
-};
+} InterpSymbol;
 
-struct structure {
+typedef struct structure {
   struct relation *rels;
   struct constant *cons;
   struct vocab *vocab;  /* really the vocab can be implied   */
@@ -41,9 +41,9 @@ struct structure {
   char *name;
   int size;
   int id;	
-};
+} Structure;
 
-struct relation {
+typedef struct relation {
   char *name;
   /*	char *formula;   We may not know the formula :( */
   struct node *parse_cache;
@@ -51,9 +51,9 @@ struct relation {
   int *cache;
   struct relation *next;
   int arity;
-};
+} Relation;
 
-struct reduction {
+typedef struct reduction {
   char *name;
   struct vocab *from_vocab;
   struct vocab *to_vocab;
@@ -61,69 +61,69 @@ struct reduction {
   int k;
   struct relation *relforms;
   struct consform *consforms;
-};
+} Reduction;
 
-struct bquery {
+typedef struct bquery {
   char *name;
   struct vocab *voc;
   struct node *form;
-};
+} BQuery;
 
-struct reduc_map {
+typedef struct reduc_map {
   int size;
   int *nat_to_tup; /* array where a[i] is the cindex of the ith tuple */
   int *tup_to_nat; /* array where a[cindex] is the number of the tuple */
-};
+} ReductionMap;
 
-struct consform {
+typedef struct consform {
   char *name;
   struct node *parse_cache;
   /* int arity; */
   struct consform *next;
-};
+} ConsForm;
 
-struct constant {
+typedef struct constant {
   char *name;
   /*	char *formula; */
   struct node *parse_cache;
   struct constant *next;
   int value;
-};
+} Constant;
 
-struct vocab {
+typedef struct vocab {
   struct rel_symbol  *rel_symbols;
   struct cons_symbol *cons_symbols;
   char *name;
   int id;
-};
+} Vocabulary;
 
-struct rel_symbol {
+typedef struct rel_symbol {
   char *name;
   int arity;
   struct rel_symbol *next;
-};
+} RelationSymbol;
 
-struct cons_symbol {
+typedef struct cons_symbol {
   char *name;
   struct cons_symbol *next;
-};
+} ConsSymbol;
 
-struct id {
+typedef struct id {
   char *name;
   void *def;
   int type;
-};
+} Identifier;
 
-struct env {
+typedef struct env {
   struct hash_t *id_hash;
   int next_id;
-};
+} Environment;
 
-struct list {
+typedef struct list {
   void *data;
   struct list *next;
-};
+} List;
 
-extern struct env *cur_env;
+extern Environment *cur_env;
 
 #endif /* DETYPESH */
