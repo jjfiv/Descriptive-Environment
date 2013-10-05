@@ -47,6 +47,29 @@ void command_loop(void)
   }
 }
 
+int do_cmd_str(const char *str, size_t len) {
+  void *bufstate; /* YY_BUFFER_STATE * */;
+
+  const char* data = &str[0];
+
+  if (0 == strncmp(data,"quit",4))
+    return 0;
+
+  if (0 == strncmp(data,"help",4)) {
+    do_help(data);
+    return 0;
+  }
+
+  bufstate = yy_scan_string(data);
+  if (yyparse())
+    return -1;
+
+  do_cmd(cmdtree->l);
+  yy_delete_buffer(bufstate);
+
+  return 0;
+}
+
 /* Executes the command pointed to by command.
 */
 int do_cmd(struct node *command)

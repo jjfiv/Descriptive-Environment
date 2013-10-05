@@ -178,7 +178,7 @@ $(MAIN): $(SATBIND_LIB) $(OBJS) ${MAIN_O}
 	$(CXX) $(CXXFLAGS) $(MY_INCLUDES) -o $(MAIN) ${OBJS} ${MAIN_O} $(LPATH) $(LIBS) 
 
 $(TEST): $(SATBIND_LIB) $(OBJS) $(TEST_OBJS)
-	$(CXX) $(CXXFLAGS) $(MY_INCLUDES) -o $(TEST) ${OBJS} ${TEST_OBJS} $(LPATH) $(LIBS) 
+	$(CXX) $(CXXFLAGS) $(MY_INCLUDES) -o $(TEST) ${TEST_OBJS} ${OBJS} $(LPATH) $(LIBS) 
 
 
 # make C and C++ compiles depend on lex and yacc being run first

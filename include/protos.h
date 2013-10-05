@@ -16,8 +16,12 @@ int yyparse(void);
 
 #define numdigits(i) (i==0?1:floor(log10(i))+1)
 
+/* env.c */
+void init_env(void);
+
 /* cmd.c */
 extern void command_loop(void);
+extern int do_cmd_str(const char *, size_t);
 extern int do_cmd(struct node *);
 extern int do_assign_command(struct node *);
 extern int do_vocab_assign(struct node *);
