@@ -158,9 +158,6 @@ test: generate
 	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory run_test
 
-run_test: $(TEST)
-	./$(TEST)
-
 generate: $(LEX_SRCS) $(SATBIND_LIB)
 compile: $(MAIN)
 
@@ -204,6 +201,10 @@ mace4/p9m4-v05/bin/mace4: mace4/p9m4-v05.tar.gz
 
 run: all mace4/p9m4-v05/bin/mace4
 	@PATH=$(PATH):mace4/p9m4-v05/bin rlwrap ./$(MAIN)
+
+run_test: $(TEST) mace4/p9m4-v05/bin/mace4
+	diff test/expected.out <(PATH=$(PATH):mace4/p9m4-v05/bin ./$(TEST))
+	
 
 tags:
 	ctags src/* include/* logic/* redfind/* extern/solver/* extern/hash/* extern/limboole/* test/*
