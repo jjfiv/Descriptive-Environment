@@ -51,7 +51,7 @@ CC := gcc
 CXX := g++
 endif
 
-OCFLAGS:=-O3 -fomit-frame-pointer -std=c11
+OCFLAGS:=-O3 -fomit-frame-pointer
 #OCFLAGS = -O3 -g 
 #OCFLAGS = -O0 -g
 
@@ -107,7 +107,8 @@ OCFLAGS += -DREDFIND_RANDEX=$(REDFIND_RANDEX)
 endif
 
 
-CFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing
+CFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c11
+CXXFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c++11
 
 MY_INCLUDES:=-Iinclude -Isrc
 
@@ -124,21 +125,41 @@ EXTERN_SRCS := extern/limboole/limboole.c extern/solver/solver.c extern/hash/has
 LEX_SRCS := src/soe_parse.tab.c src/soe_lex.tab.c src/soe_parse.tab.h
 REDFIND_SRCS := $(shell ls redfind/*.c)
 LOGIC_SRCS := $(shell ls logic/*.c)
-CORE_SRCS := $(shell ls src/*.c)
 
-SRCS := $(LOGIC_SRCS) ${REDFIND_SRCS} ${CORE_SRCS} ${EXTERN_SRCS}
+CORE_SRCS := src/cmd.o \
+	src/env.o \
+	src/file.o \
+	src/help.o \
+	src/parse.o \
+	src/reduc.o \
+	src/usemace.o \
+	src/util.o
 
-OBJS = $(SRCS:.c=.o)
+MAIN_O := src/main.o
+SRCS := $(LOGIC_SRCS) ${REDFIND_SRCS} ${CORE_SRCS} ${EXTERN_SRCS} ${LEX_SRCS}
+OBJS := $(SRCS:.c=.o)
+
+TEST_SRCS := $(shell ls test/*.cc)
+TEST_OBJS := $(TEST_SRCS:.cc=.o)
+
 
 # define the executable file 
 MAIN = de 
+TEST = test/test_de
 
-.PHONY: clean all depclean generate compile tags run
+.PHONY: clean all depclean generate compile tags run test run_test
 .DEFAULT: all
 
 # generate files, and then run main
 all: generate 
 	@$(MAKE) --no-print-directory compile
+
+test: generate
+	@$(MAKE) --no-print-directory compile
+	@$(MAKE) --no-print-directory run_test
+
+run_test: $(TEST)
+	./$(TEST)
 
 generate: $(LEX_SRCS) $(SATBIND_LIB)
 compile: $(MAIN)
@@ -153,12 +174,16 @@ $(SAT_LIB):
 $(SATBIND_LIB): $(SAT_LIB) $(SAT_HEADER)
 	$(MAKE) -C ./extern/minisat-c lr MINISAT_LIB=../../$(MINISAT_LIB)
 
-$(MAIN): $(SATBIND_LIB) $(OBJS)
-	$(CXX) $(CFLAGS) $(MY_INCLUDES) -o $(MAIN) ${OBJS} $(LPATH) $(LIBS) 
+$(MAIN): $(SATBIND_LIB) $(OBJS) ${MAIN_O}
+	$(CXX) $(CXXFLAGS) $(MY_INCLUDES) -o $(MAIN) ${OBJS} ${MAIN_O} $(LPATH) $(LIBS) 
+
+$(TEST): $(SATBIND_LIB) $(OBJS) $(TEST_OBJS)
+	$(CXX) $(CXXFLAGS) $(MY_INCLUDES) -o $(TEST) ${OBJS} ${TEST_OBJS} $(LPATH) $(LIBS) 
+
 
 # make C and C++ compiles depend on lex and yacc being run first
 %.o:%.cc
-	${CXX} -c ${CFLAGS} $(MY_INCLUDES) $< -o $@
+	${CXX} -c ${CXXFLAGS} $(MY_INCLUDES) $< -o $@
 
 %.o:%.c
 	$(CC) -c $(CFLAGS) $(MY_INCLUDES) $< -o $@
@@ -181,7 +206,7 @@ run: all mace4/p9m4-v05/bin/mace4
 	@PATH=$(PATH):mace4/p9m4-v05/bin rlwrap ./$(MAIN)
 
 tags:
-	ctags src/* include/* logic/* redfind/* extern/solver/* extern/hash/* extern/limboole/*
+	ctags src/* include/* logic/* redfind/* extern/solver/* extern/hash/* extern/limboole/* test/*
 
 depclean: clean
 	$(RM) -rf ./extern/minisat2/build

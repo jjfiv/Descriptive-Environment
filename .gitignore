@@ -1,6 +1,7 @@
 *.o
 build
 de
+test/test_de
 lex.yy.c
 y.tab.c
 y.tab.h
