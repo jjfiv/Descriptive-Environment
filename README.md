@@ -1,3 +1,6 @@
+Descriptive-Environment (DE)
+===
+
 This is the DescriptiveEnvironment (DE) described in Carmosino,
 Immerman, Jordan, "Experimental Descriptive Complexity" (2012).
 We encourage anyone to use and extend it, and send us comments,
