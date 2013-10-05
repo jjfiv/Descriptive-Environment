@@ -1,26 +1,4 @@
-/*
-   Copyright (c) 2013, John Foley <jfoley@cs.umass.edu>
-   Copyright (c) 2006-2011, Charles Jordan <skip@alumni.umass.edu>
-
-   Permission to use, copy, modify, and/or distribute this software for any
-   purpose with or without fee is hereby granted, provided that the above
-   copyright notice and this permission notice appear in all copies.
-
-   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-   WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-   MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-   */
-/* main.c
- * Skip Jordan
- * Provides main()
- *
- * chj	10/19/06 	Created.
- * chj	11/13/06	peval->eval
- */
+// ISC LICENSE
 
 #include "parse.h"
 #include <stdio.h>
@@ -33,16 +11,15 @@
 #include "types.h"
 #include "parse.h"
 
+static void init_command(const char *str) {
+  void *bufstate = yy_scan_string(str);
+  yyparse();
+  do_cmd(cmdtree->l);
+  yy_delete_buffer(bufstate);
+}
 
-#define INIT_COMMAND(s) \
-  bufstate = yy_scan_string(s); \
-yyparse(); \
-do_cmd(cmdtree->l); \
-yy_delete_buffer(bufstate)
-
-int init_env(void)
+static void init_env(void)
 {
-  void *bufstate;
   printf("Welcome to the DescriptiveEnvironment (DE).\n");
 
   cur_env = malloc(sizeof(struct env));
@@ -51,14 +28,12 @@ int init_env(void)
 
   cur_env->id_hash = hash_create(MAX_IDS, (hash_comp_t)strcmp, 0);	
   cur_env->next_id=0;
-  INIT_COMMAND("sat is new vocabulary{P:2, N:2}.\n");
-  INIT_COMMAND("minisat is new bquery{sat, \\t}.\n");
-  INIT_COMMAND("graph is new vocabulary{E:2,s,t}.\n");
-  INIT_COMMAND("threecolorwithsat is new bquery{graph, \\t}.\n");
-  INIT_COMMAND("minisat2 is new bquery{sat, \\t}.\n");
-  INIT_COMMAND("threecolorwithsat2 is new bquery{graph, \\t}.\n");
-
-  return 1;
+  init_command("sat is new vocabulary{P:2, N:2}.\n");
+  init_command("minisat is new bquery{sat, \\t}.\n");
+  init_command("graph is new vocabulary{E:2,s,t}.\n");
+  init_command("threecolorwithsat is new bquery{graph, \\t}.\n");
+  init_command("minisat2 is new bquery{sat, \\t}.\n");
+  init_command("threecolorwithsat2 is new bquery{graph, \\t}.\n");
 }
 
 int main(int argc, char **argv)

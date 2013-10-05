@@ -157,7 +157,7 @@ $(MAIN): $(SATBIND_LIB) $(OBJS)
 	$(CXX) $(CFLAGS) $(MY_INCLUDES) -o $(MAIN) ${OBJS} $(LPATH) $(LIBS) 
 
 # make C and C++ compiles depend on lex and yacc being run first
-%.o:%.cpp
+%.o:%.cc
 	${CXX} -c ${CFLAGS} $(MY_INCLUDES) $< -o $@
 
 %.o:%.c
