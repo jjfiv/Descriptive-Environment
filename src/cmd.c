@@ -72,7 +72,7 @@ int do_cmd_str(const char *str, size_t len) {
 
 /* Executes the command pointed to by command.
 */
-int do_cmd(struct node *command)
+int do_cmd(Node *command)
 {
   switch (command->label)
   {
@@ -90,22 +90,22 @@ int do_cmd(struct node *command)
   return 0;
 }
 
-/* int do_draw_command(struct node *command) */
+/* int do_draw_command(Node *command) */
 /* in file/file.c */
 
-/* int do_save_command(struct node *command) */
+/* int do_save_command(Node *command) */
 /* in file/file.c */
 
-int do_abquery_command(struct node *command)
+int do_abquery_command(Node *command)
 {
   char *sname;
   char *bname;
-  struct structure *struc;
-  struct bquery *bq;
-  struct hnode_t *hnode;
-  struct id *hash_data;
+  Structure *struc;
+  BQuery *bq;
+  hnode_t *hnode;
+  Identifier *hash_data;
   int res;
-  struct interp *interp;
+  Interp *interp;
 
   bname = command->l->data;
   sname = command->r->data;
@@ -115,14 +115,14 @@ int do_abquery_command(struct node *command)
     err("18: Query %s does not exist\n",bname);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != BQUERY)
   {
     err("19: %s is not a query\n",bname);
     return 0;
   }
 
-  bq = (struct bquery *)hash_data->def;
+  bq = (BQuery *)hash_data->def;
 
   hnode = hash_lookup(cur_env->id_hash, sname);
   if (!hnode)
@@ -130,13 +130,13 @@ int do_abquery_command(struct node *command)
     err("20: Structure %s does not exist\n",sname);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != STRUC)
   {
     err("21: %s is not a structure\n",sname);
     return 0;
   }
-  struc = (struct structure *)hash_data->def;
+  struc = (Structure *)hash_data->def;
 
   /* minisat is a builtin query using the Minisat-C solver */
   if (!strcmp(bname, "minisat"))
@@ -169,18 +169,18 @@ int do_abquery_command(struct node *command)
 /* P:2 is x1=3&x4=0&x2=0&x3=x6&x5<3 
  * N:2 is x4=0 & E(x2,x3) & (x1=x5 & (x6=x2 | x6=x3)) & x1<3
  */
-int do_threecolorsat_query(const struct structure *struc)
+int do_threecolorsat_query(const Structure *struc)
 {
   int i, i1, i2;
   int j;
   int n=struc->size;
-  struct interp *interp=new_interp(struc);
+  Interp *interp=new_interp(struc);
   int *iv;
   int *jv;
-  struct node *e;
+  Node *e;
   int ii, jj;
   int r;
-  struct relation *er=get_relation("E",NULL,struc);
+  Relation *er=get_relation("E",NULL,struc);
   int *ec = er->cache;
   veci *lits=malloc(sizeof(veci));
   lit *begin;
@@ -285,22 +285,22 @@ int do_threecolorsat_query(const struct structure *struc)
 }
 
 /* based on do_minisat_query */
-int do_minisat2_query(const struct structure *struc)
+int do_minisat2_query(const Structure *struc)
 {
   int c, v;
   int size=struc->size;
-  struct interp *interp;
+  Interp *interp;
   int res;
   int i;
-  struct relation *pr = get_relation("P",NULL,struc);
-  struct relation *nr = get_relation("N",NULL,struc);
-  struct node *p=pr->parse_cache;
-  struct node *n=nr->parse_cache;
+  Relation *pr = get_relation("P",NULL,struc);
+  Relation *nr = get_relation("N",NULL,struc);
+  Node *p=pr->parse_cache;
+  Node *n=nr->parse_cache;
   int *pc = pr->cache;
   int *nc = nr->cache;
   int flag;
 
-  struct minisat_solver_t *solver=minisat_new();
+  minisat_solver *solver=minisat_new();
   minisat_Lit *lits = malloc(sizeof(minisat_Lit)*size);
 
 
@@ -357,22 +357,22 @@ int do_minisat2_query(const struct structure *struc)
 /* P:2 is x1=3&x4=0&x2=0&x3=x6&x5<3 
  * N:2 is x4=0 & E(x2,x3) & (x1=x5 & (x6=x2 | x6=x3)) & x1<3
  */
-int do_threecolor_sat2_query(const struct structure *struc)
+int do_threecolor_sat2_query(const Structure *struc)
 {
   int i, i1, i2;
   int j;
   int n=struc->size;
-  struct interp *interp=new_interp(struc);
+  Interp *interp=new_interp(struc);
   int *iv;
   int *jv;
-  struct node *e;
+  Node *e;
   int ii, jj;
   int r;
-  struct relation *er=get_relation("E",NULL,struc);
+  Relation *er=get_relation("E",NULL,struc);
   int *ec = er->cache;
   int threen=3*n; /* 3n */
   minisat_Lit *lits=malloc(sizeof(minisat_Lit)*threen);
-  struct minisat_solver_t *s=minisat_new();
+  minisat_solver *s=minisat_new();
 
   for (i=0; i<threen; i++)
     lits[i]=minisat_newLit(s);
@@ -482,17 +482,17 @@ int do_threecolor_sat2_query(const struct structure *struc)
 }
 
 /* TODO ALL MY SAT STUFF ASSUMES NO LIT OCCURS BOTH POS AND NEG IN SAME CLAUSE */
-int do_minisat_query(const struct structure *struc)
+int do_minisat_query(const Structure *struc)
 {
   int c, v;
   int size;
-  struct interp *interp;
+  Interp *interp;
   int res;
   int i;
-  struct relation *pr = get_relation("P",NULL,struc);
-  struct relation *nr = get_relation("N",NULL,struc);
-  struct node *p=pr->parse_cache;
-  struct node *n=nr->parse_cache;
+  Relation *pr = get_relation("P",NULL,struc);
+  Relation *nr = get_relation("N",NULL,struc);
+  Node *p=pr->parse_cache;
+  Node *n=nr->parse_cache;
   int *pc = pr->cache;
   int *nc = nr->cache;
   veci *lits=malloc(sizeof(veci));
@@ -547,17 +547,17 @@ int do_minisat_query(const struct structure *struc)
   return res;
 }
 
-int do_listtuple_command(struct node *command)
+int do_listtuple_command(Node *command)
 {
-  struct structure *str;
-  struct relation *rel;
+  Structure *str;
+  Relation *rel;
   char *rname;
   char *sname;
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Identifier *hash_data;
+  hnode_t *hnode;
   int arity, size;
   int *tuple=NULL;
-  struct interp *interp;
+  Interp *interp;
   char *output=NULL;
   int tuple_num, res;
 
@@ -572,7 +572,7 @@ int do_listtuple_command(struct node *command)
     return 0;
   }
 
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
   if (hash_data->type != STRUC)
   {
@@ -580,7 +580,7 @@ int do_listtuple_command(struct node *command)
     return 0;
   }
 
-  str = (struct structure *)hash_data->def;
+  str = (Structure *)hash_data->def;
   rel = get_relation(rname, NULL, str);
 
   if (!rel)
@@ -632,16 +632,16 @@ int do_listtuple_command(struct node *command)
   return 1;
 }
 
-int do_expred_command(struct node *command)
+int do_expred_command(Node *command)
 {
-  struct structure *str;
+  Structure *str;
   char *rname;
   char *sname;
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Identifier *hash_data;
+  hnode_t *hnode;
   int value;
   char ans;
-  struct interp *inter;
+  Interp *inter;
 
   sname = command->l->data;
   rname = command->r->data;
@@ -654,7 +654,7 @@ int do_expred_command(struct node *command)
     return 0;
   }
 
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
   if (hash_data->type != STRUC)
   {
@@ -662,7 +662,7 @@ int do_expred_command(struct node *command)
     return 0;
   }
 
-  str = (struct structure *)hash_data->def;
+  str = (Structure *)hash_data->def;
 
   inter = new_interp(str);
   value = eval(command->r, inter, str);
@@ -680,15 +680,15 @@ int do_expred_command(struct node *command)
   return 1;
 }
 
-int do_excons_command(struct node *command)
+int do_excons_command(Node *command)
 {
-  struct structure *str;
-  struct constant *cons;
+  Structure *str;
+  Constant *cons;
   char *sname;
   char *cname;
-  struct id *hash_data;
-  struct hnode_t *hnode;
-  struct interp *interp;
+  Identifier *hash_data;
+  hnode_t *hnode;
+  Interp *interp;
   int value;
 
   sname = (char *)command->l->data;
@@ -702,7 +702,7 @@ int do_excons_command(struct node *command)
     return 0;
   }
 
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
   if (hash_data->type != STRUC)
   {
@@ -710,7 +710,7 @@ int do_excons_command(struct node *command)
     return 0;
   }
 
-  str = (struct structure *)(hash_data->def);
+  str = (Structure *)(hash_data->def);
 
   cons = get_constant(cname,str);
 
@@ -738,7 +738,7 @@ int do_excons_command(struct node *command)
   return 1;
 }
 
-int do_assign_command(struct node *command)
+int do_assign_command(Node *command)
 {
   char *new_name;
   new_name = command->l->data;
@@ -770,7 +770,7 @@ int do_assign_command(struct node *command)
   }
 }
 
-/* int do_load(struct node *command)
+/* int do_load(Node *command)
  *
  * in file/file.c
  */
@@ -782,22 +782,22 @@ int do_assign_command(struct node *command)
  * (or other, we don't restrict the user) way.  We remap these tuples back to
  * the naturals, so E(0,0) is possible (instead of E(<0,0,0,0,0...>,<0,0,0..>).
  */ 
-int do_apply_assign(struct node *command)
+int do_apply_assign(Node *command)
 {
-  struct reduction *reduc;
-  struct structure *ostruc;
-  struct structure *new_id;
+  Reduction *reduc;
+  Structure *ostruc;
+  Structure *new_id;
 
-  struct relation *rel;
-  struct relation *newr;
-  struct relation *prevr;
+  Relation *rel;
+  Relation *newr;
+  Relation *prevr;
 
-  struct consform *cons;
-  struct constant *newc;
-  struct constant *prevc;
+  ConsForm *cons;
+  Constant *newc;
+  Constant *prevc;
   /*
-     struct node *form;
-     struct node *t;
+     Node *form;
+     Node *t;
      */
   int k, arity, i, res;
   int cind;
@@ -808,11 +808,11 @@ int do_apply_assign(struct node *command)
   int size, relsize;
   int **values;
 
-  struct hnode_t *hnode;
-  struct id *hash_data;
-  struct interp *interp;
+  hnode_t *hnode;
+  Identifier *hash_data;
+  Interp *interp;
   int firstcall;
-  struct reduc_map *rmap;
+  ReductionMap *rmap;
 
   /* TODO check if new id exists */
   /* this should already be checked in do_assign_command above 
@@ -824,14 +824,14 @@ int do_apply_assign(struct node *command)
     err("15: Nonexistent reduction or query %s\n",(char *)command->r->l->data);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != REDUC)
   {
     err("34: %s is not a reduction\n",(char *)command->r->l->data);
     return 0;
   }
 
-  reduc = (struct reduction *)hash_data->def;
+  reduc = (Reduction *)hash_data->def;
 
   hnode = hash_lookup(cur_env->id_hash, command->r->r->data); /* struc */
   if (!hnode)
@@ -839,17 +839,17 @@ int do_apply_assign(struct node *command)
     err("35: Structure %s does not exist\n",(char *)command->r->r->data);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != STRUC)
   {
     err("36: %s is not a structure\n",(char *)command->r->r->data);
     return 0;
   }
 
-  ostruc = (struct structure *)hash_data->def;
+  ostruc = (Structure *)hash_data->def;
 
   /* TODO CHECK TYPES ON VOCABULARIES */
-  new_id = malloc(sizeof(struct structure));
+  new_id = malloc(sizeof(Structure));
   rmap = make_rmap(reduc, ostruc);
   k = reduc->k;
   size = rmap->size;
@@ -886,7 +886,7 @@ int do_apply_assign(struct node *command)
     free(tuple);
     tuple=NULL;
 
-    newr = malloc(sizeof(struct relation));
+    newr = malloc(sizeof(Relation));
     newr->name = rel->name;
     newr->arity = rel->arity;
     newr->parse_cache = 0; /* TODO HACK THIS IN */
@@ -959,7 +959,7 @@ int do_apply_assign(struct node *command)
 
   for (cons = reduc->consforms; cons; cons=cons->next)
   {
-    newc = malloc(sizeof(struct constant));
+    newc = malloc(sizeof(Constant));
     newc->name = cons->name;
     newc->parse_cache = cons->parse_cache;
     newc->next = 0;
@@ -1004,7 +1004,7 @@ int do_apply_assign(struct node *command)
   free(rmap->nat_to_tup);
   free(rmap->tup_to_nat);
   free(rmap);
-  hash_data = malloc(sizeof(struct id));
+  hash_data = malloc(sizeof(Identifier));
   hash_data->name = new_id->name;
   hash_data->def = new_id;
   hash_data->type = STRUC;
@@ -1017,13 +1017,13 @@ int do_apply_assign(struct node *command)
   return 1;
 }
 
-int do_bquery_assign(struct node *command)
+int do_bquery_assign(Node *command)
 {
   char *vname;
   char *name;
-  struct id *hash_data;
-  struct hnode_t *hnode;
-  struct bquery *new_id;
+  Identifier *hash_data;
+  hnode_t *hnode;
+  BQuery *new_id;
 
   vname = command->r->l->data;
   hnode = hash_lookup(cur_env->id_hash, vname);
@@ -1032,7 +1032,7 @@ int do_bquery_assign(struct node *command)
     err("16: Vocabulary %s doesn't exist\n",vname);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != VOCAB)
   {
     err("17: %s is not a vocabulary\n",vname);
@@ -1040,12 +1040,12 @@ int do_bquery_assign(struct node *command)
   }
 
   name = dupstr(command->l->data);
-  new_id = malloc(sizeof(struct bquery));
+  new_id = malloc(sizeof(BQuery));
   new_id->name = name;
-  new_id->voc = (struct vocab *)hash_data->def;
+  new_id->voc = (Vocabulary *)hash_data->def;
   new_id->form = command->r->r;	
 
-  hash_data = malloc(sizeof(struct id));
+  hash_data = malloc(sizeof(Identifier));
   hash_data->name = new_id->name;
   hash_data->def = new_id;
   hash_data->type = BQUERY;
@@ -1061,23 +1061,23 @@ int do_bquery_assign(struct node *command)
 
 /* TODO sanity checking to make sure the reduction defines a structure
  * of the correct vocab, etc. */
-int do_reduc_assign(struct node *command)
+int do_reduc_assign(Node *command)
 {
-  struct node *cmdexpr = command->r;
-  struct node *t;
+  Node *cmdexpr = command->r;
+  Node *t;
   char *fvname, *tvname;
 
-  struct reduction *new_id;
-  struct vocab *from_vocab;
-  struct vocab *to_vocab;
+  Reduction *new_id;
+  Vocabulary *from_vocab;
+  Vocabulary *to_vocab;
   int k;
-  struct relation *tmpr, *prevr=NULL;
-  struct consform *tmpc, *prevc=NULL;
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Relation *tmpr, *prevr=NULL;
+  ConsForm *tmpc, *prevc=NULL;
+  Identifier *hash_data;
+  hnode_t *hnode;
   char *rel_name;
   int rel_arity;
-  struct node *rel_form;
+  Node *rel_form;
 
   fvname = cmdexpr->l->l->l->data;
   tvname = cmdexpr->l->l->r->data;
@@ -1088,7 +1088,7 @@ int do_reduc_assign(struct node *command)
     err("14: Vocabulary %s doesn't exist\n",fvname);
     return 0;
   }
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
   if (hash_data->type != VOCAB)
   {
@@ -1096,7 +1096,7 @@ int do_reduc_assign(struct node *command)
     return 0;
   }
 
-  from_vocab = (struct vocab *)hash_data->def;
+  from_vocab = (Vocabulary *)hash_data->def;
 
   hnode = hash_lookup(cur_env->id_hash, tvname);
   if (!hnode)
@@ -1104,7 +1104,7 @@ int do_reduc_assign(struct node *command)
     err("14: Vocabulary %s doesn't exist\n",tvname);
     return 0;
   }
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
   if (hash_data->type != VOCAB)
   {
@@ -1112,10 +1112,10 @@ int do_reduc_assign(struct node *command)
     return 0;
   }
 
-  to_vocab = (struct vocab *)hash_data->def;
+  to_vocab = (Vocabulary *)hash_data->def;
   k = *(int *)(cmdexpr->r->l->data);
   t = cmdexpr->l->r;
-  new_id = malloc(sizeof(struct reduction)); 
+  new_id = malloc(sizeof(Reduction)); 
   if (!new_id)
   {
     err("Insufficient memory\n");
@@ -1137,7 +1137,7 @@ int do_reduc_assign(struct node *command)
     rel_arity = *(int *)(t->l->r->data);
     rel_form = t->r->l;
 
-    tmpr = malloc(sizeof(struct relation));
+    tmpr = malloc(sizeof(Relation));
     if (!prevr)
       new_id->relforms = tmpr;
     else
@@ -1156,7 +1156,7 @@ int do_reduc_assign(struct node *command)
     rel_name = t->l->l->data;
     rel_form = t->l->r;
 
-    tmpc = malloc(sizeof(struct constant));
+    tmpc = malloc(sizeof(Constant));
     if (!prevc)
       new_id->consforms = tmpc;
     else
@@ -1168,7 +1168,7 @@ int do_reduc_assign(struct node *command)
     t = t->r;
   }
 
-  hash_data = malloc(sizeof(struct id));
+  hash_data = malloc(sizeof(Identifier));
   hash_data->name = new_id->name;
   hash_data->def = new_id;
   hash_data->type=REDUC;
@@ -1182,29 +1182,29 @@ int do_reduc_assign(struct node *command)
   return 1;
 }
 
-int do_vocab_assign(struct node *command)
+int do_vocab_assign(Node *command)
 {
-  struct node *assign_id = command->l;
-  struct node *cmdexpr = command->r;
-  struct node *t;
+  Node *assign_id = command->l;
+  Node *cmdexpr = command->r;
+  Node *t;
 
-  struct vocab * new_id;
-  struct rel_symbol *tmpr;
-  struct rel_symbol *prevr=NULL;
-  struct cons_symbol *tmpc;
-  struct cons_symbol *prevc=NULL;
-  struct id *hash_data;
+  Vocabulary * new_id;
+  RelationSymbol *tmpr;
+  RelationSymbol *prevr=NULL;
+  ConsSymbol *tmpc;
+  ConsSymbol *prevc=NULL;
+  Identifier *hash_data;
 
   t = cmdexpr->l;
 
-  new_id = malloc(sizeof(struct vocab));
+  new_id = malloc(sizeof(Vocabulary));
   new_id ->name = dupstr(assign_id->data);
   new_id->id = cur_env->next_id++;
   new_id->cons_symbols = 0;
   new_id->rel_symbols = 0;
   while (t && t->label == CVRELARG)
   {
-    tmpr = malloc(sizeof(struct rel_symbol));
+    tmpr = malloc(sizeof(RelationSymbol));
     if (!prevr)
       new_id->rel_symbols = tmpr;
     else
@@ -1217,7 +1217,7 @@ int do_vocab_assign(struct node *command)
   }
   while (t && t->label == CVCONSARG)
   {
-    tmpc = malloc(sizeof(struct cons_symbol));
+    tmpc = malloc(sizeof(ConsSymbol));
     if (!prevc)
       new_id->cons_symbols = tmpc;
     else
@@ -1228,7 +1228,7 @@ int do_vocab_assign(struct node *command)
     t=t->r;
   }
 
-  hash_data=malloc(sizeof(struct id));
+  hash_data=malloc(sizeof(Identifier));
 
   hash_data->name = new_id->name;
   hash_data->def = new_id;
@@ -1245,29 +1245,29 @@ int do_vocab_assign(struct node *command)
 
 /* TODO make sure that the structure definition matches the vocabulary given */
 
-int do_struc_assign(struct node *command)
+int do_struc_assign(Node *command)
 {
-  struct node *assign_id = command->l;
-  struct node *cmdexpr = command->r;
-  struct node *t;
+  Node *assign_id = command->l;
+  Node *cmdexpr = command->r;
+  Node *t;
 
-  struct structure *new_id;
-  struct relation *tmpr;
-  struct relation *prevr=0;
-  struct constant *tmpc;
-  struct constant *prevc=0;
+  Structure *new_id;
+  Relation *tmpr;
+  Relation *prevr=0;
+  Constant *tmpc;
+  Constant *prevc=0;
 
-  struct vocab *voc;
-  struct hnode_t *hnode; 
+  Vocabulary *voc;
+  hnode_t *hnode; 
   char *vname;
   int *cache_pt;
   int size, cache_size, i;
 
-  struct id *hash_data;
+  Identifier *hash_data;
 
   char *rel_name;
   int rel_arity;
-  struct node *rel_form;	
+  Node *rel_form;	
 
   t = cmdexpr->l;
 
@@ -1279,7 +1279,7 @@ int do_struc_assign(struct node *command)
     printf("2: Nonexistent vocabulary\n");
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
 
   if (hash_data->type != VOCAB)
   {
@@ -1287,7 +1287,7 @@ int do_struc_assign(struct node *command)
     return 0;
   }
 
-  voc = (struct vocab *) hash_data->def;
+  voc = (Vocabulary *) hash_data->def;
 
   if ((size=teval(t->l->r,new_interp(NULL),NULL))<0)
   {
@@ -1296,7 +1296,7 @@ int do_struc_assign(struct node *command)
   }
 
   assert(t->label==CSARGS);
-  new_id = malloc(sizeof(struct structure));
+  new_id = malloc(sizeof(Structure));
   new_id->name = dupstr(assign_id->data);
   new_id->id = cur_env->next_id++;
   new_id->cons = 0;
@@ -1314,7 +1314,7 @@ int do_struc_assign(struct node *command)
     cache_size = trpow(size, rel_arity);
     cache_pt = malloc(cache_size*sizeof(int));
 
-    tmpr = malloc(sizeof(struct relation));
+    tmpr = malloc(sizeof(Relation));
     if (!prevr)
       new_id->rels=tmpr;
     else
@@ -1339,7 +1339,7 @@ int do_struc_assign(struct node *command)
     rel_name = t->l->l->data;
     rel_form = t->l->r;
 
-    tmpc = malloc(sizeof(struct constant));
+    tmpc = malloc(sizeof(Constant));
     if (!prevc)
       new_id->cons = tmpc;
     else
@@ -1355,7 +1355,7 @@ int do_struc_assign(struct node *command)
     t = t->r;
   }
 
-  hash_data=malloc(sizeof(struct id));
+  hash_data=malloc(sizeof(Identifier));
 
   hash_data->name = new_id->name;
   hash_data->def = new_id;
@@ -1374,13 +1374,13 @@ int do_struc_assign(struct node *command)
 }
 
 /* redfind is in redfind/redfind.c */
-int do_redfind(struct node *command)
+int do_redfind(Node *command)
 {
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Identifier *hash_data;
+  hnode_t *hnode;
   char *p1name = command->l->l->data;
   char *p2name = command->l->r->data;
-  struct bquery *p1, *p2;
+  BQuery *p1, *p2;
   int k, c, n1, n2;
 
   if (!(command->r->l))
@@ -1408,13 +1408,13 @@ int do_redfind(struct node *command)
     err("rc1: Boolean query %s doesn't exist\n",p1name);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != BQUERY)
   {
     err("rc2: %s is not a Boolean query\n",p1name);
     return 0;
   }
-  p1 = (struct bquery *)hash_data->def;
+  p1 = (BQuery *)hash_data->def;
 
   hnode = hash_lookup(cur_env->id_hash,p2name);
   if (!hnode)
@@ -1422,26 +1422,26 @@ int do_redfind(struct node *command)
     err("rc3: Boolean query %s doesn't exist\n",p2name);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != BQUERY)
   {
     err("rc4: %s is not a Boolean query\n",p2name);
     return 0;
   }
-  p2 = (struct bquery *)hash_data->def;
+  p2 = (BQuery *)hash_data->def;
 
   /* okay, now we want to search for a reduction from p1 to p2. */
   return redfind(p1,p2,k,c,n1,n2);
 }
 
 /* usemace is in mace/usemace.c */
-int do_mace(struct node *command)
+int do_mace(Node *command)
 {
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Identifier *hash_data;
+  hnode_t *hnode;
   char *vname = command->r->l->l->data, *freevar;
-  struct vocab *vocab;
-  struct node *form;
+  Vocabulary *vocab;
+  Node *form;
   int clock;
   hnode = hash_lookup(cur_env->id_hash,vname);
   if (!hnode)
@@ -1449,14 +1449,14 @@ int do_mace(struct node *command)
     err("40: Vocabulary %s doesn't exist\n",vname);
     return 0;
   }
-  hash_data = (struct id *)hnode_get(hnode);
+  hash_data = (Identifier *)hnode_get(hnode);
   if (hash_data->type != VOCAB)
   {
     err("41: %s is not a vocabulary\n",vname);
     return 0;
   }
 
-  vocab = (struct vocab *)hash_data->def;
+  vocab = (Vocabulary *)hash_data->def;
   form = command->r->l->r;
   freevar = free_var(form,vocab);
   if (freevar)

@@ -30,15 +30,15 @@ do_cmd(cmdtree->l); \
 yy_delete_buffer(bufstate)
 
 /* Calls Marco's program to draw a structure */
-int do_draw_command(struct node *command)
+int do_draw_command(Node *command)
 {
   char *name=command->l->data, *tfn;
   FILE *tmp, *m;
-  struct structure *str;
+  Structure *str;
   char *exec;
 
-  struct id *hash_data;
-  struct hnode_t *hnode = hash_lookup(cur_env->id_hash, name);
+  Identifier *hash_data;
+  hnode_t *hnode = hash_lookup(cur_env->id_hash, name);
   int len;
 
   if (!hnode)
@@ -47,7 +47,7 @@ int do_draw_command(struct node *command)
     return 0;
   }
 
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
   if (hash_data->type!=STRUC)
   {
@@ -96,7 +96,7 @@ int do_draw_command(struct node *command)
 /* This is done by first creating an empty graph of the proper size, and
  * then adding the edges as they appear.
  */
-int do_load(struct node *command)
+int do_load(Node *command)
 {
   void *bufstate;
   char *assign_id = command->l->data;
@@ -113,10 +113,10 @@ int do_load(struct node *command)
   int c;
   char oc;
   int n,m, n_digits,buflen;
-  struct structure *str;
-  struct relation *rel;
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Structure *str;
+  Relation *rel;
+  Identifier *hash_data;
+  hnode_t *hnode;
 
   strncpy(filename,fn+1,fnl-2); 
   filename[fnl-2]='\0';
@@ -170,9 +170,9 @@ int do_load(struct node *command)
                       */
 
   hnode = hash_lookup(cur_env->id_hash, assign_id);
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
-  str = (struct structure *)hash_data->def;
+  str = (Structure *)hash_data->def;
   rel = get_relation("E", NULL, str);
 
   for (i=0; i<n*n;)
@@ -216,15 +216,15 @@ int do_load(struct node *command)
   return 1;
 }
 
-int do_save_command(struct node *command)
+int do_save_command(Node *command)
 {
   char *id=command->l->data;
   char *fn=command->r->data;
   FILE *f;
   int fnl=strlen(fn);
   char *filename=malloc(fnl-1);
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Identifier *hash_data;
+  hnode_t *hnode;
 
   hnode = hash_lookup(cur_env->id_hash, id);
 
@@ -234,7 +234,7 @@ int do_save_command(struct node *command)
     return 0;
   }
 
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
   strncpy(filename,fn+1,fnl-2);
   filename[fnl-2]='\0';
@@ -252,7 +252,7 @@ int do_save_command(struct node *command)
   {
     case STRUC:
       f = fopen(filename, "w");
-      return save_struc((struct structure *)hash_data->def,
+      return save_struc((Structure *)hash_data->def,
           f);
     default:
       err("39: Saving this object is not supported.\n");
@@ -265,13 +265,13 @@ int do_save_command(struct node *command)
 }
 
 /* saves s to FILE f (already opened for writing) */
-int save_struc(struct structure *s, FILE *f)
+int save_struc(Structure *s, FILE *f)
 {
-  struct constant *con;
-  struct relation *relation;
+  Constant *con;
+  Relation *relation;
   int *tuple=NULL;
   int a,n=s->size,res,tuple_num;
-  struct interp *interp=new_interp(s);
+  Interp *interp=new_interp(s);
 
   fprintf(f,"c de 1\nn %s\np de %d 0\n",s->name,n);
   save_voc_inner(s->vocab,f);
@@ -311,7 +311,7 @@ int save_struc(struct structure *s, FILE *f)
   return 1;
 }
 
-int save_tuple_line(struct relation *relation, int *tuple, FILE *f)
+int save_tuple_line(Relation *relation, int *tuple, FILE *f)
 {
   int i,a=relation->arity;
   fprintf(f,"%s ",relation->name);
@@ -322,10 +322,10 @@ int save_tuple_line(struct relation *relation, int *tuple, FILE *f)
 }
 
 /* save voc to f with no header, f already open for writing */
-int save_voc_inner(struct vocab *voc, FILE *f)
+int save_voc_inner(Vocabulary *voc, FILE *f)
 {
-  struct cons_symbol *con;
-  struct rel_symbol *rel;
+  ConsSymbol *con;
+  RelationSymbol *rel;
   fprintf(f, "v %s\nv ",voc->name);
   for (rel = voc->rel_symbols; rel; rel=rel->next)
     fprintf(f,"%s:%d ",rel->name, rel->arity);
@@ -341,7 +341,7 @@ int save_voc_inner(struct vocab *voc, FILE *f)
  * no difference between upper/lower-case.
  * The vocabulary is implicit, characters that occur are monadic predicates.
  */
-int do_loadassign(struct node *command)
+int do_loadassign(Node *command)
 {
   void *bufstate;
   char *assign_id = command->l->data;
@@ -356,13 +356,13 @@ int do_loadassign(struct node *command)
   int  i;
   char *buf;
   int c;
-  struct structure *struc;
-  struct vocab *voc;
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Structure *struc;
+  Vocabulary *voc;
+  Identifier *hash_data;
+  hnode_t *hnode;
   int count=0;
   char *str;
-  struct rel_symbol *rs;
+  RelationSymbol *rs;
 
   strncpy(filename,fn+1,fnl-2);
   filename[fnl-2]='\0';
@@ -406,7 +406,7 @@ int do_loadassign(struct node *command)
     return -1;
   }
 
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
   if (hash_data->type != VOCAB)
   {
     printf("??: %s is not a vocabulary.\n",vocname);
@@ -414,7 +414,7 @@ int do_loadassign(struct node *command)
     return -1;
   }
 
-  voc = (struct vocab *)hash_data->def;
+  voc = (Vocabulary *)hash_data->def;
 
   if (voc->cons_symbols)
   {
@@ -443,9 +443,9 @@ int do_loadassign(struct node *command)
   free(buf);
 
   hnode = hash_lookup(cur_env->id_hash, assign_id);
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
-  struc = (struct structure *)hash_data->def;
+  struc = (Structure *)hash_data->def;
 
   loadstring_convert(struc,count,str);
   free(str);
@@ -454,11 +454,11 @@ int do_loadassign(struct node *command)
 }
 
 /* return "assign_id is new structure{voc->name,count, ...}" */
-char *loadstring_getdec(char *assign_id, int count, struct vocab *voc)
+char *loadstring_getdec(char *assign_id, int count, Vocabulary *voc)
 {
   int len;
   char *ret;
-  struct rel_symbol *rs;
+  RelationSymbol *rs;
 
   len = strlen(assign_id)+18+strlen(voc->name)+1+numdigits(count)+1;
 
@@ -478,9 +478,9 @@ char *loadstring_getdec(char *assign_id, int count, struct vocab *voc)
   }
 
 
-void loadstring_convert(struct structure *struc, int count, char *str)
+void loadstring_convert(Structure *struc, int count, char *str)
 {
-  struct relation *rel;
+  Relation *rel;
   int i;
   char c[2];
 

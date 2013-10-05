@@ -4,6 +4,7 @@
  */
 
 #include "types.h"
+#include "parse.h"
 #include "protos.h"
 #include "stdlib.h"
 
@@ -21,18 +22,17 @@
  * and this is only a temporary cache anyways, it's thrown away once the induced
  * structure is assigned to an id.
  */
-struct reduc_map *make_rmap(const struct reduction *reduc, 
-    struct structure *struc)
+ReductionMap *make_rmap(const Reduction *reduc, Structure *struc)
 {
-  struct node *univ_form;
-  struct interp *interp;
+  Node *univ_form;
+  Interp *interp;
   int k, cindex, size, i, res=0;
   int *tuple=0;
   int num_tuples;
-  struct reduc_map *rmap;
+  ReductionMap *rmap;
   int tmp, j;
-  struct interp_symbol *is;
-  struct interp_symbol *base;
+  InterpSymbol *is;
+  InterpSymbol *base;
   int *first;
 
   univ_form = reduc->universe_form;
@@ -42,7 +42,7 @@ struct reduc_map *make_rmap(const struct reduction *reduc,
   num_tuples = trpow(size,k);
   interp = new_interp(struc);
 
-  rmap = malloc(sizeof(struct reduc_map));
+  rmap = malloc(sizeof(ReductionMap));
   rmap->nat_to_tup = malloc(num_tuples*sizeof(int));
   rmap->tup_to_nat = malloc(num_tuples*sizeof(int));
 

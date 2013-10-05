@@ -35,15 +35,15 @@ yy_delete_buffer(bufstate)
  * Returns 0 if we didn't find a model, -1 if there was some error,
  * and saves the found model as name otherwise.
  */
-int usemace(struct node *form, struct vocab *voc, char *name, int clock)
+int usemace(Node *form, Vocabulary *voc, char *name, int clock)
 {
   FILE *m;
   char *inp;
-  struct structure *str;
-  struct rel_symbol *rel;
-  struct cons_symbol *cons;
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Structure *str;
+  RelationSymbol *rel;
+  ConsSymbol *cons;
+  Identifier *hash_data;
+  hnode_t *hnode;
   int n, t, formlength, arith;
   void *bufstate;
   char *tfn;
@@ -140,9 +140,9 @@ int usemace(struct node *form, struct vocab *voc, char *name, int clock)
   free(inp);
 
   hnode = hash_lookup(cur_env->id_hash, name);
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
-  str = (struct structure *)hash_data->def;
+  str = (Structure *)hash_data->def;
 
   int status = 1;
   if(1 != make_mace_model(str,m)) {
@@ -190,9 +190,9 @@ int get_mace_model_size(FILE *m)
 }
 
 /* Prints form in Mace4 format */
-int print_mace(FILE *m, struct node *form)
+int print_mace(FILE *m, Node *form)
 {
-  struct node *tnode, *restr, *varlist, *phi, *relargs;
+  Node *tnode, *restr, *varlist, *phi, *relargs;
   switch (form->label)
   {
     case TRUE:
@@ -321,7 +321,7 @@ int print_mace(FILE *m, struct node *form)
 }
 
 /* prints the term form in Mace4 format */
-int t_print_mace(FILE *m, struct node *form)
+int t_print_mace(FILE *m, Node *form)
 {
 
   switch (form->label)
@@ -365,14 +365,14 @@ int t_print_mace(FILE *m, struct node *form)
 /* make the structure str like the model m, where the stream
  * starts at the comma after the universe size
  */
-int make_mace_model(struct structure *str, FILE *m)
+int make_mace_model(Structure *str, FILE *m)
 {
   int c;
   char *n;
   int i, j;
   int a, size;
-  struct constant *cons;
-  struct relation *rel;
+  Constant *cons;
+  Relation *rel;
   int *tuple=NULL;
 
   n=malloc(sizeof(char)*512);
@@ -463,10 +463,10 @@ int make_mace_model(struct structure *str, FILE *m)
   return 1;
 }
 
-int need_arithmetic(struct node *form)
+int need_arithmetic(Node *form)
 {
   int ret;
-  struct node *tmp;
+  Node *tmp;
   switch (form->label)
   {
     case TRUE:

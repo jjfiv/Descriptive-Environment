@@ -20,10 +20,11 @@
  */
 
 %{
-#define _POSIX_SOURCE 1
 #include "soe_parse.tab.h"
-#include <string.h>
 #include <stdio.h>
+extern char* dupstr(const char *);
+extern int fileno(FILE *);
+
  /*extern int yylval;*/
  /*extern YYSTYPE yylval;*/
 %}
@@ -79,11 +80,11 @@
 "draw"		{return DRAW;}
 "mace"		{return MACE;} /* End of de section, begin boring section */
 
-[a-t][a-z]*[0-9]*      {yylval.string=strdup(yytext); return CONSTANT;}
+[a-t][a-z]*[0-9]*      {yylval.string=dupstr(yytext); return CONSTANT;}
 [0-9]*                 {yylval.integer = atoi(yytext); return NUMBER;}
-[u-z][a-z]*[0-9]*      {yylval.string=strdup(yytext); return VAR;}
-[A-Z][a-z]*[0-9]*      {yylval.string=strdup(yytext);return PRED;}
-\"[A-Za-z0-9\/\.\\\:\;\,\ \-\_]+\" {yylval.string=strdup(yytext); return FILENAME;}
+[u-z][a-z]*[0-9]*      {yylval.string=dupstr(yytext); return VAR;}
+[A-Z][a-z]*[0-9]*      {yylval.string=dupstr(yytext);return PRED;}
+\"[A-Za-z0-9\/\.\\\:\;\,\ \-\_]+\" {yylval.string=dupstr(yytext); return FILENAME;}
 
 "\n"	{return NL;}
 [ \t]	{ } /* eat whitespace */

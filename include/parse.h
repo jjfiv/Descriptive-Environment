@@ -12,25 +12,27 @@
 
 extern int yylex(void);
 
-struct node {
+typedef struct node {
   struct node *l;
   struct node *r;
   void *data;
   int *ival;
   int ndata;
   int label;
-};
+} Node;
 
-extern struct node *parsetree;
-extern struct node *cmdtree;
+extern Node *parsetree;
+extern Node *cmdtree;
 
-struct node *node(int, struct node*, struct node*);
-struct node *inode(int, int);
-struct node *snode(int, char *);
-struct node *vlnode(int, char*, struct node *);
-struct node *qnode(int, struct node*, struct node*, struct node*);
-struct node *arg_node(int, struct node *);
-struct node *fournode(int, struct node*, struct node*, struct node*, struct node*);
+Node* node(int, Node*, Node*);
+Node* inode(int, int);
+Node* snode(int, char *);
+Node* vlnode(int, char*, Node *);
+Node* qnode(int, Node*, Node*, Node*);
+Node* arg_node(int, Node *);
+Node* fournode(int, Node*, Node*, Node*, Node*);
+
+extern void* yy_scan_string(const char*);
 
 #endif
 

@@ -26,9 +26,9 @@ char *dupstr(const char *inp)
  * doesn't know what they are (void *) and so doesn't free anything
  * inside/pointed-to-by data.
  */
-struct list *free_list(struct list *list)
+List *free_list(List *list)
 {
-  struct list *t1, *t2;
+  List *t1, *t2;
   for (t1=list; t1; t1=t2)
   {
     t2=t1->next;

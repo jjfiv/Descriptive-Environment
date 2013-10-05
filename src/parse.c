@@ -9,12 +9,12 @@
 /**
  * Global variables
  */
-struct node *parsetree;
-struct node *cmdtree;
+Node *parsetree;
+Node *cmdtree;
 
-struct node *node(int l, struct node *left, struct node *right)
+Node *node(int l, Node *left, Node *right)
 {
-  struct node *n=malloc(sizeof(struct node));
+  Node *n=malloc(sizeof(Node));
   if (!n)
     return 0;
   n->l = left;
@@ -24,9 +24,9 @@ struct node *node(int l, struct node *left, struct node *right)
   return n;
 }
 
-struct node *inode(int l, int value)
+Node *inode(int l, int value)
 {
-  struct node *n=malloc(sizeof(struct node));
+  Node *n=malloc(sizeof(Node));
   if (!n)
     return 0;
   n->label = l;
@@ -38,9 +38,9 @@ struct node *inode(int l, int value)
   return n;
 }
 
-struct node *snode(int l, char *string)
+Node *snode(int l, char *string)
 {
-  struct node *n=malloc(sizeof(struct node));
+  Node *n=malloc(sizeof(Node));
   if (!n)
     return 0;
   n->label = l;
@@ -50,13 +50,13 @@ struct node *snode(int l, char *string)
   return n;
 }
 
-struct node *qnode(int l, struct node *vl, struct node *restr, struct node *form)
+Node *qnode(int l, Node *vl, Node *restr, Node *form)
 {
-  struct node *n;
-  struct node *vn;
-  if (!(n= malloc(sizeof(struct node))))
+  Node *n;
+  Node *vn;
+  if (!(n= malloc(sizeof(Node))))
     return 0;
-  if (!(vn= malloc(sizeof(struct node))))
+  if (!(vn= malloc(sizeof(Node))))
   {
     free(n);
     return 0;
@@ -74,9 +74,9 @@ struct node *qnode(int l, struct node *vl, struct node *restr, struct node *form
   return n;
 }
 
-struct node *vlnode(int l, char *var, struct node *next)
+Node *vlnode(int l, char *var, Node *next)
 {
-  struct node *n=malloc(sizeof(struct node));
+  Node *n=malloc(sizeof(Node));
 
   if (!n)
     return 0;
@@ -88,9 +88,9 @@ struct node *vlnode(int l, char *var, struct node *next)
   return n;
 }
 
-struct node *arg_node(int l, struct node *args)
+Node *arg_node(int l, Node *args)
 {
-  struct node *n=malloc(sizeof(struct node));
+  Node *n=malloc(sizeof(Node));
 
   if (!n)
     return 0;
@@ -101,21 +101,21 @@ struct node *arg_node(int l, struct node *args)
   return n;
 }
 
-struct node *fournode(int lab, struct node *ll, struct node *lr, struct node *rl, struct node *rr)
+Node *fournode(int lab, Node *ll, Node *lr, Node *rl, Node *rr)
 {
-  struct node *n;
-  struct node *l;
-  struct node *r;
+  Node *n;
+  Node *l;
+  Node *r;
 
-  if (!(n=malloc(sizeof(struct node))))
+  if (!(n=malloc(sizeof(Node))))
     return 0;
 
-  if (!(l=malloc(sizeof(struct node))))
+  if (!(l=malloc(sizeof(Node))))
   {
     free(n);
     return 0;
   }
-  if (!(r=malloc(sizeof(struct node))))
+  if (!(r=malloc(sizeof(Node))))
   {
     free(n); free(l);
     return 0;

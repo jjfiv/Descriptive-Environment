@@ -21,6 +21,7 @@
 
 %{
 	#include "parse.h"
+  extern void yyerror(const char *msg);
 %}
 
 %union {

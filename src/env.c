@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct env *cur_env;
+Environment *cur_env;
 
 static void init_command(const char *str) {
   void *bufstate = yy_scan_string(str);
@@ -18,7 +18,7 @@ static void init_command(const char *str) {
 void init_env(void)
 {
 
-  cur_env = malloc(sizeof(struct env));
+  cur_env = malloc(sizeof(Environment));
   if (!cur_env)
     return;
 
