@@ -749,24 +749,15 @@ int do_assign_command(Node *command)
   }
   switch (command->r->label)
   {
-    case VOCAB:
-      return do_vocab_assign(command);
-    case STRUC:
-      return do_struc_assign(command);
-    case REDUC:
-      return do_reduc_assign(command);
-    case APPLY:
-      return do_apply_assign(command);
-    case BQUERY:
-      return do_bquery_assign(command);
-    case LOAD:
-      return do_load(command);
-    case LOADSTRING:
-      return do_loadassign(command);
-    case MACE:
-      return do_mace(command);
-    default:
-      return -1;
+    case VOCAB: return do_vocab_assign(command);
+    case STRUC: return do_struc_assign(command);
+    case REDUC: return do_reduc_assign(command);
+    case APPLY: return do_apply_assign(command);
+    case BQUERY: return do_bquery_assign(command);
+    case LOAD: return do_load(command);
+    case LOADSTRING: return do_loadassign(command);
+    case MACE: return do_mace(command);
+    default: return -1;
   }
 }
 

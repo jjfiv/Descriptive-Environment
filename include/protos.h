@@ -7,7 +7,9 @@
 #include <stdio.h> /* for FILE * */
 #include "soe_parse.tab.h"
 
-#ifdef DEBUG
+#define DEBUG 1
+
+#if DEBUG
 #define err printf
 #else
 #define err(...)
