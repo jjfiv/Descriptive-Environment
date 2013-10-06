@@ -3,6 +3,7 @@
 #define _DE_PROTOS_H
 
 #include "types.h"
+#include "parse.h"
 #include <stdio.h> /* for FILE * */
 #include "soe_parse.tab.h"
 
@@ -23,99 +24,97 @@ void init_env(void);
 /* cmd.c */
 extern void command_loop(void);
 extern int do_cmd_str(const char *, size_t);
-extern int do_cmd(struct node *);
-extern int do_assign_command(struct node *);
-extern int do_vocab_assign(struct node *);
-extern int do_struc_assign(struct node *);
-extern int do_reduc_assign(struct node *);
-extern int do_expred_command(struct node *);
-extern int do_excons_command(struct node *);
-extern int do_listtuple_command(struct node *);
-extern int do_apply_assign(struct node *);
-extern int do_bquery_assign(struct node *);
-extern int do_abquery_command(struct node *);
-extern int do_minisat_query(const struct structure *);
-extern int do_threecolorsat_query(const struct structure *);
-extern int do_minisat2_query(const struct structure *);
-extern int do_threecolor_sat2_query(const struct structure *);
-extern int do_mace(struct node *);
-extern int do_fd(struct node *);
-extern int do_redfind(struct node *);
+extern int do_cmd(Node *);
+extern int do_assign_command(Node *);
+extern int do_vocab_assign(Node *);
+extern int do_struc_assign(Node *);
+extern int do_reduc_assign(Node *);
+extern int do_expred_command(Node *);
+extern int do_excons_command(Node *);
+extern int do_listtuple_command(Node *);
+extern int do_apply_assign(Node *);
+extern int do_bquery_assign(Node *);
+extern int do_abquery_command(Node *);
+extern int do_minisat_query(const Structure *);
+extern int do_threecolorsat_query(const Structure *);
+extern int do_minisat2_query(const Structure *);
+extern int do_threecolor_sat2_query(const Structure *);
+extern int do_mace(Node *);
+extern int do_fd(Node *);
+extern int do_redfind(Node *);
 
 /* file.c */
-extern int do_draw_command(struct node *);
-extern int do_load(struct node *);
-extern int do_save_command(struct node *);
-extern int save_struc(struct structure *, FILE *);
-extern int save_tuple_line(struct relation *, int *, FILE *);
-extern int save_voc_inner(struct vocab *, FILE *);
-extern char *loadstring_getdec(char *, int, struct vocab *);
-extern int do_loadassign(struct node *);
-extern void loadstring_convert(struct structure *, int, char *);
+extern int do_draw_command(Node *);
+extern int do_load(Node *);
+extern int do_save_command(Node *);
+extern int save_struc(Structure *, FILE *);
+extern int save_tuple_line(Relation *, int *, FILE *);
+extern int save_voc_inner(Vocabulary *, FILE *);
+extern char *loadstring_getdec(char *, int, Vocabulary *);
+extern int do_loadassign(Node *);
+extern void loadstring_convert(Structure *, int, char *);
 
 /* help.c */
 extern int do_help(const char *);
 
 /* check.c */
-extern char *free_var(struct node *, struct vocab *);
-extern char *free_var_fast(struct node *, struct interp *, 
-    const struct structure *);
-extern char *free_var_fastq(struct node *, struct interp *, 
-    const struct structure *);
-extern char *free_var_fasttc(struct node *, struct interp *, 
-    const struct structure *);
-extern char *free_var_fastsoe(struct node *, struct interp *, 
-    const struct structure *);
-extern struct list *d_free_var(struct node *, struct vocab *);
-extern struct list *join_lists(struct list *, struct list *);
-extern struct list *remove_args(struct list *, struct node *);
-extern struct list *remove_tcargs(struct list *, struct node *);
-extern struct list *list_remove(struct list *, char *);
+extern char *free_var(Node *, Vocabulary *);
+extern char *free_var_fast(Node *, Interp *, const Structure *);
+extern char *free_var_fastq(Node *, Interp *, const Structure *);
+extern char *free_var_fasttc(Node *, Interp *, 
+    const Structure *);
+extern char *free_var_fastsoe(Node *, Interp *, 
+    const Structure *);
+extern List *d_free_var(Node *, Vocabulary *);
+extern List *join_lists(List *, List *);
+extern List *remove_args(List *, Node *);
+extern List *remove_tcargs(List *, Node *);
+extern List *list_remove(List *, char *);
 
 /* eval.c */
-extern int eval(struct node *, struct interp *, const struct structure *);
-extern int eval_rec(struct node *, struct interp *, const struct structure *);
-extern int teval(struct node *, struct interp *, const struct structure *);
-extern int eval_pred(struct node *, struct interp *, const struct structure *);
-extern int eval_exists(struct node *, struct interp *, const struct structure *);
-extern int eval_forall(struct node *, struct interp *, const struct structure *);
-extern int eval_tc(struct node *, struct interp *, const struct structure *);
-extern int eval_ifp(struct node *, struct interp *, const struct structure *);
-extern int eval_soe(struct node *, struct interp *, const struct structure *);
-extern void eval_init_form(struct node *, struct interp *, 
-    const struct structure *);
-extern void eval_init_form_q(struct node *, struct interp *,
-    const struct structure *);
-extern void eval_init_form_tc(struct node *, struct interp *,
-    const struct structure *);
-extern void eval_init_form_pred(struct node *, struct interp *,
-    const struct structure *);
-extern void eval_init_form_soe(struct node *, struct interp *,
-    const struct structure *);
-extern void free_tc_caches(struct node *);
+extern int eval(Node *, Interp *, const Structure *);
+extern int eval_rec(Node *, Interp *, const Structure *);
+extern int teval(Node *, Interp *, const Structure *);
+extern int eval_pred(Node *, Interp *, const Structure *);
+extern int eval_exists(Node *, Interp *, const Structure *);
+extern int eval_forall(Node *, Interp *, const Structure *);
+extern int eval_tc(Node *, Interp *, const Structure *);
+extern int eval_ifp(Node *, Interp *, const Structure *);
+extern int eval_soe(Node *, Interp *, const Structure *);
+extern void eval_init_form(Node *, Interp *, 
+    const Structure *);
+extern void eval_init_form_q(Node *, Interp *,
+    const Structure *);
+extern void eval_init_form_tc(Node *, Interp *,
+    const Structure *);
+extern void eval_init_form_pred(Node *, Interp *,
+    const Structure *);
+extern void eval_init_form_soe(Node *, Interp *,
+    const Structure *);
+extern void free_tc_caches(Node *);
 
 /* interp.c */
-extern struct interp *new_interp(const struct structure *struc);
-extern struct interp *free_remove_tup(struct interp *, int);
-extern struct interp *dup_interp(struct interp *);
+extern Interp *new_interp(const Structure *struc);
+extern Interp *free_remove_tup(Interp *, int);
+extern Interp *dup_interp(Interp *);
 extern int get_order(int);
-extern struct interp *fake_add_tup_to_interp(struct interp *, int *, int);
-extern struct interp *add_tup_to_interp(struct interp *, const int *, const int);
+extern Interp *fake_add_tup_to_interp(Interp *, int *, int);
+extern Interp *add_tup_to_interp(Interp *, const int *, const int);
 /* trpow was a different implementation, but de_pow is equivalent and faster */
 #define trpow(a,b) de_pow(a,b)
-extern int get_interp_value(const char *, const struct interp *);
-extern int get_xi_interp_value(int, struct interp *);
-extern struct interp *remove_xi_interp(int, struct interp *);
-extern int *get_xi_ival(int, struct interp *);
-extern void free_interp(struct interp *);
-extern struct interp *fake_add_symb_to_interp(struct interp *, const char *,
+extern int get_interp_value(const char *, const Interp *);
+extern int get_xi_interp_value(int, Interp *);
+extern Interp *remove_xi_interp(int, Interp *);
+extern int *get_xi_ival(int, Interp *);
+extern void free_interp(Interp *);
+extern Interp *fake_add_symb_to_interp(Interp *, const char *,
     const int);
-extern void add_xi_interp(int, struct interp *, int);
-extern struct interp *add_symb_to_interp(struct interp *, const char *,
+extern void add_xi_interp(int, Interp *, int);
+extern Interp *add_symb_to_interp(Interp *, const char *,
     const int);
 
 /* tuple.c */
-int *make_next_tuple(int *, const struct reduc_map *, const int, const int,
+int *make_next_tuple(int *, const ReductionMap *, const int, const int,
     int *, const int, const int);
 int tuple_cindex(const int *, const int, const int);
 int *next_tuple(int *, const int, const int);
@@ -123,14 +122,14 @@ char *add_tup_to_output(char *, const int *, const int, const int);
 int *cindex_to_tuple(int *, const int, const int, const int);
 
 /* relation.c */
-extern struct relation *get_relation(const char *, const struct interp *, const struct structure *);
-extern void fill_relcache(struct relation *, struct structure *);
+extern Relation *get_relation(const char *, const Interp *, const Structure *);
+extern void fill_relcache(Relation *, Structure *);
 
 /* constant.c */
-extern struct constant *get_constant(const char *, const struct structure *);
+extern Constant *get_constant(const char *, const Structure *);
 
 /* reduc.c */
-extern struct reduc_map *make_rmap(const struct reduction *, struct structure *);
+extern ReductionMap *make_rmap(const Reduction *, Structure *);
 
 /* y.tab.c */
 extern int yyparse();
@@ -140,20 +139,20 @@ extern void *yy_scan_string(const char *);
 extern void yy_delete_buffer(void *);
 
 /* redfind.c */
-extern int redfind(const struct bquery *,const struct bquery *,int,int,int,int);
+extern int redfind(const BQuery *,const BQuery *,int,int,int,int);
 
 /* usemace.c */
-extern int usemace(struct node *, struct vocab *, char *, int);
+extern int usemace(Node *, Vocabulary *, char *, int);
 extern int get_mace_model_size(FILE *);
-extern int print_mace(FILE *, struct node *);
-extern int t_print_mace(FILE *, struct node *);
-extern int make_mace_model(struct structure *, FILE *);
-extern int need_arithmetic(struct node *);
+extern int print_mace(FILE *, Node *);
+extern int t_print_mace(FILE *, Node *);
+extern int make_mace_model(Structure *, FILE *);
+extern int need_arithmetic(Node *);
 
 /* util.c */
 extern char *dupstr(const char *);
 extern long de_pow(int x, short p);
-extern struct list *free_list(struct list *);
+extern List *free_list(List *);
 
 #endif
 

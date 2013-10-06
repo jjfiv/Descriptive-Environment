@@ -54,7 +54,7 @@ enum Type
 /*------------------------------------------------------------------------*/
 
 typedef enum Type Type;
-typedef struct Node Node;
+typedef struct LNode LNode;
 typedef union Data Data;
 
 /*------------------------------------------------------------------------*/
@@ -62,17 +62,17 @@ typedef union Data Data;
 union Data
 {
   char *as_name;		/* variable data */
-  Node *as_child[2];		/* operator data */
+  LNode *as_child[2];		/* operator data */
 };
 
 /*------------------------------------------------------------------------*/
 
-struct Node
+struct LNode
 {
   Type type;
   int idx;			/* tsetin index */
-  Node *next;			/* collision chain in hash table */
-  Node *next_inserted;		/* chronological list of hash table */
+  LNode *next;			/* collision chain in hash table */
+  LNode *next_inserted;		/* chronological list of hash table */
   Data data;
 };
 
@@ -85,10 +85,10 @@ struct Mgr
   unsigned nodes_size;
   unsigned nodes_count;
   int idx;
-  Node **nodes;
-  Node *first;
-  Node *last;
-  Node *root;
+  LNode **nodes;
+  LNode *first;
+  LNode *last;
+  LNode *root;
   char *buffer;
   char *name;
   unsigned buffer_size;
@@ -101,7 +101,7 @@ struct Mgr
   unsigned y;
   struct minisat_solver_t *solver;
   minisat_Lit *posLits;
-  struct env *env;
+  Environment *env;
   char *form;
   int pos;
   FILE *log;
@@ -112,7 +112,7 @@ struct Mgr
   Type token;
   unsigned token_x;
   unsigned token_y;
-  Node **idx2node;
+  LNode **idx2node;
   int check_satisfiability;
   int dump;
 };
@@ -145,7 +145,7 @@ hash_var (Mgr * mgr, const char *name)
 /*------------------------------------------------------------------------*/
 
 static unsigned
-hash_op (Mgr * mgr, Type type, Node * c0, Node * c1)
+hash_op (Mgr * mgr, Type type, LNode * c0, LNode * c1)
 {
   unsigned res;
 
@@ -162,7 +162,7 @@ hash_op (Mgr * mgr, Type type, Node * c0, Node * c1)
 /*------------------------------------------------------------------------*/
 
 static unsigned
-hash (Mgr * mgr, Type type, void *c0, Node * c1)
+hash (Mgr * mgr, Type type, void *c0, LNode * c1)
 {
   if (type == VAR)
     return hash_var (mgr, (char *) c0);
@@ -173,7 +173,7 @@ hash (Mgr * mgr, Type type, void *c0, Node * c1)
 /*------------------------------------------------------------------------*/
 
 static int
-eq_var (Node * n, const char *str)
+eq_var (LNode * n, const char *str)
 {
   return n->type == VAR && !strcmp (n->data.as_name, str);
 }
@@ -181,7 +181,7 @@ eq_var (Node * n, const char *str)
 /*------------------------------------------------------------------------*/
 
 static int
-eq_op (Node * n, Type type, Node * c0, Node * c1)
+eq_op (LNode * n, Type type, LNode * c0, LNode * c1)
 {
   return n->type == type && n->data.as_child[0] == c0
     && n->data.as_child[1] == c1;
@@ -190,7 +190,7 @@ eq_op (Node * n, Type type, Node * c0, Node * c1)
 /*------------------------------------------------------------------------*/
 
 static int
-eq (Node * n, Type type, void *c0, Node * c1)
+eq (LNode * n, Type type, void *c0, LNode * c1)
 {
   if (type == VAR)
     return eq_var (n, (char *) c0);
@@ -200,10 +200,10 @@ eq (Node * n, Type type, void *c0, Node * c1)
 
 /*------------------------------------------------------------------------*/
 
-static Node **
-find (Mgr * mgr, Type type, void *c0, Node * c1)
+static LNode **
+find (Mgr * mgr, Type type, void *c0, LNode * c1)
 {
-  Node **p, *n;
+  LNode **p, *n;
   unsigned h;
 
   h = hash (mgr, type, c0, c1);
@@ -219,13 +219,13 @@ find (Mgr * mgr, Type type, void *c0, Node * c1)
 static void
 enlarge_nodes (Mgr * mgr)
 {
-  Node **old_nodes, *p, *next;
+  LNode **old_nodes, *p, *next;
   unsigned old_nodes_size, h, i;
 
   old_nodes = mgr->nodes;
   old_nodes_size = mgr->nodes_size;
   mgr->nodes_size *= 2;
-  mgr->nodes = (Node **) calloc (mgr->nodes_size, sizeof (Node *));
+  mgr->nodes = (LNode **) calloc (mgr->nodes_size, sizeof (LNode *));
 
   for (i = 0; i < old_nodes_size; i++)
     {
@@ -249,7 +249,7 @@ enlarge_nodes (Mgr * mgr)
 /*------------------------------------------------------------------------*/
 
 static void
-insert (Mgr * mgr, Node * node)
+insert (Mgr * mgr, LNode * node)
 {
   if (mgr->last)
     mgr->last->next_inserted = node;
@@ -261,10 +261,10 @@ insert (Mgr * mgr, Node * node)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 var (Mgr * mgr, const char *str)
 {
-  Node **p, *n;
+  LNode **p, *n;
 
   if (mgr->nodes_size <= mgr->nodes_count)
     enlarge_nodes (mgr);
@@ -273,7 +273,7 @@ var (Mgr * mgr, const char *str)
   n = *p;
   if (!n)
     {
-      n = (Node *) malloc (sizeof (*n));
+      n = (LNode *) malloc (sizeof (*n));
       memset (n, 0, sizeof (*n));
       n->type = VAR;
       n->data.as_name = dupstr (str);
@@ -287,10 +287,10 @@ var (Mgr * mgr, const char *str)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
-op (Mgr * mgr, Type type, Node * c0, Node * c1)
+static LNode *
+op (Mgr * mgr, Type type, LNode * c0, LNode * c1)
 {
-  Node **p, *n;
+  LNode **p, *n;
 
   if (mgr->nodes_size <= mgr->nodes_count)
     enlarge_nodes (mgr);
@@ -299,7 +299,7 @@ op (Mgr * mgr, Type type, Node * c0, Node * c1)
   n = *p;
   if (!n)
     {
-      n = (Node *) malloc (sizeof (*n));
+      n = (LNode *) malloc (sizeof (*n));
       memset (n, 0, sizeof (*n));
       n->type = type;
       n->data.as_child[0] = c0;
@@ -322,7 +322,7 @@ init (char *form, struct minisat_solver_t *solver)
   res = (Mgr *) malloc (sizeof (*res));
   memset (res, 0, sizeof (*res));
   res->nodes_size = 2;
-  res->nodes = (Node **) calloc (res->nodes_size, sizeof (Node *));
+  res->nodes = (LNode **) calloc (res->nodes_size, sizeof (LNode *));
   res->buffer_size = 2;
   res->buffer = (char *) malloc (res->buffer_size);
   /* res->in = stdin; */
@@ -337,7 +337,7 @@ init (char *form, struct minisat_solver_t *solver)
 static void
 release (Mgr * mgr)
 {
-  Node *p, *next;
+  LNode *p, *next;
 
   for (p = mgr->first; p; p = next)
     {
@@ -594,15 +594,15 @@ RESTART_NEXT_TOKEN:
 
 /*------------------------------------------------------------------------*/
 
-static Node *parse_expr (Mgr *);
+static LNode *parse_expr (Mgr *);
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 parse_basic (Mgr * mgr)
 {
-  Node *child;
-  Node *res;
+  LNode *child;
+  LNode *res;
 
   res = 0;
 
@@ -632,10 +632,10 @@ parse_basic (Mgr * mgr)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 parse_not (Mgr * mgr)
 {
-  Node *child, *res;
+  LNode *child, *res;
 
   if (mgr->token == NOT)
     {
@@ -654,10 +654,10 @@ parse_not (Mgr * mgr)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
-parse_associative_op (Mgr * mgr, Type type, Node * (*lower) (Mgr *))
+static LNode *
+parse_associative_op (Mgr * mgr, Type type, LNode * (*lower) (Mgr *))
 {
-  Node *res, *child;
+  LNode *res, *child;
   int done;
 
   res = 0;
@@ -685,7 +685,7 @@ parse_associative_op (Mgr * mgr, Type type, Node * (*lower) (Mgr *))
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 parse_and (Mgr * mgr)
 {
   return parse_associative_op (mgr, AND, parse_not);
@@ -693,7 +693,7 @@ parse_and (Mgr * mgr)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 parse_or (Mgr * mgr)
 {
   return parse_associative_op (mgr, OR, parse_and);
@@ -701,10 +701,10 @@ parse_or (Mgr * mgr)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 parse_implies (Mgr * mgr)
 {
-  Node *l, *r;
+  LNode *l, *r;
 
   if (!(l = parse_or (mgr)))
     return 0;
@@ -719,7 +719,7 @@ parse_implies (Mgr * mgr)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 parse_iff (Mgr * mgr)
 {
   return parse_associative_op (mgr, IFF, parse_implies);
@@ -727,7 +727,7 @@ parse_iff (Mgr * mgr)
 
 /*------------------------------------------------------------------------*/
 
-static Node *
+static LNode *
 parse_expr (Mgr * mgr)
 {
   return parse_iff (mgr);
@@ -805,7 +805,7 @@ static void
 tsetin (Mgr * mgr)
 {
   int num_clauses;
-  Node *p;
+  LNode *p;
   minisat_solver *solver = mgr->solver;
   minisat_Lit *posLits;
   minisat_Var nvar;
@@ -840,7 +840,7 @@ tsetin (Mgr * mgr)
   mgr->posLits = malloc(sizeof(minisat_Lit)*(mgr->idx+1));
   /* TODO check malloc */
 
-  mgr->idx2node = (Node **) calloc (mgr->idx + 1, sizeof (Node *));
+  mgr->idx2node = (LNode **) calloc (mgr->idx + 1, sizeof (LNode *));
   for (p = mgr->first; p; p = p->next_inserted)
   {
     mgr->idx2node[p->idx] = p;
@@ -929,7 +929,7 @@ tsetin (Mgr * mgr)
 
 int
 limboole (char *form, struct minisat_solver_t *solver, 
-	  struct env *env)
+	  Environment *env)
 {
   int error;
   Mgr *mgr;

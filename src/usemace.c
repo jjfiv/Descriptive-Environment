@@ -167,8 +167,8 @@ int get_mace_model_size(FILE *m)
   while ((c=getc(m))!=EOF)
   {
     if (c=='M' && (c=getc(m))=='O' && (c=getc(m))=='D' &&
-        (c=getc(m))=='E' && (c=getc(m))=='L')
-      while ((c=getc(m))!=EOF)
+        (c=getc(m))=='E' && (c=getc(m))=='L') {
+      while ((c=getc(m))!=EOF) {
         if (c=='i' && (c=getc(m))=='n' 
             && (c=getc(m))=='t' && (c=getc(m))=='e'
             && (c=getc(m))=='r' && (c=getc(m))=='p'
@@ -178,13 +178,17 @@ int get_mace_model_size(FILE *m)
             && (c=getc(m))=='o' && (c=getc(m))=='n'
             && (c=getc(m))=='(')
         {
-          if(1 != fscanf(m,"%d",&n))
+          if(1 != fscanf(m,"%d",&n)) {
             return -1;
+          }
           return n;
         }
         else if (c=='E' && (c=getc(m))=='R' && (c=getc(m))=='R'
-            && (c=getc(m))=='O' && (c=getc(m))=='R')
+            && (c=getc(m))=='O' && (c=getc(m))=='R') {
           return -1;
+        }
+      }
+    }
   }
   return n;
 }

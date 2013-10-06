@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "parse.h"
+#include "protos.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,6 @@ void init_command(const char *str) {
 
 void init_env(void)
 {
-
   cur_env = malloc(sizeof(Environment));
   if (!cur_env)
     return;

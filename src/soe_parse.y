@@ -27,7 +27,7 @@
 %union {
 	int integer;
 	char *string;
-	struct node *n;
+	struct Node *n;
 	}
 
 %start ROOT

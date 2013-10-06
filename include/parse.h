@@ -12,9 +12,9 @@
 
 extern int yylex(void);
 
-typedef struct node {
-  struct node *l;
-  struct node *r;
+typedef struct Node {
+  struct Node *l;
+  struct Node *r;
   void *data;
   int *ival;
   int ndata;

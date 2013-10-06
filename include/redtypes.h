@@ -10,6 +10,8 @@
 #define DEREDTYPESH
 
 #include "minisat.h"
+#include "types.h"
+#include "parse.h"
 
 #ifdef REDFIND_CUDD
 #include "stdio.h" /* cudd.h needs stdio.h ... */
@@ -26,23 +28,87 @@
 #define red_debug3(a,b,c)
 #endif
 
-typedef struct redsearch {
-  struct env *hash;
-  struct minisat_solver_t *solver;
+typedef struct TCDef {
+  int num;
+  int tup_arity;
+  int size;
+  Node *tc_node;
+  Interp *interp;
+  minisat_Lit *lits; /* lits indexed by tuple cindices */
+  
+  struct TCDef *next;
+} TCDef;
+
+typedef struct RedTupleElement {
+  int type; /* 0==var (x-a-b), 1==constant, name is cons_names[a] */
+  int a;    /* type 2, a natural (value a), only for cbvars */
+  int b;
+} RedTupleElement;
+
+typedef struct RedTuple {
+  RedTupleElement *data;
+  int arity;
+  int num_cons;
+  char **cons_names;
+} RedTuple;
+
+typedef struct Example {
+  Structure *a;
+  int p1; /* whether this example has p1 */
+} Example;
+
+typedef struct RedBVarList {
+  char *pos;
+  char *neg;
+  minisat_Var posVar;
+  minisat_Var negVar;
+  minisat_Lit posLit;
+  minisat_Lit negLit;
+#ifdef REDFIND_CUDD
+  DdNode *posDdn;
+  DdNode *negDdn;
+#endif
+  struct RedBVarList *next;
+} RedBVarList;
+
+typedef struct ExRelation {
+  char *var;
+  char *relname;
+  RedTuple *tup;
+  RedBVarList *bv;
+} ExRelation;
+
+typedef struct RedRelForms {
+  int c;
+  int arity;
+  char *name;
+  char **forms; /* forms forms[0]...forms[c-1], for clauses 1,...,c */
+  struct RedRelForms *next;
+} RedRelForms;
+
+typedef struct ConsBVars {
+  int num;
+  char **lits;
+  struct ConsBVars *next;
+} ConsBVars;
+
+typedef struct RedSearch {
+  Environment *hash;
+  minisat_solver *solver;
 #ifdef REDFIND_CUDD
   DdManager *ddm;
   DdNode *cur_root;
 #endif
-  struct red_bvarlist *bvars;
-  struct red_bvarlist *cbvars; /* Boolean variables for constants */
-  struct red_bvarlist *tbvars; /* temporary Boolean variables for TC */
-  struct list *used_exrel;
-  struct tc_def *tc[3]; /* 0: p1 in getex,
+  RedBVarList *bvars;
+  RedBVarList *cbvars; /* Boolean variables for constants */
+  RedBVarList *tbvars; /* temporary Boolean variables for TC */
+  List *used_exrel;
+  TCDef *tc[3]; /* 0: p1 in getex,
                          * 1: p2 in getex,
                          * 2: p2 in redfind
                          */
-  const struct bquery *p1;
-  const struct bquery *p2;
+  const BQuery *p1;
+  const BQuery *p2;
   int abort;
   int k;
   int c;
@@ -54,74 +120,12 @@ typedef struct redsearch {
   int outsize;
 } RedSearch;
 
-typedef struct tc_def {
-  int num;
-  int tup_arity;
-  int size;
-  struct tc_def *next;
-  struct node *tc_node;
-  struct interp *interp;
-  minisat_Lit *lits; /* lits indexed by tuple cindices */
-} TCDef;
-
-typedef struct ex_rel {
-  char *var;
-  char *relname;
-  struct red_tuple *tup;
-  struct red_bvarlist *bv;
-} ExRelation;
-
-typedef struct example {
-  struct structure *a;
-  int p1; /* whether this example has p1 */
-} Example;
-
-typedef struct red_tuple {
-  struct red_tuple_element *data;
-  int arity;
-  int num_cons;
-  char **cons_names;
-} RedTuple;
-
-typedef struct red_tuple_element {
-  int type; /* 0==var (x-a-b), 1==constant, name is cons_names[a] */
-  int a;    /* type 2, a natural (value a), only for cbvars */
-  int b;
-} RedTupleElement;
-
-typedef struct red_bvarlist {
-  char *pos;
-  char *neg;
-  minisat_Var posVar;
-  minisat_Var negVar;
-  minisat_Lit posLit;
-  minisat_Lit negLit;
-#ifdef REDFIND_CUDD
-  DdNode *posDdn;
-  DdNode *negDdn;
-#endif
-  struct red_bvarlist *next;
-} RedBVarList;
-
-typedef struct red_hypot {
-  struct redsearch *rsearch;
-  struct red_relforms *relforms;
-  struct list *consforms;
+typedef struct RedHypot {
+  RedSearch *rsearch;
+  RedRelForms *relforms;
+  List *consforms;
 } RedHypot;
 
-typedef struct red_relforms {
-  int c;
-  int arity;
-  char *name;
-  char **forms; /* forms forms[0]...forms[c-1], for clauses 1,...,c */
-  struct red_relforms *next;
-} RedRelForms;
-
-typedef struct cons_bvars {
-  int num;
-  char **lits;
-  struct cons_bvars *next;
-} ConsBVars;
 
 #endif /* DEREDTYPESH */
 

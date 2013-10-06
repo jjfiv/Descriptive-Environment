@@ -118,7 +118,7 @@ LIBS:= -lminisat-c -lminisat -lm
 
 EXTERN_SRCS := extern/limboole/limboole.c extern/solver/solver.c extern/hash/hash.c 
 
-LEX_SRCS := src/soe_parse.tab.c src/soe_lex.tab.c src/soe_parse.tab.h
+LEX_SRCS := src/soe_parse.tab.c src/soe_lex.tab.c
 REDFIND_SRCS := $(shell ls redfind/*.c)
 LOGIC_SRCS := $(shell ls logic/*.c)
 
