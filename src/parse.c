@@ -14,7 +14,7 @@ Node *cmdtree;
 
 Node *node(int l, Node *left, Node *right)
 {
-  Node *n=malloc(sizeof(Node));
+  Node *n= (Node*) malloc(sizeof(Node));
   if (!n)
     return 0;
   n->l = left;
@@ -26,11 +26,11 @@ Node *node(int l, Node *left, Node *right)
 
 Node *inode(int l, int value)
 {
-  Node *n=malloc(sizeof(Node));
+  Node *n= (Node*) malloc(sizeof(Node));
   if (!n)
     return 0;
   n->label = l;
-  n->data = malloc(sizeof(int));
+  n->data = (int*) malloc(sizeof(int));
   *((int* )(n->data)) = value; /* backwards compat, TODO:remove */
   n->ndata = value;
   n->ival = NULL;
@@ -40,7 +40,7 @@ Node *inode(int l, int value)
 
 Node *snode(int l, char *string)
 {
-  Node *n=malloc(sizeof(Node));
+  Node *n= (Node*) malloc(sizeof(Node));
   if (!n)
     return 0;
   n->label = l;
@@ -54,9 +54,9 @@ Node *qnode(int l, Node *vl, Node *restr, Node *form)
 {
   Node *n;
   Node *vn;
-  if (!(n= malloc(sizeof(Node))))
+  if (!(n=  (Node*) malloc(sizeof(Node))))
     return 0;
-  if (!(vn= malloc(sizeof(Node))))
+  if (!(vn=  (Node*) malloc(sizeof(Node))))
   {
     free(n);
     return 0;
@@ -76,7 +76,7 @@ Node *qnode(int l, Node *vl, Node *restr, Node *form)
 
 Node *vlnode(int l, char *var, Node *next)
 {
-  Node *n=malloc(sizeof(Node));
+  Node *n= (Node*) malloc(sizeof(Node));
 
   if (!n)
     return 0;
@@ -90,7 +90,7 @@ Node *vlnode(int l, char *var, Node *next)
 
 Node *arg_node(int l, Node *args)
 {
-  Node *n=malloc(sizeof(Node));
+  Node *n= (Node*) malloc(sizeof(Node));
 
   if (!n)
     return 0;
@@ -107,15 +107,15 @@ Node *fournode(int lab, Node *ll, Node *lr, Node *rl, Node *rr)
   Node *l;
   Node *r;
 
-  if (!(n=malloc(sizeof(Node))))
+  if (!(n= (Node*) malloc(sizeof(Node))))
     return 0;
 
-  if (!(l=malloc(sizeof(Node))))
+  if (!(l= (Node*) malloc(sizeof(Node))))
   {
     free(n);
     return 0;
   }
-  if (!(r=malloc(sizeof(Node))))
+  if (!(r= (Node*) malloc(sizeof(Node))))
   {
     free(n); free(l);
     return 0;

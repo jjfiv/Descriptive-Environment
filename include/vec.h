@@ -23,6 +23,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef vec_h
 #define vec_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 /* vector of 32-bit intergers (added for 64-bit portability) */
@@ -36,7 +40,7 @@ typedef struct veci_t veci;
 static inline void veci_new (veci* v) {
   v->size = 0;
   v->cap  = 4;
-  v->ptr  = malloc((v->cap) * sizeof(int));
+  v->ptr  = (int*) malloc((v->cap) * sizeof(int));
 }
 
 static inline void   veci_delete (veci* v)          { free(v->ptr);   }
@@ -47,7 +51,7 @@ static inline void   veci_push   (veci* v, int e)
 {
   if (v->size == v->cap) {
     int newsize = v->cap * 2+1;
-    v->ptr = realloc(v->ptr,newsize * sizeof(int));
+    v->ptr = (int*) realloc(v->ptr,newsize * sizeof(int));
     v->cap = newsize; }
   v->ptr[v->size++] = e;
 }
@@ -77,10 +81,14 @@ static inline void   vecp_push   (vecp* v, void* e)
 {
   if (v->size == v->cap) {
     int newsize = v->cap * 2+1;
-    v->ptr = realloc(v->ptr,newsize * sizeof(void*));
+    v->ptr = (int*) realloc(v->ptr,newsize * sizeof(void*));
     v->cap = newsize; }
   v->ptr[v->size++] = e;
 }
 #endif /* DE_MINISAT */
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif

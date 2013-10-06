@@ -32,7 +32,7 @@ int *make_next_tuple(int *tuple, const ReductionMap *rmap,
   /*int *cindex = *pcindex;*/
   if (!tuple)
   {
-    tuple = malloc(arity*sizeof(int));
+    tuple = (int*) malloc(arity*sizeof(int));
     /* cindex = malloc(cindexarity*sizeof(int));*/
     for (i=0; i<cindexarity; i++)
       cindex[i]=zero;
@@ -109,7 +109,7 @@ int *next_tuple(int *tuple, const int arity, const int size)
 
   if (!tuple)
   {
-    tuple=malloc(arity * sizeof(int));
+    tuple=(int*)malloc(arity * sizeof(int));
     for (i=0; i<arity; i++)
       tuple[i] = 0;
     return tuple;
@@ -154,7 +154,7 @@ char *add_tup_to_output(char *output, const int *tuple, const int arity, const i
   if (output)
     length+=2; /* for a comma and space before the tuple */
 
-  new_output = malloc(length * sizeof(char));
+  new_output = (char*) malloc(length * sizeof(char));
 
   if (!output)
   {
@@ -170,7 +170,7 @@ char *add_tup_to_output(char *output, const int *tuple, const int arity, const i
   }
 
   new_output[i++] = '(';
-  buf = malloc((get_order(size)+1)*sizeof(char));
+  buf = (char*) malloc((get_order(size)+1)*sizeof(char));
   for (j=0; j<arity; j++)
   {
     sprintf(buf, "%d", tuple[j]);

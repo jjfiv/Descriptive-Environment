@@ -42,9 +42,9 @@ ReductionMap *make_rmap(const Reduction *reduc, Structure *struc)
   num_tuples = trpow(size,k);
   interp = new_interp(struc);
 
-  rmap = malloc(sizeof(ReductionMap));
-  rmap->nat_to_tup = malloc(num_tuples*sizeof(int));
-  rmap->tup_to_nat = malloc(num_tuples*sizeof(int));
+  rmap = (ReductionMap*) malloc(sizeof(ReductionMap));
+  rmap->nat_to_tup = (int*) malloc(num_tuples*sizeof(int));
+  rmap->tup_to_nat = (int*) malloc(num_tuples*sizeof(int));
 
   tuple = next_tuple(tuple, k, size);
   interp = add_tup_to_interp(interp,tuple,k);

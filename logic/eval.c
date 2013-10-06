@@ -113,7 +113,7 @@ void eval_init_form(Node *form, Interp *interp, const Structure *struc) {
           form->ival=&(is->value);
           return;
         }
-      is = malloc(sizeof(InterpSymbol));
+      is = (InterpSymbol*) malloc(sizeof(InterpSymbol));
       is->name=dupstr(name);
       is->value=-2;
       if (!strcmp("max",name))
@@ -154,7 +154,7 @@ void eval_init_form_q(Node *form, Interp *interp, const Structure *struc) {
 
   for (tnode=varlist; tnode; tnode=tnode->r)
   {
-    name = tnode->data;
+    name = (char*) tnode->data;
     for (is=interp->symbols; is; is=is->next)
       if (!strcmp(is->name,name))
       {
@@ -163,7 +163,7 @@ void eval_init_form_q(Node *form, Interp *interp, const Structure *struc) {
       }
     if (is)
       continue;
-    is = malloc(sizeof(InterpSymbol));
+    is = (InterpSymbol*) malloc(sizeof(InterpSymbol));
     is->name=dupstr(name);
     is->value=-2;
     tnode->ival=&(is->value);
@@ -205,7 +205,7 @@ void eval_init_form_pred(Node *form, Interp *interp, const Structure *struc) {
   for (tnode=relargs; tnode; tnode=tnode->r)
     eval_init_form(tnode->l, interp, struc);
 
-  rel = get_relation(form->data, interp, struc);
+  rel = get_relation((const char*) form->data, interp, struc);
   if (!rel) /* SO variable */
     return;
 
@@ -382,23 +382,23 @@ int eval_tc(Node *form, Interp *interp, const Structure *struc) {
   }
 
   csize = num_tuples * num_tuples;
-  tc_cache = malloc(csize * sizeof(int));
-  t1names = malloc(tup_arity * sizeof(char *));
-  t2names = malloc(tup_arity * sizeof(char *));
-  old_values1 = malloc(tup_arity * sizeof(int));
-  old_values2 = malloc(tup_arity * sizeof(int));
-  values1 = malloc(tup_arity * sizeof(int *));
-  values2 = malloc(tup_arity * sizeof(int *));
+  tc_cache =(int*) malloc(csize * sizeof(int));
+  t1names = (char**) malloc(tup_arity * sizeof(char **));
+  t2names = (char**) malloc(tup_arity * sizeof(char **));
+  old_values1 = (int*) malloc(tup_arity * sizeof(int));
+  old_values2 = (int*) malloc(tup_arity * sizeof(int));
+  values1 = (int**) malloc(tup_arity * sizeof(int **));
+  values2 = (int**) malloc(tup_arity * sizeof(int **));
   /* TODO check all those pointers :P */
   tmp = tcargs;
   for (i=0; ;tmp=tmp->r)
   {
     values1[i] = tmp->l->l->ival;
     old_values1[i]=*(values1[i]);
-    t1names[i] = tmp->l->l->data;
+    t1names[i] = (char*) tmp->l->l->data;
     if (++i<tup_arity)
     {
-      t1names[i] = tmp->l->r->data;
+      t1names[i] = (char*) tmp->l->r->data;
       values1[i] = tmp->l->r->ival;
       old_values1[i]=*(values1[i]);
       i++; /* chj new CHECK */
@@ -408,7 +408,7 @@ int eval_tc(Node *form, Interp *interp, const Structure *struc) {
   }
   if (tup_arity&1) /* odd arity means we split one */
   {
-    t2names[0]=tmp->l->r->data;
+    t2names[0]=(char*) tmp->l->r->data;
     values2[0]=tmp->l->r->ival;
     old_values2[0]=*(values2[0]);
     i=1;
@@ -421,12 +421,12 @@ int eval_tc(Node *form, Interp *interp, const Structure *struc) {
       break;
     values2[i] = tmp->l->l->ival;
     old_values2[i]=*(values2[i]);
-    t2names[i] = tmp->l->l->data;
+    t2names[i] = (char*) tmp->l->l->data;
     if (++i<tup_arity)
     {
       values2[i] = tmp->l->r->ival;
       old_values2[i] = *(values2[i]);
-      t2names[i] = tmp->l->r->data;
+      t2names[i] = (char*) tmp->l->r->data;
       i++;
     }
     else
@@ -518,7 +518,7 @@ int eval_ifp(Node *form, Interp *interp, const Structure *struc) {
  * Yay for exponential time.
  */
 int eval_soe(Node *form, Interp *interp, const Structure *struc) {
-  char *varname=form->l->l->l->l->data;
+  char *varname=(char*) form->l->l->l->l->data;
   int res=0;
   int size = struc->size;
   int arity=*(int *)(form->l->l->l->r->data);
@@ -530,10 +530,10 @@ int eval_soe(Node *form, Interp *interp, const Structure *struc) {
   Relation *sov;
 
   int tc_size=trpow(size, arity);
-  cache = malloc(tc_size * sizeof(int));
+  cache = (int*) malloc(tc_size * sizeof(int));
   for (i=0; i<tc_size; i++) 
     cache[i]=0;
-  sov = malloc(sizeof(Relation));
+  sov = (Relation*) malloc(sizeof(Relation));
   sov->name = varname;
   sov->arity = arity;
   sov->next = interp->rel_symbols;;
@@ -566,18 +566,18 @@ int eval_soe(Node *form, Interp *interp, const Structure *struc) {
 }
 
 int eval_forall(Node *form, Interp *interp, const Structure *struc) {
-  Node *not = node(NOT, form->r, 0);
+  Node *nnot = node(NOT, form->r, 0);
   int res=0;
-  if (!not)
+  if (!nnot)
     return -1;
-  form->r=not;
+  form->r=nnot;
   form->label = EXISTS;
 
   res = !eval_exists(form,interp,struc);
 
-  form->r = not->l;
+  form->r = nnot->l;
   form->label = FORALL;
-  free(not);
+  free(nnot);
 
   return res;
 }
@@ -603,7 +603,7 @@ int eval_exists(Node *form, Interp *interp, const Structure *struc) {
     tnode = tnode->r;
   }
 
-  old_values = malloc(arity*(sizeof(int)+sizeof(int *)+sizeof(char *)));
+  old_values = (int*) malloc(arity*(sizeof(int)+sizeof(int *)+sizeof(char *)));
   values = (int **)(old_values+arity);
   varnames = (char **)(values+arity);
 
@@ -611,7 +611,7 @@ int eval_exists(Node *form, Interp *interp, const Structure *struc) {
 
   for (i=0; i<arity; i++)
   {
-    varnames[i]=tnode->data;
+    varnames[i]=(char*) tnode->data;
     values[i]=tnode->ival;
     old_values[i]=*(values[i]);
     *(values[i])=0;
@@ -712,14 +712,14 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
    * in interp if it's a local variable that's part of a fixed-point,
    * or so formula.
    */
-  rel = get_relation(form->data, interp, struc);
+  rel = get_relation((char*) form->data, interp, struc);
   if (!rel)
   {
     printf("4:Relation symbol %s is undefined\n",(char *)form->l->data);
     return -1;
   }
   arity = rel->arity;
-  tup = malloc(arity * sizeof(int));
+  tup = (int*) malloc(arity * sizeof(int));
   relargs = form->r;
   size = struc->size;
 
@@ -754,7 +754,7 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
     }
   }
 
-  old_values = malloc((sizeof(int)+sizeof(int *))*arity);
+  old_values = (int*) malloc((sizeof(int)+sizeof(int *))*arity);
   /* instead of two small mallocs, cast for clarity */
   values = (int **)(old_values+arity);
 

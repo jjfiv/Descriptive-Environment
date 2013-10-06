@@ -104,7 +104,7 @@ endif
 
 
 CFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c11
-CXXFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c++11
+CXXFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c++11 -fpermissive
 
 MY_INCLUDES:=-Iinclude -Isrc
 
@@ -179,7 +179,7 @@ $(TEST): $(SATBIND_LIB) $(OBJS) $(TEST_OBJS)
 	${CXX} -c ${CXXFLAGS} $(MY_INCLUDES) $< -o $@
 
 %.o:%.c
-	$(CC) -c $(CFLAGS) $(MY_INCLUDES) $< -o $@
+	$(CXX) -c $(CXXFLAGS) $(MY_INCLUDES) $< -o $@
 
 %.tab.c:%.y
 	bison -d $< -o $@

@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-Environment *cur_env;
+static Environment gbl_env;
+Environment *cur_env = &gbl_env;
 
 void init_command(const char *str) {
   void *bufstate = yy_scan_string(str);
@@ -18,7 +19,6 @@ void init_command(const char *str) {
 
 void init_env(void)
 {
-  cur_env = malloc(sizeof(Environment));
   if (!cur_env)
     return;
 

@@ -25,12 +25,6 @@
 #include <math.h>
 #include <string.h>
 
-#define INIT_COMMAND(s) \
-  bufstate = yy_scan_string(s); \
-yyparse(); \
-do_cmd(cmdtree->l); \
-yy_delete_buffer(bufstate)
-
 /* Tries to find a model of form with vocabulary voc, using Mace4.
  * Returns 0 if we didn't find a model, -1 if there was some error,
  * and saves the found model as name otherwise.
@@ -45,7 +39,6 @@ int usemace(Node *form, Vocabulary *voc, char *name, int clock)
   Identifier *hash_data;
   hnode_t *hnode;
   int n, t, formlength, arith;
-  void *bufstate;
   char *tfn;
   char *mace;
   FILE *tmp;
@@ -78,7 +71,7 @@ int usemace(Node *form, Vocabulary *voc, char *name, int clock)
   print_mace(tmp,form);
   fprintf(tmp,".\nend_of_list.\n");
   fclose(tmp);
-  mace = malloc(sizeof(char)*16+strlen(tfn));
+  mace = (char*) malloc(sizeof(char)*16+strlen(tfn));
   if (clock<=0)
     clock = 30;
   sprintf(mace,"mace4 -t %d -f %s",clock,tfn);
@@ -114,7 +107,7 @@ int usemace(Node *form, Vocabulary *voc, char *name, int clock)
     formlength += strlen(cons->name)+4; /* NAME:=0, */
   formlength += 4; /* }.\n\0 */
 
-  inp = malloc(sizeof(char)*formlength);
+  inp = (char*) malloc(sizeof(char)*formlength);
   if (!inp)
   {
     err("48: No memory.\n");
@@ -136,7 +129,7 @@ int usemace(Node *form, Vocabulary *voc, char *name, int clock)
   }
   strcat(inp,"}.\n");
 
-  INIT_COMMAND(inp);
+  init_command(inp);
   free(inp);
 
   hnode = hash_lookup(cur_env->id_hash, name);
@@ -379,7 +372,7 @@ int make_mace_model(Structure *str, FILE *m)
   Relation *rel;
   int *tuple=NULL;
 
-  n=malloc(sizeof(char)*512);
+  n=(char*) malloc(sizeof(char)*512);
   if(n == NULL)
     return -1;
 
@@ -479,7 +472,7 @@ int need_arithmetic(Node *form)
     case NUMBER:
       return 0;
     case CONSTANT: /* we use < to handle max */
-      return !strcmp(form->data,"max");
+      return !strcmp((char*) form->data,"max");
     case MULT:
     case PLUS:
     case MINUS:

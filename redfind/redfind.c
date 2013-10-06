@@ -28,12 +28,6 @@
 #include "parse.h"
 #include <ctype.h> /* isdigit() */
 
-#define INIT_COMMAND(s) \
-  bufstate = yy_scan_string(s); \
-yyparse(); \
-do_cmd(cmdtree->l); \
-yy_delete_buffer(bufstate)
-
 /* Searches for a k-ary quantifier-free reduction from
  * p1 to p2.  We only look for reductions where all formulas
  * are in CNF, and each formula must be a conjunction of at
@@ -164,10 +158,10 @@ void red_improve_hyp(RedSearch *rsearch) {
   for (tmp=bv; tmp; tmp=tmp->next)
     num_lits+=2;
 
-  assumps = malloc(sizeof(minisat_Lit)*num_lits);
-  all_lits = malloc(sizeof(minisat_Lit)*num_lits);
-  truev = malloc(sizeof(int)*num_lits);
-  succ = malloc(sizeof(int)*(num_lits>>1));
+  assumps = (minisat_Lit*) malloc(sizeof(minisat_Lit)*num_lits);
+  all_lits = (minisat_Lit*) malloc(sizeof(minisat_Lit)*num_lits);
+  truev = (int*) malloc(sizeof(int)*num_lits);
+  succ = (int*) malloc(sizeof(int)*(num_lits>>1));
 
   j=atnum=0;
   for (tmp=bv; tmp; tmp=tmp->next)
@@ -511,8 +505,8 @@ void red_printhyp(RedHypot *hyp)
 
 RedSearch *red_init_rsearch(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
   /* TODO check mallocs and return errors */
-  RedSearch *rsearch = malloc(sizeof(RedSearch));
-  rsearch->hash = malloc(sizeof(Environment));
+  RedSearch *rsearch = (RedSearch*) malloc(sizeof(RedSearch));
+  rsearch->hash = (Environment*) malloc(sizeof(Environment));
   rsearch->hash->id_hash = hash_create(RED_MAXVARS,(hash_comp_t)strcmp,0);
   rsearch->hash->next_id = 0;
   rsearch->num_ex = 0;
@@ -540,9 +534,9 @@ void init_truefalse_rsearch(RedSearch *rsearch)
 {
   minisat_solver *solver=rsearch->solver;
   Environment *env=rsearch->hash;
-  RedBVarList *list = malloc(sizeof(RedBVarList)<<1);
+  RedBVarList *list = (RedBVarList*) malloc(sizeof(RedBVarList)<<1);
 
-  list->pos = "T";
+  list->pos = (char*) "T";
   list->neg = NULL;
   list->posVar=minisat_newVar(solver);
   minisat_setFrozen(solver,list->posVar, minisat_l_True);
@@ -552,7 +546,7 @@ void init_truefalse_rsearch(RedSearch *rsearch)
   hash_alloc_insert(env->id_hash, "T", list);
   list++;
 
-  list->pos = "F";
+  list->pos = (char*) "F";
   list->neg = NULL;
   list->posVar=minisat_newVar(solver);
   minisat_setFrozen(solver, list->posVar, minisat_l_True);
@@ -654,8 +648,8 @@ char *red_getconsbvarname(const char *consname, RedTuple *tuple)
       len+=strlen(tuple->cons_names[el->a])+1;
   }
 
-  res = malloc(sizeof(char)*len);
-  tmp = malloc(sizeof(char)*len);
+  res = (char*) malloc(sizeof(char)*len);
+  tmp = (char*) malloc(sizeof(char)*len);
 
   sprintf(res,"cons_%s_[",consname);
 
@@ -763,7 +757,7 @@ RedHypot *get_next_hypothesis(RedSearch *rsearch,
 
   if (!ex->p1)
   {
-    tmp = malloc(sizeof(char)*(strlen(phi)+4));
+    tmp = (char*) malloc(sizeof(char)*(strlen(phi)+4));
     sprintf(tmp,"!(%s)",phi);
     free(phi);
     phi=tmp;
@@ -923,7 +917,7 @@ char *red_tcp1_dist1(RedSearch *rsearch, TCDef *tcd, int *tuple,
 
   tmp2 = make_rf_rec(rsearch, ex, tcform, interp);
 
-  res = malloc(sizeof(char)*(strlen(tmp1)+strlen(tmp2)+8));
+  res = (char*) malloc(sizeof(char)*(strlen(tmp1)+strlen(tmp2)+8));
   sprintf(res,"(%s<->(%s))",tmp1,tmp2);
   free(tmp1);
   free(tmp2);
@@ -1022,14 +1016,14 @@ char *make_pf_exrel(RedSearch *rsearch, const Example *ex,
   {
     res = red_rf_pred_inconsclause(rsearch,i, cons_bvars, er);
     res2= red_rf_pred_inconsclause(rsearch,i,incons_bvars,er);
-    tmp1 = malloc(sizeof(char)*(strlen(res)+strlen(res2)+5));
+    tmp1 = (char*) malloc(sizeof(char)*(strlen(res)+strlen(res2)+5));
     sprintf(tmp1, "(%s&!%s)",res,res2);
     free(res);
     free(res2);
     tmp = red_disjunc(rsearch, tmp, tmp1);
   }
 
-  tmp1 = malloc(sizeof(char)*(strlen(er->var)+strlen(tmp)+8));
+  tmp1 = (char*) malloc(sizeof(char)*(strlen(er->var)+strlen(tmp)+8));
   sprintf(tmp1, "(%s<->(%s))",er->var,tmp);
   free(tmp);
   res=tmp1;
@@ -1062,7 +1056,7 @@ RedHypot *red_getsatred(RedSearch *rsearch)
 {
   RelationSymbol *rel;
   ConsSymbol *cons;
-  RedHypot *hyp = malloc(sizeof(RedHypot));
+  RedHypot *hyp = (RedHypot*) malloc(sizeof(RedHypot));
   /* TODO check malloc */
   hyp->rsearch = rsearch;
   hyp->relforms = NULL;
@@ -1120,14 +1114,14 @@ char *red_hypottocmd(RedSearch *rsearch, RedHypot *red)
   for (rf=red->relforms; rf; rf=rf->next)
     t++;
 
-  relforms = malloc(sizeof(char *)*t);
+  relforms = (char**) malloc(sizeof(char**)*t);
   for (t=0,rf=red->relforms; rf; t++,rf=rf->next)
   {
     if (rf->c)
       tmp = red_rftodef(rf);
     else
     {
-      tmp=malloc(sizeof(char)*3);
+      tmp=(char*) malloc(sizeof(char)*3);
       sprintf(tmp,"\\t");
     }
     len+=strlen(rf->name)+1+numdigits(rf->arity)+4+
@@ -1140,8 +1134,8 @@ char *red_hypottocmd(RedSearch *rsearch, RedHypot *red)
 
   len+=4; /* }.\n\0 */
 
-  inp = malloc(sizeof(char)*len);
-  tmpinp = malloc(sizeof(char)*len);
+  inp = (char*) malloc(sizeof(char)*len);
+  tmpinp = (char*) malloc(sizeof(char)*len);
 
   sprintf(inp,"%s:=new reduction{%s,%s,%d,%s",name,voc1,voc2,k,phi0);
   for (t=0,rf=red->relforms; rf; t++,rf=rf->next)
@@ -1170,7 +1164,6 @@ Reduction *red_hypottored(RedSearch *rsearch,
 {
   Identifier *hash_data;
   hnode_t *hnode;
-  void *bufstate;
   char *inp = red_hypottocmd(rsearch,red);
   char name[5];
   Reduction *res;
@@ -1190,7 +1183,7 @@ Reduction *red_hypottored(RedSearch *rsearch,
   }
   sprintf(name,"%c%d",c,tt);
 
-  INIT_COMMAND(inp);
+  init_command(inp);
   free(inp);
 
   hnode = hash_lookup(cur_env->id_hash, name);
@@ -1232,7 +1225,7 @@ char *make_rf_rec(RedSearch *rsearch, const Example *ex,
       /* Boolean connectives */
     case NOT:
       tmp1 = make_rf_rec(rsearch, ex, form->l, interp);
-      tmp2 = malloc(sizeof(char)*(strlen(tmp1)+4));
+      tmp2 = (char*) malloc(sizeof(char)*(strlen(tmp1)+4));
       sprintf(tmp2,"!(%s)",tmp1);
       free(tmp1);
       return tmp2;
@@ -1255,7 +1248,7 @@ char *make_rf_rec(RedSearch *rsearch, const Example *ex,
     case XOR:
       tmp1 = make_rf_rec(rsearch, ex, form->l, interp);
       tmp2 = make_rf_rec(rsearch, ex, form->r, interp);
-      tmp3 = malloc(sizeof(char)*(strlen(tmp2)+4));
+      tmp3 = (char*) malloc(sizeof(char)*(strlen(tmp2)+4));
       sprintf(tmp3, "!(%s)", tmp2);
       free(tmp2);
       return red_binform(rsearch, tmp1, tmp3, "<->");
@@ -1271,7 +1264,7 @@ char *make_rf_rec(RedSearch *rsearch, const Example *ex,
       return make_rf_eq(rsearch,ex,form,interp);
     case NEQUALS:
       tmp1 = make_rf_eq(rsearch,ex,form,interp);
-      tmp2 = malloc(sizeof(char)*(strlen(tmp1)+4));
+      tmp2 = (char*) malloc(sizeof(char)*(strlen(tmp1)+4));
       sprintf(tmp2,"!(%s)",tmp1);
       free(tmp1);
       return tmp2;
@@ -1348,7 +1341,7 @@ char *make_rf_tc(RedSearch *rsearch, Node *form,
 
   if (!tcd)
   {
-    tcd = malloc(sizeof(TCDef));
+    tcd = (TCDef*) malloc(sizeof(TCDef));
     tcd->num = rsearch->num_tc++;
     tcd->tc_node = form;
     tcd->lits = NULL;
@@ -1360,7 +1353,7 @@ char *make_rf_tc(RedSearch *rsearch, Node *form,
     rsearch->tc[2]=tcd;
   }
 
-  tmp = malloc(sizeof(char)*(4+numdigits(tcd->num)));
+  tmp = (char*) malloc(sizeof(char)*(4+numdigits(tcd->num)));
   sprintf(tmp,"TC%d_",tcd->num);
 
   arity = (tup_arity << 1);
@@ -1369,9 +1362,9 @@ char *make_rf_tc(RedSearch *rsearch, Node *form,
    */
   rtup = red_rf_argstotup(rsearch, relargs, arity, /* was p1->voc */
       rsearch->p2->voc, outsize, interp, NULL);
-  cons_mask = malloc(sizeof(int)*arity);
-  val = malloc(sizeof(int)*arity);
-  cons_names = malloc(sizeof(char *)*arity);
+  cons_mask = (int*) malloc(sizeof(int)*arity);
+  val = (int*) malloc(sizeof(int)*arity);
+  cons_names = (char**) malloc(sizeof(char**)*arity);
   for (i=0; i<arity; i++)
     cons_names[i]=NULL;
 
@@ -1410,10 +1403,7 @@ char *red_p2_lfpf_join(RedSearch *rsearch, char *res,
 {
   char *tmp, *tmp1;
   int len, i, maxc=0;
-  char **cons_defs=malloc(sizeof(char *)*arity);
-#if 0
-  int j, k=rsearch->k, *ctup=malloc(sizeof(int)*k);
-#endif
+  char **cons_defs=(char**) malloc(sizeof(char**)*arity);
   Node *fakenode;
 
   for (i=0; i<arity; i++)
@@ -1440,8 +1430,8 @@ char *red_p2_lfpf_join(RedSearch *rsearch, char *res,
     }
   }
   /* len is enough for the new part of the formula */
-  tmp = malloc(sizeof(char)*len);
-  tmp1 = malloc(sizeof(char)*len);
+  tmp = (char*) malloc(sizeof(char)*len);
+  tmp1 = (char*) malloc(sizeof(char)*len);
   sprintf(tmp,"(%s[",relname);
   maxc=0;
 
@@ -1525,9 +1515,9 @@ char *make_rf_pred(RedSearch *rsearch,
 void red_add_exrel(RedSearch *rsearch, char *var, char *relname,
     RedTuple *rtup)
 {
-  List *list=malloc(sizeof(List));
-  ExRelation *er=malloc(sizeof(ExRelation));
-  RedBVarList *bv=malloc(sizeof(RedBVarList));
+  List *list=(List*) malloc(sizeof(List));
+  ExRelation *er=(ExRelation*) malloc(sizeof(ExRelation));
+  RedBVarList *bv=(RedBVarList*) malloc(sizeof(RedBVarList));
 
   if (hash_lookup(rsearch->hash->id_hash, var))
     return; /* we've already added this one */
@@ -1590,7 +1580,7 @@ char *red_rf_getrelvar(RedSearch *rsearch, const char *relname,
 
   len = red_tupstrlen(tup);
   tmp = red_printtup(rsearch, tup, len);
-  res=malloc(sizeof(char)*(len+3+numdigits(num_ex)+1+strlen(relname)+1));
+  res=(char*) malloc(sizeof(char)*(len+3+numdigits(num_ex)+1+strlen(relname)+1));
   sprintf(res,"out%d_%s%s",num_ex,relname,tmp);
   free(tmp);
   return res;
@@ -1612,12 +1602,12 @@ RedTuple *red_rf_argstotup(RedSearch *rsearch,
   ConsSymbol *cons, *cs=voc->cons_symbols;
   Node *ra, *ral;
 
-  tup = malloc(sizeof(RedTuple));
+  tup = (RedTuple*) malloc(sizeof(RedTuple));
   tup->arity=arity;
-  tup->data = malloc(sizeof(RedTupleElement)*arity);
+  tup->data = (RedTupleElement*) malloc(sizeof(RedTupleElement)*arity);
   for (i=0, cons=cs; cons; cons=cons->next,i++);
   if (i)
-    tup->cons_names = malloc(sizeof(char *)*i);
+    tup->cons_names = (char**) malloc(sizeof(char**)*i);
   else
     tup->cons_names = NULL;
   tup->num_cons=num_cons=i;
@@ -1640,7 +1630,7 @@ RedTuple *red_rf_argstotup(RedSearch *rsearch,
     {
       for (j=0; j<num_cons; j++)
       {
-        if (!strcmp(ral->data, tup->cons_names[j]))
+        if (!strcmp((char*) ral->data, tup->cons_names[j]))
         {
           el->type=1;
           el->a=j;
@@ -1696,15 +1686,15 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
   RedTupleElement *el1, *el2;
   int v1;
   int v2;
-  int *ktup1=malloc(sizeof(int)*k), *ktup2=malloc(sizeof(int)*k);
+  int *ktup1=(int*) malloc(sizeof(int)*k), *ktup2=(int*) malloc(sizeof(int)*k);
   int len;
   Constant *cons = ex->a->cons, *tc, *tc2;
   int d;
 
   num_cons = red_getnumconslits(rsearch, er);
-  lits = malloc(sizeof(char *)*num_cons);
+  lits = (char**) malloc(sizeof(char*)*num_cons);
 
-  res = malloc(sizeof(ConsBVars));
+  res = (ConsBVars*) malloc(sizeof(ConsBVars));
   res->num = num_cons;
   res->lits = lits;
   res->next = NULL;
@@ -1732,7 +1722,7 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
           {
             if (v1==v2)
               len+=3;
-            lits[i]=malloc(sizeof(char)*len);
+            lits[i]=(char*) malloc(sizeof(char)*len);
             if (v1!=v2)
               sprintf(lits[i],"eq[x-%d-%d.x-%d-%d]",k1,a1,k2,a2);
             else
@@ -1744,7 +1734,7 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
             len = len+1;
           else
             len = len+4;
-          lits[i] = malloc(sizeof(char)*len);
+          lits[i] = (char*) malloc(sizeof(char)*len);
           if (v1!=v2+1)
             sprintf(lits[i],"eq[x-%d-%d.+x-%d-%d]",k1,a1,k2,a2);
           else
@@ -1760,7 +1750,7 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
           +numdigits(d);
         if (v1==d)
           len+=3;
-        lits[i]=malloc(sizeof(char)*len);
+        lits[i]=(char*) malloc(sizeof(char)*len);
         if (v1!=d)
           sprintf(lits[i],"eq[x-%d-%d.%d]",k1,a1,d);
         else
@@ -1773,7 +1763,7 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
       len = 9+numdigits(k1)+numdigits(a1)+3;
       if (v1==n-1)
         len+=3;
-      lits[i]=malloc(sizeof(char)*len);
+      lits[i]=(char*) malloc(sizeof(char)*len);
       if (v1!=n-1)
         sprintf(lits[i],"eq[x-%d-%d.max]",k1,a1);
       else
@@ -1788,7 +1778,7 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
           +strlen(tc->name);
         if (v1==tc->value)
           len+=3;
-        lits[i]=malloc(sizeof(char)*len);
+        lits[i]=(char*) malloc(sizeof(char)*len);
         if (v1!=tc->value)
           sprintf(lits[i],"eq[x-%d-%d.%s]",k1,a1,
               tc->name);
@@ -1814,7 +1804,7 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
       len=6+strlen(tc->name)+strlen(tc2->name);
       if (tc->value==tc2->value)
         len+=3;
-      lits[i]=malloc(sizeof(char)*len);
+      lits[i]=(char*) malloc(sizeof(char)*len);
       if (tc->value!=tc2->value)
         sprintf(lits[i],"eq[%s.%s]",tc->name,
             tc2->name);
@@ -1853,7 +1843,7 @@ int red_addincons_pred(RedSearch *rsearch, const Example *ex,
   int *reltup;
   int t;
   int ra;
-  int *ktup=malloc(sizeof(int)*k);
+  int *ktup=(int*) malloc(sizeof(int)*k);
   int va,vk;
   int flag;
   int tuplen, len;
@@ -1865,7 +1855,7 @@ int red_addincons_pred(RedSearch *rsearch, const Example *ex,
   for (rel=ex->a->rels; rel; rel=rel->next)
   {
     ra = rel->arity;
-    reltup = malloc(sizeof(int)*ra);
+    reltup = (int*) malloc(sizeof(int)*ra);
 
     while ((rtup = red_nexttuple(rsearch, rtup, ra, k, arity, cs)))
     {
@@ -1901,7 +1891,7 @@ int red_addincons_pred(RedSearch *rsearch, const Example *ex,
       len = strlen(rel->name)+tuplen+1;
       if (flag)
         len+=3;
-      lits[i]=malloc(sizeof(char)*len);
+      lits[i]=(char*) malloc(sizeof(char)*len);
       ts = red_printtup(rsearch, rtup, tuplen);
       if (flag)
         sprintf(lits[i],"not%s%s",rel->name,ts);
@@ -1933,15 +1923,15 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
   RedTupleElement *el1, *el2;
   int v1;
   int v2;
-  int *ktup1=malloc(sizeof(int)*k), *ktup2=malloc(sizeof(int)*k);
+  int *ktup1=(int*) malloc(sizeof(int)*k), *ktup2=(int*) malloc(sizeof(int)*k);
   int len;
   Constant *cons = ex->a->cons, *tc, *tc2;
   int d;
 
   num_cons = red_getnumconslits(rsearch, er);
-  lits = malloc(sizeof(char *)*num_cons);
+  lits = (char**) malloc(sizeof(char *)*num_cons);
 
-  res = malloc(sizeof(ConsBVars));
+  res = (ConsBVars*) malloc(sizeof(ConsBVars));
   res->num = num_cons;
   res->lits = lits;
   res->next = NULL;
@@ -1969,7 +1959,7 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
           {
             if (v1!=v2)
               len+=3;
-            lits[i]=malloc(sizeof(char)*len);
+            lits[i]=(char*) malloc(sizeof(char)*len);
             if (v1==v2)
               sprintf(lits[i],"eq[x-%d-%d.x-%d-%d]",k1,a1,k2,a2);
             else
@@ -1981,7 +1971,7 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
             len = len+1;
           else
             len = len+4;
-          lits[i] = malloc(sizeof(char)*len);
+          lits[i] = (char*) malloc(sizeof(char)*len);
           if (v1==v2+1)
             sprintf(lits[i],"eq[x-%d-%d.+x-%d-%d]",k1,a1,k2,a2);
           else
@@ -1998,7 +1988,7 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
           +numdigits(d);
         if (v1!=d)
           len+=3;
-        lits[i]=malloc(sizeof(char)*len);
+        lits[i]=(char*) malloc(sizeof(char)*len);
         if (v1==d)
           sprintf(lits[i],"eq[x-%d-%d.%d]",k1,a1,d);
         else
@@ -2011,7 +2001,7 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
       len = 9+numdigits(k1)+numdigits(a1)+3;
       if (v1!=n-1)
         len+=3;
-      lits[i]=malloc(sizeof(char)*len);
+      lits[i]=(char*) malloc(sizeof(char)*len);
       if (v1==n-1)
         sprintf(lits[i],"eq[x-%d-%d.max]",k1,a1);
       else
@@ -2026,7 +2016,7 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
           +strlen(tc->name);
         if (v1!=tc->value)
           len+=3;
-        lits[i]=malloc(sizeof(char)*len);
+        lits[i]=(char*) malloc(sizeof(char)*len);
         if (v1==tc->value)
           sprintf(lits[i],"eq[x-%d-%d.%s]",k1,a1,
               tc->name);
@@ -2052,7 +2042,7 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
       len=6+strlen(tc->name)+strlen(tc2->name);
       if (tc->value!=tc2->value)
         len+=3;
-      lits[i]=malloc(sizeof(char)*len);
+      lits[i]=(char*) malloc(sizeof(char)*len);
       if (tc->value==tc2->value)
         sprintf(lits[i],"eq[%s.%s]",tc->name,
             tc2->name);
@@ -2089,7 +2079,7 @@ int red_addcons_pred(RedSearch *rsearch, const Example *ex,
   int *reltup;
   int t;
   int ra;
-  int *ktup=malloc(sizeof(int)*k);
+  int *ktup=(int*) malloc(sizeof(int)*k);
   int va,vk;
   int flag;
   int tuplen, len;
@@ -2101,7 +2091,7 @@ int red_addcons_pred(RedSearch *rsearch, const Example *ex,
   for (rel=ex->a->rels; rel; rel=rel->next)
   {
     ra = rel->arity;
-    reltup = malloc(sizeof(int)*ra);
+    reltup = (int*) malloc(sizeof(int)*ra);
 
     while ((rtup = red_nexttuple(rsearch, rtup, ra, k, arity, cs)))
     {
@@ -2138,7 +2128,7 @@ int red_addcons_pred(RedSearch *rsearch, const Example *ex,
       len = strlen(rel->name)+tuplen+1;
       if (!flag)
         len+=3;
-      lits[i]=malloc(sizeof(char)*len);
+      lits[i]=(char*) malloc(sizeof(char)*len);
       ts = red_printtup(rsearch, rtup, tuplen);
       if (!flag)
         sprintf(lits[i],"not%s%s",rel->name,ts);
@@ -2212,14 +2202,14 @@ int red_getnumconslits(RedSearch *rsearch, ExRelation *er)
 
 ConsBVars *red_cons_addlit(ConsBVars *cb, const char *c)
 {
-  ConsBVars *res=malloc(sizeof(ConsBVars));
+  ConsBVars *res=(ConsBVars*) malloc(sizeof(ConsBVars));
   int i;
   res->num=cb->num+1;
   res->next=cb->next;
-  res->lits=malloc(sizeof(char *)*res->num);
+  res->lits=(char**) malloc(sizeof(char *)*res->num);
   for (i=0; i<res->num-1; i++)
     res->lits[i]=cb->lits[i];
-  res->lits[i]=malloc(sizeof(char)*(strlen(c)+1));
+  res->lits[i]=(char*) malloc(sizeof(char)*(strlen(c)+1));
   sprintf(res->lits[i],"%s",c);
   free(cb->lits);
   free(cb);
@@ -2227,11 +2217,11 @@ ConsBVars *red_cons_addlit(ConsBVars *cb, const char *c)
 }
 ConsBVars *red_cons_addtrue(ConsBVars *cb)
 {
-  ConsBVars *res=malloc(sizeof(ConsBVars));
+  ConsBVars *res=(ConsBVars*) malloc(sizeof(ConsBVars));
   res->num=1;
   res->next=cb;
-  res->lits=malloc(sizeof(char *));
-  res->lits[0]=malloc(sizeof(char)*2);
+  res->lits=(char**) malloc(sizeof(char *));
+  res->lits[0]=(char*) malloc(sizeof(char)*2);
   sprintf(res->lits[0],"T");
   return res;
 }
@@ -2255,12 +2245,12 @@ char *red_rf_pred_inconsclause(RedSearch *rsearch, int cl,
   for (i=0; i<num; i++)
   {
     len = strlen(lits[i])+4+rln+1+6+ncl+1+1;
-    tmp = malloc(sizeof(char)*len);
+    tmp = (char*) malloc(sizeof(char)*len);
     sprintf(tmp,"form%s_clause%d_%s",relname,cl,lits[i]);
     res = red_disjunc(rsearch, res,tmp);
   }
 
-  tmp=malloc(sizeof(char)*(strlen(res)+3));
+  tmp=(char*) malloc(sizeof(char)*(strlen(res)+3));
   sprintf(tmp,"(%s)",res);
   free(res);
   res=tmp;
@@ -2299,12 +2289,12 @@ char *red_rf_pred_cbform(RedSearch *rsearch, char *relname, int cl,
   for (i=0; i<num; i++)
   {
     len = strlen(lits[i])+4+rln+1+6+ncl+1+1;
-    tmp = malloc(sizeof(char)*len);
+    tmp = (char*) malloc(sizeof(char)*len);
     sprintf(tmp,"form%s_clause%d_%s",relname,cl,lits[i]);
     res = red_conjunc(rsearch, res,tmp);
   }
 
-  tmp=malloc(sizeof(char)*(strlen(res)+3));
+  tmp=(char*) malloc(sizeof(char)*(strlen(res)+3));
   sprintf(tmp,"(%s)",res);
   free(res);
   res=tmp;
@@ -2395,11 +2385,11 @@ char *red_form_addconstuple(char *form, RedTuple *tuple,
   tmp1 = red_getconsbvarname(leftc, tuple);
   tmp2 = red_getconsbvarname(rightc, tuple);
 
-  tmp3 = malloc(sizeof(char)*(strlen(tmp1)+strlen(tmp2)+4));
+  tmp3 = (char*) malloc(sizeof(char)*(strlen(tmp1)+strlen(tmp2)+4));
   sprintf(tmp3,"(%s&%s)",tmp1,tmp2);
   if (!form)
     return tmp3;
-  res = malloc(sizeof(char)*(strlen(form)+strlen(tmp3)+2));
+  res = (char*) malloc(sizeof(char)*(strlen(form)+strlen(tmp3)+2));
   sprintf(res,"%s|%s",form,tmp3);
   free(tmp3);
   free(form);
@@ -2426,7 +2416,7 @@ char *make_rf_teqi(RedSearch *rsearch, const Example *ex,
     return dupstr("T");
   }
 
-  tuple = malloc(sizeof(int)*k);
+  tuple = (int*) malloc(sizeof(int)*k);
   tuple = cindex_to_tuple(tuple, val, k, n);
   name = (char *)term->data;
 
@@ -2461,7 +2451,7 @@ char *red_rf_addconsclause(char *form, const char *name, RedTuple *tup)
   if (!form)
     return tmp;
 
-  res = malloc(sizeof(char)*(strlen(tmp)+strlen(form)+2));
+  res = (char*) malloc(sizeof(char)*(strlen(tmp)+strlen(form)+2));
   sprintf(res,"%s|%s",form,tmp);
   free(tmp);
   return res;
@@ -2482,9 +2472,9 @@ RedTuple *red_getnext_compat_tuple(RedTuple *rtup, int *tuple,
 
   if (!rtup)
   {
-    res = malloc(sizeof(RedTuple));
+    res = (RedTuple*) malloc(sizeof(RedTuple));
     res->arity=k;
-    res->data = malloc(sizeof(RedTupleElement)*k);
+    res->data = (RedTupleElement*) malloc(sizeof(RedTupleElement)*k);
     for (i=0,el=res->data; i<k; i++,el++)
     {
       el->type = 2;
@@ -2498,7 +2488,7 @@ RedTuple *red_getnext_compat_tuple(RedTuple *rtup, int *tuple,
       res->cons_names = NULL;
       return res;
     }
-    res->cons_names=malloc(sizeof(char *)*i);
+    res->cons_names=(char**) malloc(sizeof(char *)*i);
     for (j=0,cons=ex->a->cons; j<i; j++,cons=cons->next)
       res->cons_names[j]=cons->name;
     return res;
@@ -2595,17 +2585,17 @@ char *make_rf_forall(RedSearch *rsearch, const Example *ex,
     Node *form, Interp *interp)
 {
   char *tmp, *ret;
-  Node *not = node(NOT, form->r, 0);
-  if (!not)
+  Node *nnot = node(NOT, form->r, 0);
+  if (!nnot)
     return NULL;
-  form->r=not;
+  form->r=nnot;
   form->label = EXISTS;
   tmp = make_rf_exists(rsearch,ex,form,interp);
-  form->r = not->l;
+  form->r = nnot->l;
   form->label = FORALL;
-  free(not);
+  free(nnot);
 
-  ret = malloc(sizeof(char)*(strlen(tmp)+4));
+  ret = (char*) malloc(sizeof(char)*(strlen(tmp)+4));
   sprintf(ret,"!(%s)",tmp);
   free(tmp);
   return ret;
@@ -2636,14 +2626,14 @@ char *make_rf_exists(RedSearch *rsearch, const Example *ex,
     tnode = tnode->r;
   }
 
-  varnames = malloc(arity*sizeof(char *));
-  old_values = malloc(arity*sizeof(int));
-  values = malloc(arity*sizeof(int *));
+  varnames = (char**) malloc(arity*sizeof(char *));
+  old_values = (int*) malloc(arity*sizeof(int));
+  values = (int**) malloc(arity*sizeof(int *));
   tnode = varlist;
 
   for (i=0; i<arity; i++)
   {
-    varnames[i]=tnode->data;
+    varnames[i]=(char*) tnode->data;
     values[i]=tnode->ival;
     old_values[i]=*values[i];
     *values[i]=0;
@@ -2678,13 +2668,13 @@ char *make_rf_exists(RedSearch *rsearch, const Example *ex,
     {
       if (!ret)
       {
-        ret=malloc(sizeof(char)*(strlen(tmpl)+strlen(tmpr)+8));
+        ret=(char*) malloc(sizeof(char)*(strlen(tmpl)+strlen(tmpr)+8));
         sprintf(ret,"((%s)&(%s))",tmpl,tmpr);
         free(tmpl);
         free(tmpr);
         continue;
       }
-      tmp=malloc(sizeof(char)*(strlen(tmpl)+strlen(tmpr)+
+      tmp=(char*) malloc(sizeof(char)*(strlen(tmpl)+strlen(tmpr)+
             strlen(ret)+9));
       sprintf(tmp,"%s|((%s)&(%s))",ret,tmpl,tmpr);
       free(tmpl);
@@ -2700,7 +2690,7 @@ char *make_rf_exists(RedSearch *rsearch, const Example *ex,
         ret=tmpr;
         continue;
       }
-      tmp = malloc(sizeof(char)*(strlen(tmpr)+strlen(ret)+4));
+      tmp = (char*) malloc(sizeof(char)*(strlen(tmpr)+strlen(ret)+4));
       sprintf(tmp,"%s|(%s)",ret,tmpr);
       free(tmpr);
       free(ret);
@@ -2728,7 +2718,7 @@ char *red_disjunc(RedSearch *rsearch, char *form1, char *form2)
     return form2;
   len1 = strlen(form1);
   len2 = strlen(form2);
-  tmp = realloc(form1,sizeof(char)*(len1+len2+2));
+  tmp = (char*) realloc(form1,sizeof(char)*(len1+len2+2));
   if (!tmp)
   {
     rsearch->abort=1;
@@ -2755,7 +2745,7 @@ char *red_conjunc(RedSearch *rsearch, char *form1, char *form2)
     return form2;
   len1 = strlen(form1);
   len2 = strlen(form2);
-  tmp = realloc(form1,sizeof(char)*(len1+len2+2));
+  tmp = (char*) realloc(form1,sizeof(char)*(len1+len2+2));
   if (!tmp)
   {
     rsearch->abort=1;
@@ -2777,7 +2767,7 @@ char *red_binform(RedSearch *rsearch, char *form1, char *form2, const char *op)
   int len;
   char *tmp;
   len = strlen(form1)+strlen(form2)+5+strlen(op); /* ()op() and \0 */
-  tmp = malloc(sizeof(char)*len);
+  tmp = (char*) malloc(sizeof(char)*len);
   if (!tmp)
   {
     rsearch->abort=1;
@@ -2829,7 +2819,7 @@ RedBVarList *red_makebvars(RedSearch *rsearch,
       /* make Boolean variables formN_clausei_* */
 
       /* T */
-      tmp = malloc(sizeof(char)*(base+numl+1));
+      tmp = (char*) malloc(sizeof(char)*(base+numl+1));
       if (!tmp)
       {
         rsearch->abort=1;
@@ -2926,7 +2916,7 @@ RedBVarList *red_add_veqv(RedSearch *rsearch,
       b=numdigits(i);
       if (vk<i || (vk==i && va<j))
       {
-        tmp = malloc(sizeof(char)*(len+11+a+b));
+        tmp = (char*) malloc(sizeof(char)*(len+11+a+b));
         if (!tmp)
         {
           red_abort_nomem(rsearch, bvars);
@@ -2943,7 +2933,7 @@ RedBVarList *red_add_veqv(RedSearch *rsearch,
         }
       }
 #ifdef REDFIND_SUCC
-      tmp = malloc(sizeof(char)*(len+11+a+b+1));
+      tmp = (char*) malloc(sizeof(char)*(len+11+a+b+1));
       if (!tmp)
       {
         red_abort_nomem(rsearch,bvars);
@@ -2979,7 +2969,7 @@ RedBVarList *red_add_veqi(RedSearch *rsearch,
   for (i=0; i<n; i++)
   {
     a=numdigits(i); 
-    tmp = malloc(sizeof(char)*(len+8+a));
+    tmp = (char*) malloc(sizeof(char)*(len+8+a));
     if (!tmp)
     {
       red_abort_nomem(rsearch, bvars);
@@ -3034,7 +3024,7 @@ RedBVarList *red_add_veqc(RedSearch *rsearch,
 
   for (ct=cons; ct; ct=ct->next)
   {
-    tmp=malloc(sizeof(char)*(len+9+a+strlen(ct->name)));
+    tmp=(char*) malloc(sizeof(char)*(len+9+a+strlen(ct->name)));
     if (!tmp)
     {
       red_abort_nomem(rsearch, bv);
@@ -3053,7 +3043,7 @@ RedBVarList *red_add_veqc(RedSearch *rsearch,
 
   /* and x=max */
 #if !defined(REDFIND_FEWVARS) || defined(REDFIND_FV_0max)
-  tmp = malloc(sizeof(char)*(len+9+a+3));
+  tmp = (char*) malloc(sizeof(char)*(len+9+a+3));
   if (!tmp)
   {
     red_abort_nomem(rsearch, bv);
@@ -3078,7 +3068,7 @@ RedBVarList *red_add_ceqc(RedSearch *rsearch,
 {
   minisat_solver *solver=rsearch->solver;
   Environment *hash=rsearch->hash;
-  char *tmp = malloc(sizeof(char)*(len+5+strlen(c1)+strlen(c2)));
+  char *tmp = (char*) malloc(sizeof(char)*(len+5+strlen(c1)+strlen(c2)));
   if (!tmp)
   {
     red_abort_nomem(rsearch, bvars);
@@ -3113,7 +3103,7 @@ RedBVarList *red_add_ceqc(RedSearch *rsearch,
   {
     tuplen = red_tupstrlen(tuple);
     size = len+strlen(name)+strlen(relname)+tuplen;
-    tmp = malloc(sizeof(char)*size);
+    tmp = (char*) malloc(sizeof(char)*size);
     if (!tmp)
     {
       red_abort_nomem(rsearch, bv);
@@ -3146,8 +3136,8 @@ char *red_printtup(RedSearch *rsearch, const RedTuple *tuple,
   int arity=tuple->arity;
   char **cnames = tuple->cons_names;
   RedTupleElement *el=tuple->data;
-  char *tmp=malloc(sizeof(char)*(len+1));
-  char *tmp2=malloc(sizeof(char)*(len+1));
+  char *tmp=(char*) malloc(sizeof(char)*(len+1));
+  char *tmp2=(char*) malloc(sizeof(char)*(len+1));
   if (!tmp)
   {
     rsearch->abort=1;
@@ -3211,27 +3201,25 @@ int red_tupstrlen(const RedTuple *tuple)
  * If tuple is NULL, make it the first tuple.  If tuple is the last tuple,
  * free it and return NULL.
  */ 
-RedTuple *red_nexttuple(RedSearch *rsearch,
-    RedTuple *tuple, int arity, int k,
-    int a_i, ConsSymbol *cons)
-{
+RedTuple *red_nexttuple(RedSearch *rsearch, RedTuple *tuple, int arity, int k, int a_i, ConsSymbol *cons) {
   RedTuple *tup;
   RedTupleElement *el;
   int i;
   ConsSymbol *ct;
   if (!tuple)
   {
-    tup = malloc(sizeof(RedTuple));
+    tup = (RedTuple*) malloc(sizeof(RedTuple));
     if (!tup)
     {
       rsearch->abort=1;
       printf("r34: No memory\n");
       return 0;
     }
+
     for (i=0,ct=cons;ct;i++,ct=ct->next);
-    if (i)
-    {
-      tup->cons_names=malloc(sizeof(char *)*i);
+
+    if (i) {
+      tup->cons_names=(char**) malloc(sizeof(char *)*i);
       if (!tup->cons_names)
       {
         rsearch->abort=1;
@@ -3239,10 +3227,11 @@ RedTuple *red_nexttuple(RedSearch *rsearch,
         free(tup);
         return 0;
       }
-    }
-    else
+    } else {
       tup->cons_names=0;
-    el=malloc(sizeof(RedTupleElement)*arity);
+    }
+
+    el=(RedTupleElement*) malloc(sizeof(RedTupleElement)*arity);
     if (!el)
     {
       rsearch->abort=1;
@@ -3338,8 +3327,8 @@ int red_abort_nomem(RedSearch *rsearch, RedBVarList *v)
 RedBVarList *red_addtolist(RedBVarList *bvars, char *tmp, 
     minisat_solver *solver, Environment *hash)
 {
-  char *negname=malloc(sizeof(char)*(strlen(tmp)+4));
-  RedBVarList *list=malloc(sizeof(RedBVarList));
+  char *negname=(char*) malloc(sizeof(char)*(strlen(tmp)+4));
+  RedBVarList *list=(RedBVarList*) malloc(sizeof(RedBVarList));
   int i;
 
   /* TODO check those mallocs */
@@ -3456,8 +3445,8 @@ RedRelForms *red_addrelform(RedRelForms *relforms, RelationSymbol *rel, RedSearc
 
   else
   {
-    newr = malloc(sizeof(RedRelForms));
-    newr->name = malloc(sizeof(char)*(strlen(rel->name)+1));
+    newr = (RedRelForms*) malloc(sizeof(RedRelForms));
+    newr->name = (char*) malloc(sizeof(char)*(strlen(rel->name)+1));
     sprintf(newr->name,"%s",rel->name);
     newr->c=0;
     newr->forms = NULL;
@@ -3521,10 +3510,10 @@ RedRelForms *red_relform_addlit(RedRelForms *rform, RedBVarList *bvars, Relation
   int i;
 
   if (!newr) {
-    newr = malloc(sizeof(RedRelForms));
+    newr = (RedRelForms*) malloc(sizeof(RedRelForms));
     newr->c = c;
     newr->name = rel->name;
-    newr->forms = malloc(sizeof(char *)*c);
+    newr->forms = (char**) malloc(sizeof(char *)*c);
     for (i=0; i<c; i++)
       newr->forms[i]=NULL;
   }
@@ -3550,13 +3539,13 @@ char *red_relform_realaddlit(char *newlit, char *oldclause, int sign) {
     if (sign==-1)
     {
       len++;
-      newclause = malloc(sizeof(char)*len);
+      newclause = (char*) malloc(sizeof(char)*len);
       sprintf(newclause,"~%s",newlit);
       return newclause;
     }
     else
     {
-      newclause = malloc(sizeof(char)*len);
+      newclause = (char*) malloc(sizeof(char)*len);
       sprintf(newclause,"%s",newlit);
       return newclause;
     }
@@ -3564,7 +3553,7 @@ char *red_relform_realaddlit(char *newlit, char *oldclause, int sign) {
   len=strlen(newlit)+strlen(oldclause)+2;
   if (sign==-1)
     len++;
-  newclause = malloc(sizeof(char)*len);
+  newclause = (char*) malloc(sizeof(char)*len);
 
   if (sign==-1)
     sprintf(newclause,"%s&~%s",oldclause,newlit);
@@ -3609,7 +3598,7 @@ char *red_relform_getlit(RedBVarList *bv, int k) {
   /* T */
   if (lit[0]=='T' && lit[1]=='\0')
   {
-    ret = malloc(sizeof(char)*3);
+    ret = (char*) malloc(sizeof(char)*3);
     sprintf(ret,"\\t");
     return ret;
   }
@@ -3629,7 +3618,7 @@ char *red_relform_getlit(RedBVarList *bv, int k) {
  */
 char *red_getlit_pred(char *lit, int k) {
   int i,j,len=strlen(lit);
-  char *ret=malloc(sizeof(char)*len);
+  char *ret=(char*) malloc(sizeof(char)*len);
   int first=1;
 
   for (i=0; i<len; i++)
@@ -3679,7 +3668,7 @@ char *red_getlit_pred(char *lit, int k) {
 /* add this term (after converting it to DE syntax if needed */
 char *red_pred_concatterm(char *old, char *lit, int k) {
   char *newterm=red_getterm(lit,k);
-  char *tmp = malloc(sizeof(char)*(strlen(old)+strlen(newterm)+1));
+  char *tmp = (char*) malloc(sizeof(char)*(strlen(old)+strlen(newterm)+1));
   sprintf(tmp,"%s%s",old,newterm);
   free(old);
   free(newterm);
@@ -3689,7 +3678,7 @@ char *red_pred_concatterm(char *old, char *lit, int k) {
 /* add that char and a \0 */
 char *red_pred_concat(char *old, char newchar) {
   int len = strlen(old);
-  char *tmp = realloc(old, sizeof(char)*(len+2));
+  char *tmp = (char*) realloc(old, sizeof(char)*(len+2));
   if (!tmp)
   {
     printf("r39: Unable to realloc an extra byte.\n");
@@ -3703,11 +3692,10 @@ char *red_pred_concat(char *old, char newchar) {
 
 char *red_getlit_eq(const char *lit, int k) {
   char *left, *right;
-  char *tmp;
   int i, len=strlen(lit);
   int succ = 0;
 
-  tmp = malloc(sizeof(char)*len);
+  char *tmp = (char*) malloc(sizeof(char)*len);
 
   strcpy(tmp,lit+3);
   for (i=0; i<len; i++)
@@ -3729,7 +3717,7 @@ char *red_getlit_eq(const char *lit, int k) {
   right = red_getterm(tmp+i+1,k);
   free(tmp);
 
-  tmp = malloc(sizeof(char)*(strlen(left)+1+strlen(right)+1+(succ<<1)));
+  tmp = (char*) malloc(sizeof(char)*(strlen(left)+1+strlen(right)+1+(succ<<1)));
   if (!succ)
     sprintf(tmp,"%s=%s",left,right);
   else
@@ -3749,14 +3737,14 @@ char *red_getterm(char *lit, int k) {
   if (isdigit(lit[0]))
   {
     i = atoi(lit);
-    tmp = malloc(sizeof(char)*(1+numdigits(i)));
+    tmp = (char*) malloc(sizeof(char)*(1+numdigits(i)));
     sprintf(tmp,"%d",i);
     return tmp;
   }
   if (lit[0]!='x') /* all our variables are x-vk-va */
   {
     len=strlen(lit);
-    tmp = malloc(sizeof(char)*(len+1));
+    tmp = (char*) malloc(sizeof(char)*(len+1));
     strcpy(tmp,lit);
     c = tmp[len-1];
     if (c==']')
@@ -3768,7 +3756,7 @@ char *red_getterm(char *lit, int k) {
 
   i = i + (j-1)*k;
 
-  tmp = malloc(sizeof(char)*(2+numdigits(i)));
+  tmp = (char*) malloc(sizeof(char)*(2+numdigits(i)));
   sprintf(tmp,"x%d",i);
   return tmp;
 }
@@ -3810,7 +3798,7 @@ RedTuple *red_nextconstuple(RedSearch *rsearch, RedTuple *tuple, int k, int n, C
 
   if (!tuple)
   {
-    tup = malloc(sizeof(RedTuple));
+    tup = (RedTuple*) malloc(sizeof(RedTuple));
     if (!tup)
     {
       rsearch->abort=1;
@@ -3819,7 +3807,7 @@ RedTuple *red_nextconstuple(RedSearch *rsearch, RedTuple *tuple, int k, int n, C
     }
     for (i=0,ct=p1cons;ct;i++,ct=ct->next);
     if (i) {
-      tup->cons_names=malloc(sizeof(char *)*i);
+      tup->cons_names=(char**) malloc(sizeof(char *)*i);
       if (!tup->cons_names)
       {
         rsearch->abort=1;
@@ -3829,7 +3817,7 @@ RedTuple *red_nextconstuple(RedSearch *rsearch, RedTuple *tuple, int k, int n, C
       }
     } else tup->cons_names=0;
 
-    el=malloc(sizeof(RedTupleElement)*k);
+    el=(RedTupleElement*) malloc(sizeof(RedTupleElement)*k);
     if (!el) {
       rsearch->abort=1;
       printf("r42: No memory\n");
@@ -3896,7 +3884,7 @@ RedTuple *red_nextconstuple(RedSearch *rsearch, RedTuple *tuple, int k, int n, C
 /* add cons_%s_[...] */ 
 RedBVarList *red_addconsbvar(RedSearch *rsearch, RedBVarList *cbvars, minisat_solver *solver, Environment *hash, char *consname, RedTuple *tuple) {
   char *res;
-  RedBVarList *list=malloc(sizeof(RedBVarList));
+  RedBVarList *list=(RedBVarList*) malloc(sizeof(RedBVarList));
   int i, arity=tuple->arity;
   int n1=rsearch->n1;
 
@@ -3932,7 +3920,7 @@ RedBVarList *red_addconsbvar(RedSearch *rsearch, RedBVarList *cbvars, minisat_so
  */
 List *red_addconsform(List *cf, ConsSymbol *cons, RedSearch *rsearch) {
   RedBVarList *bv;
-  List *list=malloc(sizeof(List));
+  List *list=(List*) malloc(sizeof(List));
   int k=rsearch->k;
   minisat_solver *solver = rsearch->solver;
   minisat_Lit lit;
@@ -3995,7 +3983,7 @@ char *red_cf_getconsform(ConsSymbol *cons, RedBVarList *bv, int k) {
 
   len += red_cf_vallen(tup,k);
 
-  res = malloc(sizeof(char)*len);
+  res = (char*) malloc(sizeof(char)*len);
   sprintf(res,"%s is (",cname);
 
   tmp=red_cf_gettup(tup,k,len);
@@ -4021,8 +4009,8 @@ int red_cf_vallen(char *tup, int k) {
  * k is k and len is an upperbound on the length of this string.
  */
 char *red_cf_gettup(char *tup, int k, int len) {
-  char *res = malloc(sizeof(char)*len);
-  char *tmp = malloc(sizeof(char)*len);
+  char *res = (char*) malloc(sizeof(char)*len);
+  char *tmp = (char*) malloc(sizeof(char)*len);
   int i,j=1,num;
   int tlen = strlen(tup);
   char old;
@@ -4067,8 +4055,8 @@ char *red_rftodef(RedRelForms *rf) {
   for (i=0; i<c; i++)
     len+=strlen(forms[i]);
 
-  res = malloc(sizeof(char)*len);
-  tmp = malloc(sizeof(char)*len);
+  res = (char*) malloc(sizeof(char)*len);
+  tmp = (char*) malloc(sizeof(char)*len);
 
   res[0]='\0';
   for (i=0; i<c; i++)

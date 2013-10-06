@@ -32,10 +32,12 @@ yy_delete_buffer(bufstate)
 /* Calls Marco's program to draw a structure */
 int do_draw_command(Node *command)
 {
-  char *name=command->l->data, *tfn;
+  char *tfn;
   FILE *tmp, *m;
   Structure *str;
   char *exec;
+
+  char *name= (char*) command->l->data;
 
   Identifier *hash_data;
   hnode_t *hnode = hash_lookup(cur_env->id_hash, name);
@@ -55,7 +57,7 @@ int do_draw_command(Node *command)
     return 0;
   }
 
-  str = hash_data->def;
+  str = (Structure*) hash_data->def;
 
   tfn = tmpnam(NULL);
   tmp = fopen(tfn,"w");
@@ -67,7 +69,7 @@ int do_draw_command(Node *command)
   }
 
   len = strlen(tfn);
-  exec = malloc(sizeof(char)*(len+8));
+  exec = (char*) malloc(sizeof(char)*(len+8));
 
   if (!len)
   {
@@ -99,13 +101,7 @@ int do_draw_command(Node *command)
 int do_load(Node *command)
 {
   void *bufstate;
-  char *assign_id = command->l->data;
-  char *fn = command->r->data;
-  /* fn has a leading and trailing \" that we want to remove,
-   * so -2 length +1 for the \0
-   */
-  int  fnl=strlen(fn);
-  char *filename=malloc(fnl-1);
+  char *assign_id = (char*) command->l->data;
   FILE *f;
   int  i,j,k;
   char *buf;
@@ -117,6 +113,13 @@ int do_load(Node *command)
   Relation *rel;
   Identifier *hash_data;
   hnode_t *hnode;
+
+  /* fn has a leading and trailing \" that we want to remove,
+   * so -2 length +1 for the \0
+   */
+  char *fn = (char*) command->r->data;
+  int  fnl=strlen(fn);
+  char *filename=(char*) malloc(fnl-1);
 
   strncpy(filename,fn+1,fnl-2); 
   filename[fnl-2]='\0';
@@ -161,7 +164,7 @@ int do_load(Node *command)
   n_digits=numdigits(n);
 
   buflen = strlen(assign_id)+22+(n_digits<<1)+19+4;
-  buf = malloc(sizeof(char)*buflen);
+  buf = (char*) malloc(sizeof(char)*buflen);
   /* TODO check malloc */
 
   sprintf(buf,"%s:=new structure{graph,%d,E:2 is \\f,s:=0,t:=%d}.\n",assign_id,n,n-1);
@@ -218,11 +221,11 @@ int do_load(Node *command)
 
 int do_save_command(Node *command)
 {
-  char *id=command->l->data;
-  char *fn=command->r->data;
+  char *id=(char*) command->l->data;
+  char *fn=(char*) command->r->data;
   FILE *f;
   int fnl=strlen(fn);
-  char *filename=malloc(fnl-1);
+  char *filename=(char*) malloc(fnl-1);
   Identifier *hash_data;
   hnode_t *hnode;
 
@@ -344,14 +347,14 @@ int save_voc_inner(Vocabulary *voc, FILE *f)
 int do_loadassign(Node *command)
 {
   void *bufstate;
-  char *assign_id = command->l->data;
-  char *fn=command->r->r->data;
+  char *assign_id = (char*) command->l->data;
+  char *fn= (char*) command->r->r->data;
   /* fn has a leading and trailing \" that we want to remove,
    * so -2 length +1 for the \0
    */
-  char *vocname=command->r->l->data;
+  char *vocname= (char*) command->r->l->data;
   int  fnl=strlen(fn);
-  char *filename=malloc(fnl-1);
+  char *filename=(char*) malloc(fnl-1);
   FILE *f;
   int  i;
   char *buf;
@@ -390,7 +393,7 @@ int do_loadassign(Node *command)
     count++;
   }
 
-  str = malloc(sizeof(char)*(count+1));
+  str = (char*) malloc(sizeof(char)*(count+1));
   rewind(f);
 
   for (i=0; i<=count; i++)
@@ -467,7 +470,7 @@ char *loadstring_getdec(char *assign_id, int count, Vocabulary *voc)
 
   len+=4; /* }.\n\0 */
 
-  ret = malloc(sizeof(char)*len);
+  ret = (char*) malloc(sizeof(char)*len);
   sprintf(ret,"%s is new structure{%s,%d,",assign_id,voc->name,count);
 
   for (rs=voc->rel_symbols; rs; rs=rs->next)

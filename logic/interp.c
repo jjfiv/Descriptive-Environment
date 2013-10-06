@@ -19,7 +19,7 @@
 
 Interp *new_interp(const Structure *struc)
 {
-  Interp *interp = malloc(sizeof(Interp));
+  Interp *interp = (Interp*) malloc(sizeof(Interp));
   InterpSymbol *symb;
   Constant *cons;
   if (!interp)
@@ -37,7 +37,7 @@ Interp *new_interp(const Structure *struc)
     interp->symbols = NULL;
     return interp;
   }
-  symb = malloc(sizeof(InterpSymbol));
+  symb = (InterpSymbol*) malloc(sizeof(InterpSymbol));
   interp->symbols = symb;
   while (cons)
   {
@@ -46,7 +46,7 @@ Interp *new_interp(const Structure *struc)
     cons = cons->next;
     if (cons)
     {
-      symb->next=malloc(sizeof(InterpSymbol));
+      symb->next= (InterpSymbol*) malloc(sizeof(InterpSymbol));
       symb=symb->next;
     }
   }
@@ -91,7 +91,7 @@ int *get_xi_ival(int i, Interp *interp)
 
 void add_xi_interp(int i, Interp *interp, int val)
 {
-  char *name=malloc(sizeof(char)*(2+numdigits(i)));
+  char *name=(char*) malloc(sizeof(char)*(2+numdigits(i)));
   sprintf(name,"x%d",i);
   add_symb_to_interp(interp, name, val);
   free(name);
@@ -119,7 +119,7 @@ int get_interp_value(const char *name, const Interp *interp)
 Interp *fake_add_tup_to_interp(Interp *interp, int *tup,
     int arity)
 {
-  char *name = malloc(sizeof(char)+2+numdigits(arity));
+  char *name = (char*) malloc(sizeof(char)+2+numdigits(arity));
   Interp *ret=interp;
   int i;
 
@@ -166,7 +166,7 @@ Interp *fake_add_symb_to_interp(Interp *interp, const char *symb,
 Interp *add_symb_to_interp(Interp *interp, const char *symb, 
     const int value)
 {
-  InterpSymbol *is = malloc(sizeof(InterpSymbol));
+  InterpSymbol *is = (InterpSymbol*) malloc(sizeof(InterpSymbol));
   if (!is)
   {
     return 0;
@@ -188,9 +188,7 @@ Interp *add_symb_to_interp(Interp *interp, const char *symb,
  */
 Interp *add_tup_to_interp(Interp *interp, const int *tup, const int arity)
 {
-  InterpSymbol *is;
-  char *vname;
-  int order, i;
+  int order;
 
   if (arity<9)
     order=1;
@@ -199,11 +197,10 @@ Interp *add_tup_to_interp(Interp *interp, const int *tup, const int arity)
   else
     order=get_order(arity+1);
 
-  vname = malloc((order+1+1)*sizeof(char)); /* x+i+\0 */
+  char* vname = (char*) malloc((order+1+1)*sizeof(char)); /* x+i+\0 */
 
-  for (i=0; i<arity; i++)
-  {
-    is = malloc(sizeof(InterpSymbol));
+  for (int i=0; i<arity; i++) {
+    InterpSymbol *is = (InterpSymbol*) malloc(sizeof(InterpSymbol));
     is->next = interp->symbols;
     interp->symbols = is;
 
@@ -238,7 +235,7 @@ Interp *dup_interp(Interp *interp)
   n = new_interp(NULL);
   for (is=interp->symbols; is; is=is->next)
   {
-    nis = malloc(sizeof(InterpSymbol));
+    nis = (InterpSymbol*) malloc(sizeof(InterpSymbol));
     nis->name = dupstr(is->name);
     nis->value = is->value;
     nis->next = n->symbols;

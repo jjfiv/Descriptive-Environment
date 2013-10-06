@@ -8,7 +8,7 @@
 char *dupstr(const char *inp)
 {
   int len = strlen(inp);
-  char *copy = malloc(sizeof(char)*(len+1));
+  char *copy = (char*) malloc(sizeof(char)*(len+1));
 
   if (!copy)
     return copy;

@@ -22,6 +22,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef solver_h
 #define solver_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if 0
 #ifdef _WIN32
 #define inline __inline /* compatible with MS VS 6.0 */
@@ -32,10 +36,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 /* Simple types: */
 
-/* does not work for c++ */
+#ifndef __cplusplus
 typedef int  bool;
 static const bool  true      = 1;
 static const bool  false     = 0;
+#endif
 
 typedef int                lit;
 typedef char               lbool;
@@ -133,5 +138,9 @@ struct solver_t
 
   stats    stats;
 };
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif
