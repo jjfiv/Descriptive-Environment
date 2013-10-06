@@ -13,6 +13,14 @@
 #include "redtypes.h"
 #include "minisat.h"
 
+#ifndef RED_MAXVARS
+#define RED_MAXVARS 65536
+#endif
+#ifndef RED_EXMAXVARS
+#define RED_EXMAXVARS 16493
+#endif
+
+
 /* getex.c */
 extern struct example *get_any_example(int, const struct bquery *);
 extern struct example *get_next_example(struct redsearch *);

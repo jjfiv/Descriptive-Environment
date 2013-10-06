@@ -32,8 +32,6 @@ REDFIND_ALTEX= 1  # comment out to disable alternating minimizing,maximizing
   # "Assertion failed: (hash->nodecount < hash->maxcount)"
   # RED_MAXVARS is large because we use entries for each
   # bit of output structures, which tend to be large in the parameters
-RED_EXMAXVARS = 16394 #hashtable size for counter-example finding
-RED_MAXVARS = 65536 #hashtable size for reduction-candidate finding
 
 REDFIND_SUCC = 1 # enables successor (x=y+1) literals in reduction-finding
 REDFIND_FEWVARS = 1 #disables literals "x=i"/"x=max" in reduction-finding
@@ -54,8 +52,6 @@ endif
 OCFLAGS:=-O3 -fomit-frame-pointer
 #OCFLAGS = -O3 -g 
 #OCFLAGS = -O0 -g
-
-OCFLAGS += -DRED_MAXVARS=$(RED_MAXVARS) -DRED_EXMAXVARS=$(RED_EXMAXVARS)
 
 ifdef REDFIND_SUCC
 OCFLAGS += -DREDFIND_SUCC

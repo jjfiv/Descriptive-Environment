@@ -26,7 +26,7 @@
 #define red_debug3(a,b,c)
 #endif
 
-struct redsearch {
+typedef struct redsearch {
   struct env *hash;
   struct minisat_solver_t *solver;
 #ifdef REDFIND_CUDD
@@ -52,9 +52,9 @@ struct redsearch {
   int num_ex;
   int num_tc;
   int outsize;
-};
+} RedSearch;
 
-struct tc_def {
+typedef struct tc_def {
   int num;
   int tup_arity;
   int size;
@@ -62,34 +62,34 @@ struct tc_def {
   struct node *tc_node;
   struct interp *interp;
   minisat_Lit *lits; /* lits indexed by tuple cindices */
-};
+} TCDef;
 
-struct ex_rel {
+typedef struct ex_rel {
   char *var;
   char *relname;
   struct red_tuple *tup;
   struct red_bvarlist *bv;
-};
+} ExRelation;
 
-struct example {
+typedef struct example {
   struct structure *a;
   int p1; /* whether this example has p1 */
-};
+} Example;
 
-struct red_tuple {
+typedef struct red_tuple {
   struct red_tuple_element *data;
   int arity;
   int num_cons;
   char **cons_names;
-};
+} RedTuple;
 
-struct red_tuple_element {
+typedef struct red_tuple_element {
   int type; /* 0==var (x-a-b), 1==constant, name is cons_names[a] */
   int a;    /* type 2, a natural (value a), only for cbvars */
   int b;
-};
+} RedTupleElement;
 
-struct red_bvarlist {
+typedef struct red_bvarlist {
   char *pos;
   char *neg;
   minisat_Var posVar;
@@ -101,25 +101,27 @@ struct red_bvarlist {
   DdNode *negDdn;
 #endif
   struct red_bvarlist *next;
-};
+} RedBVarList;
 
-struct red_hypot {
+typedef struct red_hypot {
   struct redsearch *rsearch;
   struct red_relforms *relforms;
   struct list *consforms;
-};
+} RedHypot;
 
-struct red_relforms {
+typedef struct red_relforms {
   int c;
   int arity;
   char *name;
   char **forms; /* forms forms[0]...forms[c-1], for clauses 1,...,c */
   struct red_relforms *next;
-};
+} RedRelForms;
 
-struct cons_bvars {
+typedef struct cons_bvars {
   int num;
   char **lits;
   struct cons_bvars *next;
-};
+} ConsBVars;
+
 #endif /* DEREDTYPESH */
+

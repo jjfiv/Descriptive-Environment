@@ -12,8 +12,7 @@
 /* Returns a pointer to a STATIC (don't free) copy of a free-variable
  * in form (when constants from vocab don't count), or NULL if none exist.
  */
-char *free_var(Node *form, Vocabulary *vocab)
-{
+char *free_var(Node *form, Vocabulary *vocab) {
   List *list=d_free_var(form,vocab), *tmp;
   char *name;
   if (!list)
@@ -31,9 +30,7 @@ char *free_var(Node *form, Vocabulary *vocab)
 /* we use the fast interpretations from eval_init_form to check for free
  * variables without strcmp
  */
-char *free_var_fast(Node *form, Interp *interp, 
-    const Structure *struc)
-{
+char *free_var_fast(Node *form, Interp *interp, const Structure *struc) {
   char *c;
   Node *relargs;
   int *iv;
@@ -97,9 +94,7 @@ char *free_var_fast(Node *form, Interp *interp,
   return NULL; /* unreachable */
 }
 
-char *free_var_fastq(Node *form, Interp *interp, 
-    const Structure *struc)
-{
+char *free_var_fastq(Node *form, Interp *interp, const Structure *struc) {
   int arity=0,i;
   int *old_values, **values;
   Node *vl=form->l->l;
@@ -133,9 +128,7 @@ char *free_var_fastq(Node *form, Interp *interp,
   return c;
 }
 
-char *free_var_fasttc(Node *form, Interp *interp, 
-    const Structure *struc)
-{
+char *free_var_fasttc(Node *form, Interp *interp, const Structure *struc) {
   char *c=NULL;
   Node *tmp, *tcargs, *tcform, *relargs;
   int *old_values;
@@ -193,8 +186,7 @@ char *free_var_fasttc(Node *form, Interp *interp,
   return c;
 }
 
-char *free_var_fastsoe(Node *form, Interp *interp, const Structure *struc)
-{
+char *free_var_fastsoe(Node *form, Interp *interp, const Structure *struc) {
   char *varname=form->l->l->l->l->data;
   char *c=NULL;
   int arity =*(int *)form->l->l->l->r->data;
@@ -218,8 +210,7 @@ char *free_var_fastsoe(Node *form, Interp *interp, const Structure *struc)
 }
 
 /* returns a list of the free variables in form */
-List *d_free_var(Node *form, Vocabulary *vocab)
-{
+List *d_free_var(Node *form, Vocabulary *vocab) {
   List *tmp, *tmp2, *tmp3;
   Node *args, *args2, *tn;
   char *vn;
@@ -381,8 +372,7 @@ List *d_free_var(Node *form, Vocabulary *vocab)
  * Note: list1 and list2 are modified - they should be forgotten (anything
  * not freed will be in the returned list).
  */
-List *join_lists(List *list1, List *list2)
-{
+List *join_lists(List *list1, List *list2) {
   List *done=NULL, *tmp1, *tmp2, *tmp3, *s2, *prev;
   char *t;
   if (!list1)
@@ -428,8 +418,7 @@ List *join_lists(List *list1, List *list2)
  * which is the varlist from a first-order quantifier.
  * list gets clobbered (but data in it doesn't)
  */
-List *remove_args(List *list, Node *args)
-{
+List *remove_args(List *list, Node *args) {
   char *name;
   List *tmp, *done=NULL, *tmp3;
   Node *cur;
@@ -463,8 +452,7 @@ List *remove_args(List *list, Node *args)
  * Based on eval_tc
  * Mangles list, just use the return.
  */
-List *remove_tcargs(List *list, Node *tcargs)
-{
+List *remove_tcargs(List *list, Node *tcargs) {
   Node *tmp;
   List *ret;
   int tup_arity, i;
@@ -507,8 +495,7 @@ List *remove_tcargs(List *list, Node *tcargs)
 }
 
 /* remove key from list */
-List *list_remove(List *list, char *key)
-{
+List* list_remove(List *list, char *key) {
   char *name;
   List *tmp, *done=NULL, *tmp3;
 
@@ -528,3 +515,4 @@ List *list_remove(List *list, char *key)
 
   return done;
 }
+

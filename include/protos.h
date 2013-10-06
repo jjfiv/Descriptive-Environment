@@ -17,6 +17,7 @@ int yyparse(void);
 #define numdigits(i) (i==0?1:floor(log10(i))+1)
 
 /* env.c */
+void init_command(const char *);
 void init_env(void);
 
 /* cmd.c */

@@ -8,7 +8,7 @@
 
 Environment *cur_env;
 
-static void init_command(const char *str) {
+void init_command(const char *str) {
   void *bufstate = yy_scan_string(str);
   yyparse();
   do_cmd(cmdtree->l);

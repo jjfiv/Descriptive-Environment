@@ -39,12 +39,10 @@ yy_delete_buffer(bufstate)
  * are in CNF, and each formula must be a conjunction of at
  * most c disjunctions.
  */
-int redfind(const struct bquery *p1, const struct bquery *p2, 
-    int k, int c, int n1, int n2)
-{
-  struct example *ex=NULL;
-  struct red_hypot *hypot=NULL;
-  struct redsearch *rsearch = NULL;
+int redfind(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
+  Example *ex=NULL;
+  RedHypot *hypot=NULL;
+  RedSearch *rsearch = NULL;
   int done = 0;
 
   if (red_checkp1p2(p1,p2))
@@ -147,8 +145,7 @@ int redfind(const struct bquery *p1, const struct bquery *p2,
  * later, we'll also try another strategy: removing all succ first (even if
  * we have to add something), then others, etc.
  */
-void red_improve_hyp(struct redsearch *rsearch)
-{
+void red_improve_hyp(RedSearch *rsearch) {
   minisat_Lit *all_lits;
   minisat_Lit *assumps;
   int *succ;
@@ -157,10 +154,10 @@ void red_improve_hyp(struct redsearch *rsearch)
   int num_lits=0;
   int res;
   int i,len,j,atnum;
-  struct minisat_solver_t *solver=rsearch->solver;
+  minisat_solver *solver=rsearch->solver;
   char *str;
 
-  struct red_bvarlist *tmp, *bv=rsearch->bvars;
+  RedBVarList *tmp, *bv=rsearch->bvars;
 
   red_debug1("        Candidate found, simplifying...");
 
@@ -289,15 +286,13 @@ void red_improve_hyp(struct redsearch *rsearch)
 /* Currently, only checks for nested TC and TC that have free variables
  * bound by outer quantifiers
  */
-int red_checkp1p2(const struct bquery *p1, const struct bquery *p2)
-{
+int red_checkp1p2(const BQuery *p1, const BQuery *p2) {
   int res=0;
 
   res = red_checknestedtc(p1->form, 0);
   res |= red_checknestedtc(p2->form, 0);
 
-  if (res)
-    return res;
+  if (res) return res;
 
   res |= red_checkfreetcvars(p1->form, p1->voc);
   res |= red_checkfreetcvars(p2->form, p2->voc);
@@ -307,9 +302,8 @@ int red_checkp1p2(const struct bquery *p1, const struct bquery *p2)
 /* return 0 if no TC has free variables (including those bound by outer
  * quantifiers.  Can assume no nested TC
  */
-int red_checkfreetcvars(struct node *form, struct vocab *voc)
-{
-  struct list *list, *tmp;
+int red_checkfreetcvars(Node *form, Vocabulary *voc) {
+  List *list, *tmp;
   switch (form->label)
   {
     case TRUE:
@@ -351,8 +345,7 @@ int red_checkfreetcvars(struct node *form, struct vocab *voc)
 
 /* return 0 if there are no nested tc, 1 otherwise. depth is 1 if we're in
  * a TC currently */
-int red_checknestedtc(struct node *form, int depth)
-{
+int red_checknestedtc(Node *form, int depth) {
   switch (form->label)
   {
     case TRUE:
@@ -390,17 +383,17 @@ int red_checknestedtc(struct node *form, int depth)
 
 #ifdef REDFIND_DEBUG
 /* debugging output, print the current example */
-void red_printex(struct example *ex, struct redsearch *rsearch)
+void red_printex(Example *ex, RedSearch *rsearch)
 {
-  struct structure *str = ex->a;
-  struct relation *rel;
+  Structure *str = ex->a;
+  Relation *rel;
   int arity, size;
   int tuple_num;
-  struct interp *interp;
+  Interp *interp;
   int *tuple=NULL;
   int res;
   char *output=NULL;
-  struct constant *cons;
+  Constant *cons;
 
   printf("   -- Example %d --\n",rsearch->num_ex);
 
@@ -456,7 +449,7 @@ void red_printex(struct example *ex, struct redsearch *rsearch)
 #endif
 
 /* Frees everything in rsearch that is not used outside of redfind.c */
-void red_freersearch(struct redsearch *rsearch)
+void red_freersearch(RedSearch *rsearch)
 {
   red_freetruefalse(rsearch);
   hash_free_nodes(rsearch->hash->id_hash);
@@ -475,12 +468,12 @@ void red_freersearch(struct redsearch *rsearch)
 }
 
 /* get the bvarlist for TRUE and FALSE and free them */
-void red_freetruefalse(struct redsearch *rsearch)
+void red_freetruefalse(RedSearch *rsearch)
 {
-  struct hnode_t *hnode;
-  struct red_bvarlist *bv;
+  hnode_t *hnode;
+  RedBVarList *bv;
   hnode = hash_lookup(rsearch->hash->id_hash, "T");
-  bv = (struct red_bvarlist *)hnode_get(hnode);
+  bv = (RedBVarList *)hnode_get(hnode);
 
   free(bv);
   /* we allocated T&F together, so we only free once.
@@ -492,9 +485,9 @@ void red_freetruefalse(struct redsearch *rsearch)
  * note that we are called on rsearch->bvars, rsearch->cbvars and
  * also on the result of ex_initbvarlist.
  */
-void red_freebvars(struct red_bvarlist *bvars)
+void red_freebvars(RedBVarList *bvars)
 {
-  struct red_bvarlist *bv1, *bv2;
+  RedBVarList *bv1, *bv2;
 
   for (bv1=bvars; bv1; bv1=bv2)
   {
@@ -508,7 +501,7 @@ void red_freebvars(struct red_bvarlist *bvars)
   return;
 }
 
-void red_printhyp(struct red_hypot *hyp)
+void red_printhyp(RedHypot *hyp)
 {
   char *cmd = red_hypottocmd(hyp->rsearch,hyp);
   printf(": %s",cmd);
@@ -516,13 +509,10 @@ void red_printhyp(struct red_hypot *hyp)
   return;
 }
 
-struct redsearch *red_init_rsearch(const struct bquery *p1, 
-    const struct bquery *p2, int k, int c, 
-    int n1, int n2)
-{
+RedSearch *red_init_rsearch(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
   /* TODO check mallocs and return errors */
-  struct redsearch *rsearch = malloc(sizeof(struct redsearch));
-  rsearch->hash = malloc(sizeof(struct env));
+  RedSearch *rsearch = malloc(sizeof(RedSearch));
+  rsearch->hash = malloc(sizeof(Environment));
   rsearch->hash->id_hash = hash_create(RED_MAXVARS,(hash_comp_t)strcmp,0);
   rsearch->hash->next_id = 0;
   rsearch->num_ex = 0;
@@ -546,11 +536,11 @@ struct redsearch *red_init_rsearch(const struct bquery *p1,
   return rsearch;
 }
 
-void init_truefalse_rsearch(struct redsearch *rsearch)
+void init_truefalse_rsearch(RedSearch *rsearch)
 {
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct env *env=rsearch->hash;
-  struct red_bvarlist *list = malloc(sizeof(struct red_bvarlist)<<1);
+  minisat_solver *solver=rsearch->solver;
+  Environment *env=rsearch->hash;
+  RedBVarList *list = malloc(sizeof(RedBVarList)<<1);
 
   list->pos = "T";
   list->neg = NULL;
@@ -581,18 +571,17 @@ void init_truefalse_rsearch(struct redsearch *rsearch)
 }
 
 /* Note that each constant needs exactly one definition */
-int red_constant_forms(struct redsearch *rsearch)
-{
-  const struct bquery *p1=rsearch->p1, *p2=rsearch->p2;
-  struct cons_symbol *p1cons=p1->voc->cons_symbols;
-  struct cons_symbol *p2cons;
-  struct red_tuple *tuple1=NULL, *tuple2=NULL;
+int red_constant_forms(RedSearch *rsearch) {
+  const BQuery *p1=rsearch->p1, *p2=rsearch->p2;
+  ConsSymbol *p1cons=p1->voc->cons_symbols;
+  ConsSymbol *p2cons;
+  RedTuple *tuple1=NULL, *tuple2=NULL;
   minisat_Lit lit;
-  struct minisat_solver_t *solver=rsearch->solver;
+  minisat_solver *solver=rsearch->solver;
   int k=rsearch->k;
   int n=rsearch->n;
   int i,j;
-  struct env *hash=rsearch->hash;
+  Environment *hash=rsearch->hash;
 
   /* need at least one true */
   for (p2cons=p2->voc->cons_symbols; p2cons; p2cons=p2cons->next)
@@ -639,8 +628,8 @@ int red_constant_forms(struct redsearch *rsearch)
 }
 
 /* returns the minisat_Lit for cons_cname_[tuple] */
-minisat_Lit red_getconsbvarlit(struct env *env, char *cname, 
-    struct red_tuple *tuple)
+minisat_Lit red_getconsbvarlit(Environment *env, char *cname, 
+    RedTuple *tuple)
 {
   char *varname = red_getconsbvarname(cname, tuple);
   minisat_Lit lit = red_getposLit(env, varname);
@@ -649,11 +638,11 @@ minisat_Lit red_getconsbvarlit(struct env *env, char *cname,
 }
 
 /* returns "cons_cname_[tuple]" */
-char *red_getconsbvarname(const char *consname, struct red_tuple *tuple)
+char *red_getconsbvarname(const char *consname, RedTuple *tuple)
 {
   int len,i,arity=tuple->arity;
   char *res, *tmp;
-  struct red_tuple_element *el;
+  RedTupleElement *el;
 
   len = 5+strlen(consname)+2+2; /* "cons_%s_[" and "]\0" */
   for (i=0; i<arity; i++)
@@ -689,11 +678,11 @@ char *red_getconsbvarname(const char *consname, struct red_tuple *tuple)
 }
 
 /* Adds phi_1 to the solver */
-int set_init_form(struct redsearch *rsearch)
+int set_init_form(RedSearch *rsearch)
 {
-  struct red_bvarlist *t;
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct rel_symbol *rel;
+  RedBVarList *t;
+  minisat_solver *solver=rsearch->solver;
+  RelationSymbol *rel;
   int i, c=rsearch->c;
 
   red_debug1("\n      -- Initial formula for candidate reductions ---\n");
@@ -721,10 +710,10 @@ int set_init_form(struct redsearch *rsearch)
 }
 
 /* require that form{relname}_clause{cl} is not empty */
-void red_clausei_notempty(struct redsearch *rsearch, char *relname, int cl)
+void red_clausei_notempty(RedSearch *rsearch, char *relname, int cl)
 {
-  struct red_bvarlist *t;
-  struct minisat_solver_t *solver=rsearch->solver;
+  RedBVarList *t;
+  minisat_solver *solver=rsearch->solver;
   int i;
   minisat_addClause_begin(solver);
 
@@ -755,15 +744,15 @@ void red_clausei_notempty(struct redsearch *rsearch, char *relname, int cl)
  * so this simplifies to phi_{r(w1)\models p2} or its negation.
  */
 /* Note that one can use red_hypottored() to convert this red_hypot to a
- * (struct reduction) if needed.
+ * (Reduction) if needed.
  */
-struct red_hypot *get_next_hypothesis(struct redsearch *rsearch,
-    const struct example *ex)
+RedHypot *get_next_hypothesis(RedSearch *rsearch,
+    const Example *ex)
 {
   char *phi;
   char *tmp, *tmp1=NULL;
   /* our version of limboole adds the formula to the solver! */
-  struct red_hypot *r;
+  RedHypot *r;
   minisat_bool res;
 
   red_debug1("\n      Preparing reduction formula... ");
@@ -829,10 +818,10 @@ struct red_hypot *get_next_hypothesis(struct redsearch *rsearch,
 }
 
 #ifdef REDFIND_DEBUG
-int red_countbvars(struct red_bvarlist *bv)
+int red_countbvars(RedBVarList *bv)
 {
   int i=0;
-  struct red_bvarlist *t;
+  RedBVarList *t;
   for (t=bv; t; t=t->next)
     i++;
   return i;
@@ -843,11 +832,11 @@ int red_countbvars(struct red_bvarlist *bv)
  * free everything in rsearch->tbvars
  * Also frees rsearch->tc[2] and sets that and tbvars to NULL;
  */
-void free_rsearch_tc2(struct redsearch *rsearch)
+void free_rsearch_tc2(RedSearch *rsearch)
 {
-  struct red_bvarlist *next, *tmp;
-  struct env *env = rsearch->hash;
-  struct hnode_t *hnode;
+  RedBVarList *next, *tmp;
+  Environment *env = rsearch->hash;
+  hnode_t *hnode;
 
   for (tmp=rsearch->tbvars; tmp; tmp=next)
   {	
@@ -873,18 +862,18 @@ void free_rsearch_tc2(struct redsearch *rsearch)
  * this is true if x-=y-, and otherwise we substitute into the
  * formula that we're taking the TC of
  */
-char *red_tcp1_dist1(struct redsearch *rsearch, struct tc_def *tcd, int *tuple,
-    const struct example *ex)
+char *red_tcp1_dist1(RedSearch *rsearch, TCDef *tcd, int *tuple,
+    const Example *ex)
 {
   int tup_arity=tcd->tup_arity;
   int *tupa=tuple, *tupb=tuple+tup_arity;
   int flag=0;
 
   char *tmp1, *res, *tmp2;
-  struct node *tcform;
-  struct node *tcargs;
-  struct node *tmp;
-  struct interp *interp;
+  Node *tcform;
+  Node *tcargs;
+  Node *tmp;
+  Interp *interp;
 
   int i;
 
@@ -943,8 +932,8 @@ char *red_tcp1_dist1(struct redsearch *rsearch, struct tc_def *tcd, int *tuple,
 
 /* Returns the formula defining the TC in tcd */
 /* Almost identical to ex_maketcdef -- should be combined */
-char *red_maketcform(struct redsearch *rsearch, const struct example *ex,
-    struct tc_def *tc)
+char *red_maketcform(RedSearch *rsearch, const Example *ex,
+    TCDef *tc)
 {
   char *res=NULL, *tmp=NULL;
   int *tuple=NULL;
@@ -952,7 +941,7 @@ char *red_maketcform(struct redsearch *rsearch, const struct example *ex,
   int darity;
   int outsize=rsearch->outsize;
   int max;
-  struct tc_def *tcd;
+  TCDef *tcd;
 
   rsearch->tbvars = ex_addtcvars(tc, rsearch->solver, 
       rsearch->tbvars, rsearch->hash);
@@ -995,15 +984,15 @@ char *red_maketcform(struct redsearch *rsearch, const struct example *ex,
 /* Returns the formula defining used variables out%d_E[a.b.c...]
  * in terms of the bvars,cbvars
  */
-char *make_predform(struct redsearch *rsearch, const struct example *ex)
+char *make_predform(RedSearch *rsearch, const Example *ex)
 {
-  struct list *list;
-  struct ex_rel *er;
+  List *list;
+  ExRelation *er;
   char *res=NULL, *tmp;
 
   for (list=rsearch->used_exrel; list; list=list->next)
   {
-    er = (struct ex_rel *)list->data;
+    er = (ExRelation *)list->data;
     tmp = make_pf_exrel(rsearch, ex, er);
     if (!res)
       res=tmp;
@@ -1018,11 +1007,11 @@ char *make_predform(struct redsearch *rsearch, const struct example *ex)
  * where ci is the clause, and ti are lits that would make 
  * er->relname[er->tuple] true. (so citj are Boolean variables)
  */
-char *make_pf_exrel(struct redsearch *rsearch, const struct example *ex, 
-    struct ex_rel *er)
+char *make_pf_exrel(RedSearch *rsearch, const Example *ex, 
+    ExRelation *er)
 {
-  struct cons_bvars *cons_bvars=red_getconslits(rsearch,ex,er);
-  struct cons_bvars *incons_bvars=red_getinconslits(rsearch, ex, er);
+  ConsBVars *cons_bvars=red_getconslits(rsearch,ex,er);
+  ConsBVars *incons_bvars=red_getinconslits(rsearch, ex, er);
   int i, c=rsearch->c;
   char *res=NULL, *res2=NULL, *tmp=NULL, *tmp1 = NULL;
 
@@ -1049,9 +1038,9 @@ char *make_pf_exrel(struct redsearch *rsearch, const struct example *ex,
   return res;
 }
 
-void red_freecbvars(struct cons_bvars *cb)
+void red_freecbvars(ConsBVars *cb)
 {
-  struct cons_bvars *t, *tn;
+  ConsBVars *t, *tn;
   int i, num;
 
   for (t=cb; t; t=tn)
@@ -1069,11 +1058,11 @@ void red_freecbvars(struct cons_bvars *cb)
 /* the solver in rsearch has a satisfying assignment.
  * Return the reduction it represents.
  */
-struct red_hypot *red_getsatred(struct redsearch *rsearch)
+RedHypot *red_getsatred(RedSearch *rsearch)
 {
-  struct rel_symbol *rel;
-  struct cons_symbol *cons;
-  struct red_hypot *hyp = malloc(sizeof(struct red_hypot));
+  RelationSymbol *rel;
+  ConsSymbol *cons;
+  RedHypot *hyp = malloc(sizeof(RedHypot));
   /* TODO check malloc */
   hyp->rsearch = rsearch;
   hyp->relforms = NULL;
@@ -1089,14 +1078,14 @@ struct red_hypot *red_getsatred(struct redsearch *rsearch)
 }
 
 /* returns the DE command for red_hypot */
-char *red_hypottocmd(struct redsearch *rsearch, struct red_hypot *red)
+char *red_hypottocmd(RedSearch *rsearch, RedHypot *red)
 {
   char c;
-  struct hnode_t *hnode;
+  hnode_t *hnode;
   char *inp;
   char *voc1=rsearch->p1->voc->name;
   char *voc2=rsearch->p2->voc->name;
-  struct red_relforms *rf;
+  RedRelForms *rf;
   int tt;
   char *tmpinp;
   char *tmp;
@@ -1107,7 +1096,7 @@ char *red_hypottocmd(struct redsearch *rsearch, struct red_hypot *red)
                       */
   char **relforms;
   char name[5];
-  struct list *cf;
+  List *cf;
 
   int len=0,t;
   for (c='A'; c<='Z'; c++)
@@ -1173,18 +1162,18 @@ char *red_hypottocmd(struct redsearch *rsearch, struct red_hypot *red)
   return inp;
 }
 
-/* red is a red_hypot.  Return it as a (struct reduction), where additional
+/* red is a red_hypot.  Return it as a (Reduction), where additional
  * parameters are from rsearch.
  */
-struct reduction *red_hypottored(struct redsearch *rsearch,
-    struct red_hypot *red)
+Reduction *red_hypottored(RedSearch *rsearch,
+    RedHypot *red)
 {
-  struct id *hash_data;
-  struct hnode_t *hnode;
+  Identifier *hash_data;
+  hnode_t *hnode;
   void *bufstate;
   char *inp = red_hypottocmd(rsearch,red);
   char name[5];
-  struct reduction *res;
+  Reduction *res;
   char c;
   int tt;
   for (c='A'; c<='Z'; c++)
@@ -1205,9 +1194,9 @@ struct reduction *red_hypottored(struct redsearch *rsearch,
   free(inp);
 
   hnode = hash_lookup(cur_env->id_hash, name);
-  hash_data = (struct id*)hnode_get(hnode);
+  hash_data = (Identifier*)hnode_get(hnode);
 
-  res = (struct reduction *)hash_data->def;
+  res = (Reduction *)hash_data->def;
 
   hash_delete_free(cur_env->id_hash, hnode);
   /* free(hash_data->name); */
@@ -1216,10 +1205,10 @@ struct reduction *red_hypottored(struct redsearch *rsearch,
 }
 
 /* Return phi_{r(w1)\models p2} */
-char *make_redform(struct redsearch *rsearch, const struct example *ex)
+char *make_redform(RedSearch *rsearch, const Example *ex)
 {
-  struct interp *interp=new_interp(NULL);
-  struct node *form=rsearch->p2->form;
+  Interp *interp=new_interp(NULL);
+  Node *form=rsearch->p2->form;
   char *res;
   interp = add_symb_to_interp(interp, "max", rsearch->outsize-1);
 
@@ -1229,8 +1218,8 @@ char *make_redform(struct redsearch *rsearch, const struct example *ex)
   return res;
 }
 
-char *make_rf_rec(struct redsearch *rsearch, const struct example *ex,
-    struct node *form, struct interp *interp)
+char *make_rf_rec(RedSearch *rsearch, const Example *ex,
+    Node *form, Interp *interp)
 {
   char *tmp1, *tmp2, *tmp3;
   switch (form->label)
@@ -1301,7 +1290,7 @@ char *make_rf_rec(struct redsearch *rsearch, const struct example *ex,
   return NULL; /* unreachable */
 }
 
-void red_freertup(struct red_tuple *tup)
+void red_freertup(RedTuple *tup)
 {
   free(tup->data);
   free(tup->cons_names);
@@ -1320,22 +1309,22 @@ void red_freertup(struct red_tuple *tup)
 /* we need to make sure no nested TC */
 /* we need to enforce no interpreted vars inside tcform */
 /* based on ex_p1rec_tc */
-char *make_rf_tc(struct redsearch *rsearch, struct node *form,
-    struct interp *interp, const struct example *ex)
+char *make_rf_tc(RedSearch *rsearch, Node *form,
+    Interp *interp, const Example *ex)
 {
-  struct tc_def *tcd;
-  struct node *tcargs, *relargs, *tmpnode;
+  TCDef *tcd;
+  Node *tcargs, *relargs, *tmpnode;
   int tup_arity;
   int arity;
 
-  struct red_tuple *rtup;
+  RedTuple *rtup;
   int *cons_mask;
   char **cons_names;
   int *tuple = NULL;
   int *val;
   int i, outsize=rsearch->outsize;
   int num_tups;
-  struct tc_def *tcdtemp;
+  TCDef *tcdtemp;
 
   char *res=NULL, *tmp;
 
@@ -1359,7 +1348,7 @@ char *make_rf_tc(struct redsearch *rsearch, struct node *form,
 
   if (!tcd)
   {
-    tcd = malloc(sizeof(struct tc_def));
+    tcd = malloc(sizeof(TCDef));
     tcd->num = rsearch->num_tc++;
     tcd->tc_node = form;
     tcd->lits = NULL;
@@ -1414,10 +1403,10 @@ char *make_rf_tc(struct redsearch *rsearch, struct node *form,
 /* we should do relname[tuple] with constants in tuple, and later say
  * relname[tuple]<-> this current version, to abbreviate/share.
  */
-char *red_p2_lfpf_join(struct redsearch *rsearch, char *res, 
+char *red_p2_lfpf_join(RedSearch *rsearch, char *res, 
     const char *relname, const int *tuple, int arity,
     const int *cons_mask, char **cons_names,
-    const struct example *ex, struct interp *interp)
+    const Example *ex, Interp *interp)
 {
   char *tmp, *tmp1;
   int len, i, maxc=0;
@@ -1425,7 +1414,7 @@ char *red_p2_lfpf_join(struct redsearch *rsearch, char *res,
 #if 0
   int j, k=rsearch->k, *ctup=malloc(sizeof(int)*k);
 #endif
-  struct node *fakenode;
+  Node *fakenode;
 
   for (i=0; i<arity; i++)
     cons_defs[i]=NULL;
@@ -1493,19 +1482,19 @@ char *red_p2_lfpf_join(struct redsearch *rsearch, char *res,
 
 /* make_rf_pred(...)
  * Returns the variable for out%d_REL[TUP] */
-char *make_rf_pred(struct redsearch *rsearch,
-    struct node *form, struct interp *interp)
+char *make_rf_pred(RedSearch *rsearch,
+    Node *form, Interp *interp)
 {
-  struct node *relargs=form->r;
+  Node *relargs=form->r;
   char *relname = (char *)form->data;
-  struct vocab *voc=rsearch->p2->voc;
+  Vocabulary *voc=rsearch->p2->voc;
 
   char *res;
   int outsize = rsearch->outsize;
 
-  struct red_tuple *rtup;
+  RedTuple *rtup;
   int arity;
-  struct rel_symbol *rs;
+  RelationSymbol *rs;
 
   for (rs=voc->rel_symbols; rs; rs=rs->next)
     if (!strcmp(rs->name, relname))
@@ -1533,12 +1522,12 @@ char *make_rf_pred(struct redsearch *rsearch,
 
 /* add this to the list of variables we need to define */
 /* also add it to rsearch->hash */
-void red_add_exrel(struct redsearch *rsearch, char *var, char *relname,
-    struct red_tuple *rtup)
+void red_add_exrel(RedSearch *rsearch, char *var, char *relname,
+    RedTuple *rtup)
 {
-  struct list *list=malloc(sizeof(struct list));
-  struct ex_rel *er=malloc(sizeof(struct ex_rel));
-  struct red_bvarlist *bv=malloc(sizeof(struct red_bvarlist));
+  List *list=malloc(sizeof(List));
+  ExRelation *er=malloc(sizeof(ExRelation));
+  RedBVarList *bv=malloc(sizeof(RedBVarList));
 
   if (hash_lookup(rsearch->hash->id_hash, var))
     return; /* we've already added this one */
@@ -1567,17 +1556,17 @@ void red_add_exrel(struct redsearch *rsearch, char *var, char *relname,
   return;
 }
 
-struct list *red_free_exrel(struct env *hash, struct list *used_exrel)
+List *red_free_exrel(Environment *hash, List *used_exrel)
 {
-  struct list *tmp, *tmpn;
-  struct ex_rel *er;
-  struct red_bvarlist *bv;
-  struct hnode_t *hnode;
+  List *tmp, *tmpn;
+  ExRelation *er;
+  RedBVarList *bv;
+  hnode_t *hnode;
 
   for (tmp=used_exrel; tmp; tmp=tmpn)
   {
     tmpn = tmp->next;
-    er = (struct ex_rel *)tmp->data;
+    er = (ExRelation *)tmp->data;
     red_freertup(er->tup);
     bv = er->bv;
     hnode = hash_lookup(hash->id_hash, bv->pos);
@@ -1592,8 +1581,8 @@ struct list *red_free_exrel(struct env *hash, struct list *used_exrel)
   return NULL;
 }
 /* returns out%d_{relname}[tup] */
-char *red_rf_getrelvar(struct redsearch *rsearch, const char *relname, 
-    struct red_tuple *tup)
+char *red_rf_getrelvar(RedSearch *rsearch, const char *relname, 
+    RedTuple *tup)
 {
   int num_ex=rsearch->num_ex;
   char *res, *tmp;
@@ -1612,20 +1601,20 @@ char *red_rf_getrelvar(struct redsearch *rsearch, const char *relname,
  * arity should be arity, and should be checked.  arguments>=outsize are
  * invalid, return NULL (same for <0)
  */
-struct red_tuple *red_rf_argstotup(struct redsearch *rsearch,
-    struct node *relargs, int arity, 
-    struct vocab *voc, int outsize, 
-    struct interp *interp, char *relname)
+RedTuple *red_rf_argstotup(RedSearch *rsearch,
+    Node *relargs, int arity, 
+    Vocabulary *voc, int outsize, 
+    Interp *interp, char *relname)
 {
   int i,j,num_cons;
-  struct red_tuple *tup;
-  struct red_tuple_element *el;
-  struct cons_symbol *cons, *cs=voc->cons_symbols;
-  struct node *ra, *ral;
+  RedTuple *tup;
+  RedTupleElement *el;
+  ConsSymbol *cons, *cs=voc->cons_symbols;
+  Node *ra, *ral;
 
-  tup = malloc(sizeof(struct red_tuple));
+  tup = malloc(sizeof(RedTuple));
   tup->arity=arity;
-  tup->data = malloc(sizeof(struct red_tuple_element)*arity);
+  tup->data = malloc(sizeof(RedTupleElement)*arity);
   for (i=0, cons=cs; cons; cons=cons->next,i++);
   if (i)
     tup->cons_names = malloc(sizeof(char *)*i);
@@ -1694,28 +1683,28 @@ struct red_tuple *red_rf_argstotup(struct redsearch *rsearch,
  * TODO: this should be combined with red_getconslits, which it almost
  * duplicates.
  */
-struct cons_bvars *red_getinconslits(struct redsearch *rsearch, 
-    const struct example *ex, struct ex_rel *er)
+ConsBVars *red_getinconslits(RedSearch *rsearch, 
+    const Example *ex, ExRelation *er)
 {
   int num_cons=0;
   char **lits;
-  struct cons_bvars *res;
+  ConsBVars *res;
   int i=0;
   int a1, a2, k1, k2;
-  struct red_tuple *tup=er->tup;
+  RedTuple *tup=er->tup;
   int k=rsearch->k, n=rsearch->n, arity=tup->arity;
-  struct red_tuple_element *el1, *el2;
+  RedTupleElement *el1, *el2;
   int v1;
   int v2;
   int *ktup1=malloc(sizeof(int)*k), *ktup2=malloc(sizeof(int)*k);
   int len;
-  struct constant *cons = ex->a->cons, *tc, *tc2;
+  Constant *cons = ex->a->cons, *tc, *tc2;
   int d;
 
   num_cons = red_getnumconslits(rsearch, er);
   lits = malloc(sizeof(char *)*num_cons);
 
-  res = malloc(sizeof(struct cons_bvars));
+  res = malloc(sizeof(ConsBVars));
   res->num = num_cons;
   res->lits = lits;
   res->next = NULL;
@@ -1847,15 +1836,15 @@ struct cons_bvars *red_getinconslits(struct redsearch *rsearch,
 }
 
 /* add the variables from add_pred, starting at lit[i], return last i+1 */
-int red_addincons_pred(struct redsearch *rsearch, const struct example *ex,
-    const struct ex_rel *er, char **lits, int j)
+int red_addincons_pred(RedSearch *rsearch, const Example *ex,
+    const ExRelation *er, char **lits, int j)
 {
-  struct red_tuple *rtup;
-  struct red_tuple *ertup=er->tup;
-  struct cons_symbol *cs=rsearch->p1->voc->cons_symbols;
-  struct constant *tc, *ac=ex->a->cons;
-  struct relation *rel;
-  struct red_tuple_element *el, *el1;
+  RedTuple *rtup;
+  RedTuple *ertup=er->tup;
+  ConsSymbol *cs=rsearch->p1->voc->cons_symbols;
+  Constant *tc, *ac=ex->a->cons;
+  Relation *rel;
+  RedTupleElement *el, *el1;
 
   int arity=ertup->arity;
   int n=rsearch->n;
@@ -1931,28 +1920,28 @@ int red_addincons_pred(struct redsearch *rsearch, const struct example *ex,
 /* return a single cons_bvars with all (except T) literals consistent with
  * ex and the (output) predicate in ex_rel being true.
  */
-struct cons_bvars *red_getconslits(struct redsearch *rsearch, 
-    const struct example *ex, struct ex_rel *er)
+ConsBVars *red_getconslits(RedSearch *rsearch, 
+    const Example *ex, ExRelation *er)
 {
   int num_cons=0;
   char **lits;
-  struct cons_bvars *res;
+  ConsBVars *res;
   int i=0;
   int a1, a2, k1, k2;
-  struct red_tuple *tup=er->tup;
+  RedTuple *tup=er->tup;
   int k=rsearch->k, n=rsearch->n, arity=tup->arity;
-  struct red_tuple_element *el1, *el2;
+  RedTupleElement *el1, *el2;
   int v1;
   int v2;
   int *ktup1=malloc(sizeof(int)*k), *ktup2=malloc(sizeof(int)*k);
   int len;
-  struct constant *cons = ex->a->cons, *tc, *tc2;
+  Constant *cons = ex->a->cons, *tc, *tc2;
   int d;
 
   num_cons = red_getnumconslits(rsearch, er);
   lits = malloc(sizeof(char *)*num_cons);
 
-  res = malloc(sizeof(struct cons_bvars));
+  res = malloc(sizeof(ConsBVars));
   res->num = num_cons;
   res->lits = lits;
   res->next = NULL;
@@ -2083,15 +2072,15 @@ struct cons_bvars *red_getconslits(struct redsearch *rsearch,
 }
 
 /* add the variables from add_pred, starting at lit[i], return last i+1 */
-int red_addcons_pred(struct redsearch *rsearch, const struct example *ex, 
-    const struct ex_rel *er, char **lits, int j)
+int red_addcons_pred(RedSearch *rsearch, const Example *ex, 
+    const ExRelation *er, char **lits, int j)
 {
-  struct red_tuple *rtup;
-  struct red_tuple *ertup=er->tup;
-  struct cons_symbol *cs=rsearch->p1->voc->cons_symbols;
-  struct constant *tc, *ac=ex->a->cons;
-  struct relation *rel;
-  struct red_tuple_element *el, *el1;
+  RedTuple *rtup;
+  RedTuple *ertup=er->tup;
+  ConsSymbol *cs=rsearch->p1->voc->cons_symbols;
+  Constant *tc, *ac=ex->a->cons;
+  Relation *rel;
+  RedTupleElement *el, *el1;
 
   int arity=ertup->arity;
   int n=rsearch->n;
@@ -2165,15 +2154,15 @@ int red_addcons_pred(struct redsearch *rsearch, const struct example *ex,
   return i;
 }
 
-int red_getnumconslits(struct redsearch *rsearch, struct ex_rel *er)
+int red_getnumconslits(RedSearch *rsearch, ExRelation *er)
 {
   int num_cons=0;
   int a;
-  struct red_tuple *tup=er->tup;
+  RedTuple *tup=er->tup;
   int k=rsearch->k, n=rsearch->n, arity=tup->arity;
   int numbcons;
-  struct cons_symbol *cs;
-  struct rel_symbol *rs;
+  ConsSymbol *cs;
+  RelationSymbol *rs;
 
   /* first, count how many are consistent, so we can allocate lits */
 
@@ -2221,9 +2210,9 @@ int red_getnumconslits(struct redsearch *rsearch, struct ex_rel *er)
   return num_cons; /* hopefully no overflow :-) */
 }
 
-struct cons_bvars *red_cons_addlit(struct cons_bvars *cb, const char *c)
+ConsBVars *red_cons_addlit(ConsBVars *cb, const char *c)
 {
-  struct cons_bvars *res=malloc(sizeof(struct cons_bvars));
+  ConsBVars *res=malloc(sizeof(ConsBVars));
   int i;
   res->num=cb->num+1;
   res->next=cb->next;
@@ -2236,9 +2225,9 @@ struct cons_bvars *red_cons_addlit(struct cons_bvars *cb, const char *c)
   free(cb);
   return res;
 }
-struct cons_bvars *red_cons_addtrue(struct cons_bvars *cb)
+ConsBVars *red_cons_addtrue(ConsBVars *cb)
 {
-  struct cons_bvars *res=malloc(sizeof(struct cons_bvars));
+  ConsBVars *res=malloc(sizeof(ConsBVars));
   res->num=1;
   res->next=cb;
   res->lits=malloc(sizeof(char *));
@@ -2252,8 +2241,8 @@ struct cons_bvars *red_cons_addtrue(struct cons_bvars *cb)
  * form{relname}_clause{i}_* part to form.
  * If form is NULL, return the initial form.
  */
-char *red_rf_pred_inconsclause(struct redsearch *rsearch, int cl, 
-    struct cons_bvars *cb, struct ex_rel *er)
+char *red_rf_pred_inconsclause(RedSearch *rsearch, int cl, 
+    ConsBVars *cb, ExRelation *er)
 {
   char *relname=er->relname;
   int len=0;
@@ -2281,10 +2270,10 @@ char *red_rf_pred_inconsclause(struct redsearch *rsearch, int cl,
  * have so far.  Add the form{relname}_clause{i}_* part to form.
  * If form is NULL, return the initial form
  */
-char *red_rf_pred_claused(struct redsearch *rsearch, char *form, int i,
-    struct cons_bvars *cons_bvars, struct ex_rel *er)
+char *red_rf_pred_claused(RedSearch *rsearch, char *form, int i,
+    ConsBVars *cons_bvars, ExRelation *er)
 {
-  struct cons_bvars *cb;
+  ConsBVars *cb;
   char *tmp, *res=NULL;
 
   for (cb=cons_bvars; cb; cb=cb->next)
@@ -2297,8 +2286,8 @@ char *red_rf_pred_claused(struct redsearch *rsearch, char *form, int i,
   return res;	
 }
 
-char *red_rf_pred_cbform(struct redsearch *rsearch, char *relname, int cl, 
-    struct cons_bvars *cb)
+char *red_rf_pred_cbform(RedSearch *rsearch, char *relname, int cl, 
+    ConsBVars *cb)
 {
   int len=0;
   char *tmp, *res=NULL;
@@ -2322,8 +2311,8 @@ char *red_rf_pred_cbform(struct redsearch *rsearch, char *relname, int cl,
   return res;
 }
 
-char *make_rf_eq(struct redsearch *rsearch, const struct example *ex,
-    struct node *form, struct interp *interp)
+char *make_rf_eq(RedSearch *rsearch, const Example *ex,
+    Node *form, Interp *interp)
 {
   int leftinc_c=0;  /* constants are complicated, we need to use bvars*/
   int rightinc_c=0; /* if there are no constants on a side, we can just*/
@@ -2361,13 +2350,13 @@ char *make_rf_eq(struct redsearch *rsearch, const struct example *ex,
 /* Return the formula corresponding to form->l=form->r, where both are terms.
  * For now, we assume that both are single constant symbols.
  */
-char *make_rf_teqt(struct redsearch *rsearch,
-    struct node *form)
+char *make_rf_teqt(RedSearch *rsearch,
+    Node *form)
 {
   char *leftc, *rightc;
-  struct node *left, *right;
-  struct cons_symbol *p1cons;
-  struct red_tuple *tuple=NULL;
+  Node *left, *right;
+  ConsSymbol *p1cons;
+  RedTuple *tuple=NULL;
   int k=rsearch->k;
   int n=rsearch->n;
   char *res=NULL;
@@ -2398,7 +2387,7 @@ char *make_rf_teqt(struct redsearch *rsearch,
 /* return form|(cons_leftc_tuple & cons_rightc_tuple) */
 /* if form is null, omit the first '|' */
 /* free the old form */
-char *red_form_addconstuple(char *form, struct red_tuple *tuple, 
+char *red_form_addconstuple(char *form, RedTuple *tuple, 
     char *leftc, char *rightc)
 {
   char *tmp1, *tmp2, *tmp3, *res;
@@ -2420,15 +2409,15 @@ char *red_form_addconstuple(char *form, struct red_tuple *tuple,
 /* Return the formula corresponding to (term=val) using bvars.
  * For now, we assume that term is a single constant symbol.
  */
-char *make_rf_teqi(struct redsearch *rsearch, const struct example *ex, 
-    struct node *term, int val)
+char *make_rf_teqi(RedSearch *rsearch, const Example *ex, 
+    Node *term, int val)
 {
   char *name;
   int k=rsearch->k;
   int n=rsearch->n;
   int *tuple;
   char *res;
-  struct red_tuple *tup;
+  RedTuple *tup;
 
   if (term->label!=CONSTANT)
   {
@@ -2463,7 +2452,7 @@ char *make_rf_teqi(struct redsearch *rsearch, const struct example *ex,
 /* add cons_name_[tup] to the disjunction form and return it.
  * if form is NULL, return a suitable form.
  */
-char *red_rf_addconsclause(char *form, const char *name, struct red_tuple *tup)
+char *red_rf_addconsclause(char *form, const char *name, RedTuple *tup)
 {
   char *res;
   char *tmp;
@@ -2483,19 +2472,19 @@ char *red_rf_addconsclause(char *form, const char *name, struct red_tuple *tup)
  * if rtup is NULL, returns the first in an enumeration.  If rtup is the last
  * in the enumeration, frees it and returns NULL.
  */
-struct red_tuple *red_getnext_compat_tuple(struct red_tuple *rtup, int *tuple,
-    const struct example *ex, int k)
+RedTuple *red_getnext_compat_tuple(RedTuple *rtup, int *tuple,
+    const Example *ex, int k)
 {
-  struct red_tuple *res;
-  struct red_tuple_element *el;
+  RedTuple *res;
+  RedTupleElement *el;
   int i,j=0,flag;
-  struct constant *cons;
+  Constant *cons;
 
   if (!rtup)
   {
-    res = malloc(sizeof(struct red_tuple));
+    res = malloc(sizeof(RedTuple));
     res->arity=k;
-    res->data = malloc(sizeof(struct red_tuple_element)*k);
+    res->data = malloc(sizeof(RedTupleElement)*k);
     for (i=0,el=res->data; i<k; i++,el++)
     {
       el->type = 2;
@@ -2582,7 +2571,7 @@ struct red_tuple *red_getnext_compat_tuple(struct red_tuple *rtup, int *tuple,
 }
 
 /* form is a term.  Return 1 if it has any constant symbols, 0 otherwise */
-int term_has_cons(struct node *form)
+int term_has_cons(Node *form)
 {
   switch (form->label)
   {
@@ -2602,11 +2591,11 @@ int term_has_cons(struct node *form)
 
 /* \forall x:\phi === !\exists x:!\phi */
 /* based on ex_p1rec_forall, which is based on eval_forall */
-char *make_rf_forall(struct redsearch *rsearch, const struct example *ex,
-    struct node *form, struct interp *interp)
+char *make_rf_forall(RedSearch *rsearch, const Example *ex,
+    Node *form, Interp *interp)
 {
   char *tmp, *ret;
-  struct node *not = node(NOT, form->r, 0);
+  Node *not = node(NOT, form->r, 0);
   if (!not)
     return NULL;
   form->r=not;
@@ -2622,8 +2611,8 @@ char *make_rf_forall(struct redsearch *rsearch, const struct example *ex,
   return ret;
 }
 /* based on ex_p1rec_exists, which is based on eval_exists */
-char *make_rf_exists(struct redsearch *rsearch, const struct example *ex,
-    struct node *form, struct interp *interp)
+char *make_rf_exists(RedSearch *rsearch, const Example *ex,
+    Node *form, Interp *interp)
 {
   /* NOTE WE ASSUME THAT phi0 is \t! */
   char **varnames;
@@ -2633,10 +2622,10 @@ char *make_rf_exists(struct redsearch *rsearch, const struct example *ex,
   int res=0;
   char *tmpl, *tmpr, *ret=NULL, *tmp;
 
-  struct node *restr = form->l->r;
-  struct node *varlist = form->l->l;
-  struct node *phi = form->r;
-  struct node *tnode=varlist;
+  Node *restr = form->l->r;
+  Node *varlist = form->l->l;
+  Node *phi = form->r;
+  Node *tnode=varlist;
   int *first;
   int *old_values;
   int **values;
@@ -2731,7 +2720,7 @@ char *make_rf_exists(struct redsearch *rsearch, const struct example *ex,
 /* Returns form1|form2 and frees form1, form2.
  * If !form1, returns form2 
  */
-char *red_disjunc(struct redsearch *rsearch, char *form1, char *form2)
+char *red_disjunc(RedSearch *rsearch, char *form1, char *form2)
 {
   int len1, len2, i, j;
   char *tmp;
@@ -2758,7 +2747,7 @@ char *red_disjunc(struct redsearch *rsearch, char *form1, char *form2)
 /* Returns form1&form2 and frees form1, form2.
  * If !form1, returns form2 
  */
-char *red_conjunc(struct redsearch *rsearch, char *form1, char *form2)
+char *red_conjunc(RedSearch *rsearch, char *form1, char *form2)
 {
   int len1, len2, i,j;
   char *tmp;
@@ -2783,7 +2772,7 @@ char *red_conjunc(struct redsearch *rsearch, char *form1, char *form2)
 }
 
 /* Returns (form1)op(form2) and frees form1,form2 */
-char *red_binform(struct redsearch *rsearch, char *form1, char *form2, const char *op)
+char *red_binform(RedSearch *rsearch, char *form1, char *form2, const char *op)
 {
   int len;
   char *tmp;
@@ -2810,20 +2799,20 @@ char *red_binform(struct redsearch *rsearch, char *form1, char *form2, const cha
 /* 
  * and something for constants, etc.
  */
-struct red_bvarlist *red_makebvars(struct redsearch *rsearch,
-    const struct bquery *p1, 
-    const struct bquery *p2,
+RedBVarList *red_makebvars(RedSearch *rsearch,
+    const BQuery *p1, 
+    const BQuery *p2,
     int k, int c, int n2)
 {
   int j;
   int n=n2;
   char *tmp;
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct env *hash=rsearch->hash;
-  struct red_bvarlist *bvars=NULL, *bv;
+  minisat_solver *solver=rsearch->solver;
+  Environment *hash=rsearch->hash;
+  RedBVarList *bvars=NULL, *bv;
   int base, numl;
-  struct rel_symbol *rel, *rel2;
-  struct cons_symbol *cons1, *cons2;
+  RelationSymbol *rel, *rel2;
+  ConsSymbol *cons1, *cons2;
   char *name;
   int a_i, vk, va;
 
@@ -2913,16 +2902,16 @@ struct red_bvarlist *red_makebvars(struct redsearch *rsearch,
 /* add form{name}_clause{c}_eq[x-vk-va.x-I-J] for 1<=I<=k and 1<=J<=a_i,
  * omitting the case where I=vk&J=va.
  */
-struct red_bvarlist *red_add_veqv(struct redsearch *rsearch,
-    struct red_bvarlist *bvars, 
+RedBVarList *red_add_veqv(RedSearch *rsearch,
+    RedBVarList *bvars, 
     const char *name, int c,
     int k, int a_i, int vk, int va, int len)
 {
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct env *hash = rsearch->hash;
+  minisat_solver *solver=rsearch->solver;
+  Environment *hash = rsearch->hash;
   char *tmp;
   int i,j,a,b,q=numdigits(vk)+numdigits(va);
-  struct red_bvarlist *bv=bvars;
+  RedBVarList *bv=bvars;
 
   for (i=1; i<=k; i++)
   {
@@ -2977,16 +2966,16 @@ struct red_bvarlist *red_add_veqv(struct redsearch *rsearch,
 }
 
 /* add form{name}_clause{c}_eq[x-vk-va.i] for 0<=i<n */
-struct red_bvarlist *red_add_veqi(struct redsearch *rsearch,
-    struct red_bvarlist *bvars, const char *name, 
+RedBVarList *red_add_veqi(RedSearch *rsearch,
+    RedBVarList *bvars, const char *name, 
     int c, int n, int vk, int va, int len)
 {
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct env *hash=rsearch->hash;
+  minisat_solver *solver=rsearch->solver;
+  Environment *hash=rsearch->hash;
   char *tmp;
   int i,a;
   int n1=rsearch->n1;
-  struct red_bvarlist *bv=bvars;
+  RedBVarList *bv=bvars;
   for (i=0; i<n; i++)
   {
     a=numdigits(i); 
@@ -3032,16 +3021,16 @@ struct red_bvarlist *red_add_veqi(struct redsearch *rsearch,
 }
 
 /* add form{name}_clause{c}_eq[x-vk-va.c] for constants c */
-struct red_bvarlist *red_add_veqc(struct redsearch *rsearch,
-    struct red_bvarlist *bvars, const char *name, int c,
-    struct cons_symbol *cons, int vk, int va, int len)
+RedBVarList *red_add_veqc(RedSearch *rsearch,
+    RedBVarList *bvars, const char *name, int c,
+    ConsSymbol *cons, int vk, int va, int len)
 {
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct env *hash=rsearch->hash;
+  minisat_solver *solver=rsearch->solver;
+  Environment *hash=rsearch->hash;
   char *tmp;
-  struct cons_symbol *ct;
+  ConsSymbol *ct;
   int a=numdigits(vk)+numdigits(va);
-  struct red_bvarlist *bv=bvars;
+  RedBVarList *bv=bvars;
 
   for (ct=cons; ct; ct=ct->next)
   {
@@ -3083,12 +3072,12 @@ struct red_bvarlist *red_add_veqc(struct redsearch *rsearch,
 }
 
 /* add form{name}_clause{c}_eq[c1.c2] */
-struct red_bvarlist *red_add_ceqc(struct redsearch *rsearch,
-    struct red_bvarlist *bvars, const char *name, int c, 
+RedBVarList *red_add_ceqc(RedSearch *rsearch,
+    RedBVarList *bvars, const char *name, int c, 
     const char *c1, const char *c2, int len)
 {
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct env *hash=rsearch->hash;
+  minisat_solver *solver=rsearch->solver;
+  Environment *hash=rsearch->hash;
   char *tmp = malloc(sizeof(char)*(len+5+strlen(c1)+strlen(c2)));
   if (!tmp)
   {
@@ -3103,22 +3092,22 @@ struct red_bvarlist *red_add_ceqc(struct redsearch *rsearch,
  * where each Aj is either a variable x-vk-va (vk<=k, va<=a_i) or a constant.
  */
 /* len is the length of "form{pred}_clause{c}_"+1. */
-  struct red_bvarlist 
-*red_add_pred(struct redsearch *rsearch,
-    struct red_bvarlist *bvars, 
-    const struct rel_symbol *rel, int c, const char *name,
-    int a_i, int k, struct cons_symbol *cons, int len)
+  RedBVarList 
+*red_add_pred(RedSearch *rsearch,
+    RedBVarList *bvars, 
+    const RelationSymbol *rel, int c, const char *name,
+    int a_i, int k, ConsSymbol *cons, int len)
 {
   char *tmp;
-  struct minisat_solver_t *solver=rsearch->solver;
-  struct env *hash=rsearch->hash;
-  struct red_tuple *tuple=NULL;
+  minisat_solver *solver=rsearch->solver;
+  Environment *hash=rsearch->hash;
+  RedTuple *tuple=NULL;
   int tuplen;
   int size;
   int arity=rel->arity;
   char *relname = rel->name;
   char *ts;
-  struct red_bvarlist *bv=bvars;
+  RedBVarList *bv=bvars;
 
   while ((tuple=red_nexttuple(rsearch, tuple, arity, k, a_i, cons)))
   {
@@ -3150,13 +3139,13 @@ struct red_bvarlist *red_add_ceqc(struct redsearch *rsearch,
 /* return char * to [A.B.C...] for tuple (the string is len characters
  * long, add 1 for closing \0
  */
-char *red_printtup(struct redsearch *rsearch, const struct red_tuple *tuple,
+char *red_printtup(RedSearch *rsearch, const RedTuple *tuple,
     int len)
 {
   int i;
   int arity=tuple->arity;
   char **cnames = tuple->cons_names;
-  struct red_tuple_element *el=tuple->data;
+  RedTupleElement *el=tuple->data;
   char *tmp=malloc(sizeof(char)*(len+1));
   char *tmp2=malloc(sizeof(char)*(len+1));
   if (!tmp)
@@ -3198,10 +3187,10 @@ char *red_printtup(struct redsearch *rsearch, const struct red_tuple *tuple,
 }
 
 /* the number of characters in [A.B.C...] when printing tuple */
-int red_tupstrlen(const struct red_tuple *tuple)
+int red_tupstrlen(const RedTuple *tuple)
 {
   int i,len=1,arity=tuple->arity;
-  struct red_tuple_element *el=tuple->data;
+  RedTupleElement *el=tuple->data;
   for (i=0; i<arity; i++)
   {
     if (el[i].type==1)
@@ -3222,17 +3211,17 @@ int red_tupstrlen(const struct red_tuple *tuple)
  * If tuple is NULL, make it the first tuple.  If tuple is the last tuple,
  * free it and return NULL.
  */ 
-struct red_tuple *red_nexttuple(struct redsearch *rsearch,
-    struct red_tuple *tuple, int arity, int k,
-    int a_i, struct cons_symbol *cons)
+RedTuple *red_nexttuple(RedSearch *rsearch,
+    RedTuple *tuple, int arity, int k,
+    int a_i, ConsSymbol *cons)
 {
-  struct red_tuple *tup;
-  struct red_tuple_element *el;
+  RedTuple *tup;
+  RedTupleElement *el;
   int i;
-  struct cons_symbol *ct;
+  ConsSymbol *ct;
   if (!tuple)
   {
-    tup = malloc(sizeof(struct red_tuple));
+    tup = malloc(sizeof(RedTuple));
     if (!tup)
     {
       rsearch->abort=1;
@@ -3253,7 +3242,7 @@ struct red_tuple *red_nexttuple(struct redsearch *rsearch,
     }
     else
       tup->cons_names=0;
-    el=malloc(sizeof(struct red_tuple_element)*arity);
+    el=malloc(sizeof(RedTupleElement)*arity);
     if (!el)
     {
       rsearch->abort=1;
@@ -3329,9 +3318,9 @@ struct red_tuple *red_nexttuple(struct redsearch *rsearch,
 }
 
 /* Ran out of memory, give an error and free everything in v */
-int red_abort_nomem(struct redsearch *rsearch, struct red_bvarlist *v)
+int red_abort_nomem(RedSearch *rsearch, RedBVarList *v)
 {
-  struct red_bvarlist *t=v, *n;
+  RedBVarList *t=v, *n;
   while (t)
   {
     n=t->next;
@@ -3346,11 +3335,11 @@ int red_abort_nomem(struct redsearch *rsearch, struct red_bvarlist *v)
 }
 
 /* add tmp (and its negation) to the list, and the hash */
-struct red_bvarlist *red_addtolist(struct red_bvarlist *bvars, char *tmp, 
-    struct minisat_solver_t *solver, struct env *hash)
+RedBVarList *red_addtolist(RedBVarList *bvars, char *tmp, 
+    minisat_solver *solver, Environment *hash)
 {
   char *negname=malloc(sizeof(char)*(strlen(tmp)+4));
-  struct red_bvarlist *list=malloc(sizeof(struct red_bvarlist));
+  RedBVarList *list=malloc(sizeof(RedBVarList));
   int i;
 
   /* TODO check those mallocs */
@@ -3384,22 +3373,19 @@ struct red_bvarlist *red_addtolist(struct red_bvarlist *bvars, char *tmp,
 }
 
 /* Doesn't free the vocab because that's used elsewhere */
-int free_ex(struct example *ex)
-{
-  struct structure *a=ex->a;
-  struct relation *r1, *r2;
-  struct constant *c1, *c2;
+int free_ex(Example *ex) {
+  Structure *a=ex->a;
+  Relation *r1, *r2;
+  Constant *c1, *c2;
   free(ex);
-  for (r1=a->rels; r1; r1=r2)
-  {
+  for (r1=a->rels; r1; r1=r2) {
     r2=r1->next;
     free(r1->name);
     free(r1->cache);
     /* we leak the r1->parse_cache I guess */
     free(r1);
   }
-  for (c1=a->cons; c1; c1=c2)
-  {
+  for (c1=a->cons; c1; c1=c2) {
     c2=c1->next;
     free(c1->name);
     free(c1);
@@ -3410,8 +3396,7 @@ int free_ex(struct example *ex)
 }	
 
 /* return 1 iff varname is a negvar */
-int red_isnegvar(const char *varname)
-{
+int red_isnegvar(const char *varname) {
   int i,len=strlen(varname);
   int flag=0;
   for (i=0; i<len; i++)
@@ -3426,21 +3411,15 @@ int red_isnegvar(const char *varname)
   return 0;
 }
 
-minisat_Lit red_getnegLit(struct env *env, const char *name)
-{
-  struct hnode_t *hnode;
-  struct red_bvarlist *bv;
-  hnode = hash_lookup(env->id_hash, name);
-  bv = (struct red_bvarlist *)hnode_get(hnode);
+minisat_Lit red_getnegLit(Environment *env, const char *name) {
+  hnode_t *hnode = hash_lookup(env->id_hash, name);
+  RedBVarList *bv = (RedBVarList *)hnode_get(hnode);
   return bv->negLit;
 }
 
-minisat_Lit red_getposLit(struct env *env, const char *name)
-{
-  struct hnode_t *hnode;
-  struct red_bvarlist *bv;
-  hnode = hash_lookup(env->id_hash, name);
-  bv = (struct red_bvarlist *)hnode_get(hnode);
+minisat_Lit red_getposLit(Environment *env, const char *name) {
+  hnode_t *hnode = hash_lookup(env->id_hash, name);
+  RedBVarList *bv = (RedBVarList *)hnode_get(hnode);
   return bv->posLit;
 }
 
@@ -3448,14 +3427,11 @@ minisat_Lit red_getposLit(struct env *env, const char *name)
  * rsearch->solver to the list of relforms and return the new list of
  * relforms.
  */
-struct red_relforms *red_addrelform(struct red_relforms *relforms, 
-    struct rel_symbol *rel, 
-    struct redsearch *rsearch)
-{
-  struct red_relforms *newr=NULL;
-  struct red_bvarlist *bvars=rsearch->bvars;
+RedRelForms *red_addrelform(RedRelForms *relforms, RelationSymbol *rel, RedSearch *rsearch) {
+  RedRelForms *newr=NULL;
+  RedBVarList *bvars=rsearch->bvars;
   char *relname = rel->name;
-  struct minisat_solver_t *solver=rsearch->solver;
+  minisat_solver *solver=rsearch->solver;
 
   int c=rsearch->c;
   int k=rsearch->k;
@@ -3480,7 +3456,7 @@ struct red_relforms *red_addrelform(struct red_relforms *relforms,
 
   else
   {
-    newr = malloc(sizeof(struct red_relforms));
+    newr = malloc(sizeof(RedRelForms));
     newr->name = malloc(sizeof(char)*(strlen(rel->name)+1));
     sprintf(newr->name,"%s",rel->name);
     newr->c=0;
@@ -3494,8 +3470,7 @@ struct red_relforms *red_addrelform(struct red_relforms *relforms,
 
 /* returns 1 if bvars is a variable for the formula defining relname */
 /* and 0 otherwise. */
-int red_relform_relevantvar(struct red_bvarlist *bvars, const char *relname)
-{
+int red_relform_relevantvar(RedBVarList *bvars, const char *relname) {
   char *varname = bvars->pos;
   int i, len=strlen(varname), lenr=strlen(relname);
   int j;
@@ -3518,10 +3493,7 @@ int red_relform_relevantvar(struct red_bvarlist *bvars, const char *relname)
 /* returns 1 if bvar->pos [if sign==1] or bvar->neg [if sign==-1] is true
  * in the minisat model, and 0 otherwise 
  */
-int red_minisat_truevar(struct redsearch *rsearch,
-    struct minisat_solver_t *solver, 
-    struct red_bvarlist *bvars, int sign)
-{
+int red_minisat_truevar(RedSearch *rsearch, minisat_solver *solver, RedBVarList *bvars, int sign) {
   minisat_Lit lit;
   if (sign==1)
     lit=bvars->posLit;
@@ -3542,19 +3514,14 @@ int red_minisat_truevar(struct redsearch *rsearch,
  * Note that the length of the clauses may need to be increased.  If a new
  * newr is created, initialize all clauses (to NULL).
  */
-struct red_relforms *red_relform_addlit(struct red_relforms *rform, 
-    struct red_bvarlist *bvars,
-    struct rel_symbol *rel, int sign, int c,
-    int k)
-{
-  struct red_relforms *newr = rform;
+RedRelForms *red_relform_addlit(RedRelForms *rform, RedBVarList *bvars, RelationSymbol *rel, int sign, int c, int k) {
+  RedRelForms *newr = rform;
   char *newlit;
   int clause = red_getclause(bvars);
   int i;
 
-  if (!newr)
-  {
-    newr = malloc(sizeof(struct red_relforms));
+  if (!newr) {
+    newr = malloc(sizeof(RedRelForms));
     newr->c = c;
     newr->name = rel->name;
     newr->forms = malloc(sizeof(char *)*c);
@@ -3563,8 +3530,7 @@ struct red_relforms *red_relform_addlit(struct red_relforms *rform,
   }
 
   newlit = red_relform_getlit(bvars,k); /* get the literal to add */
-  newr->forms[clause-1]=red_relform_realaddlit(newlit, newr->forms[clause-1],
-      sign);
+  newr->forms[clause-1]=red_relform_realaddlit(newlit, newr->forms[clause-1], sign);
 
   return newr;
 }
@@ -3574,8 +3540,7 @@ struct red_relforms *red_relform_addlit(struct red_relforms *rform,
  * the clause is a conjunction
  * free oldclause if needed
  */
-char *red_relform_realaddlit(char *newlit, char *oldclause, int sign)
-{
+char *red_relform_realaddlit(char *newlit, char *oldclause, int sign) {
   char *newclause;
   int len;
 
@@ -3612,8 +3577,7 @@ char *red_relform_realaddlit(char *newlit, char *oldclause, int sign)
 /* bv->pos is of the form form%s_clause%d_....
  * Return the %d.
  */
-int red_getclause(struct red_bvarlist *bv)
-{
+int red_getclause(RedBVarList *bv) {
   char *t=bv->pos;
   int i, len=strlen(t);
   for (i=0; i<len; i++)
@@ -3630,8 +3594,7 @@ int red_getclause(struct red_bvarlist *bv)
 /* return the atomic formula (in DE syntax) in the variable bv->pos.
  * bv->pos is "form%s_clause%d_LIT" but LIT needs to be converted.
  */
-char *red_relform_getlit(struct red_bvarlist *bv, int k)
-{
+char *red_relform_getlit(RedBVarList *bv, int k) {
   int i, j=0, len;
   char *lit=bv->pos;
   char *ret;
@@ -3664,8 +3627,7 @@ char *red_relform_getlit(struct red_bvarlist *bv, int k)
  * something.
  * Return the DE version of it (converting variable names!)
  */
-char *red_getlit_pred(char *lit, int k)
-{
+char *red_getlit_pred(char *lit, int k) {
   int i,j,len=strlen(lit);
   char *ret=malloc(sizeof(char)*len);
   int first=1;
@@ -3715,8 +3677,7 @@ char *red_getlit_pred(char *lit, int k)
 }
 
 /* add this term (after converting it to DE syntax if needed */
-char *red_pred_concatterm(char *old, char *lit, int k)
-{
+char *red_pred_concatterm(char *old, char *lit, int k) {
   char *newterm=red_getterm(lit,k);
   char *tmp = malloc(sizeof(char)*(strlen(old)+strlen(newterm)+1));
   sprintf(tmp,"%s%s",old,newterm);
@@ -3726,8 +3687,7 @@ char *red_pred_concatterm(char *old, char *lit, int k)
 }
 
 /* add that char and a \0 */
-char *red_pred_concat(char *old, char newchar)
-{
+char *red_pred_concat(char *old, char newchar) {
   int len = strlen(old);
   char *tmp = realloc(old, sizeof(char)*(len+2));
   if (!tmp)
@@ -3741,8 +3701,7 @@ char *red_pred_concat(char *old, char newchar)
   return tmp;
 }
 
-char *red_getlit_eq(const char *lit, int k)
-{
+char *red_getlit_eq(const char *lit, int k) {
   char *left, *right;
   char *tmp;
   int i, len=strlen(lit);
@@ -3781,8 +3740,7 @@ char *red_getlit_eq(const char *lit, int k)
   return tmp;
 }
 
-char *red_getterm(char *lit, int k)
-{
+char *red_getterm(char *lit, int k) {
   char *tmp;
   int i,j;
   int len;
@@ -3820,16 +3778,13 @@ char *red_getterm(char *lit, int k)
  * and [A,B,...]\in {0,1,...,n-1,p1_cons}^k.
  * The neg parts of the bvarlist are all NULL.
  */
-struct red_bvarlist *red_makecbvars(struct redsearch *rsearch,
-    const struct bquery *p1,
-    const struct bquery *p2, int k, int n2)
-{
-  struct minisat_solver_t *solver = rsearch->solver;
-  struct env *hash = rsearch->hash;
-  struct cons_symbol *cons;
-  struct cons_symbol *p1cons = p1->voc->cons_symbols;
-  struct red_tuple *tuple=NULL;
-  struct red_bvarlist *cbvar=NULL;
+RedBVarList *red_makecbvars(RedSearch *rsearch, const BQuery *p1, const BQuery *p2, int k, int n2) {
+  minisat_solver *solver = rsearch->solver;
+  Environment *hash = rsearch->hash;
+  ConsSymbol *cons;
+  ConsSymbol *p1cons = p1->voc->cons_symbols;
+  RedTuple *tuple=NULL;
+  RedBVarList *cbvar=NULL;
   int n=n2;
 
   for (cons=p2->voc->cons_symbols; cons; cons=cons->next)
@@ -3847,18 +3802,15 @@ struct red_bvarlist *red_makecbvars(struct redsearch *rsearch,
  * If tuple is NULL, make it the first tuple.  If tuple is the last tuple,
  * free it and return NULL.
  */
-struct red_tuple *red_nextconstuple(struct redsearch *rsearch, 
-    struct red_tuple *tuple, int k, int n, 
-    struct cons_symbol *p1cons)
-{
-  struct red_tuple *tup;
-  struct red_tuple_element *el;
-  struct cons_symbol *ct;
+RedTuple *red_nextconstuple(RedSearch *rsearch, RedTuple *tuple, int k, int n, ConsSymbol *p1cons) {
+  RedTuple *tup;
+  RedTupleElement *el;
+  ConsSymbol *ct;
   int i;
 
   if (!tuple)
   {
-    tup = malloc(sizeof(struct red_tuple));
+    tup = malloc(sizeof(RedTuple));
     if (!tup)
     {
       rsearch->abort=1;
@@ -3866,8 +3818,7 @@ struct red_tuple *red_nextconstuple(struct redsearch *rsearch,
       return 0;
     }
     for (i=0,ct=p1cons;ct;i++,ct=ct->next);
-    if (i)
-    {
+    if (i) {
       tup->cons_names=malloc(sizeof(char *)*i);
       if (!tup->cons_names)
       {
@@ -3876,12 +3827,10 @@ struct red_tuple *red_nextconstuple(struct redsearch *rsearch,
         free(tup);
         return 0;
       }
-    }
-    else
-      tup->cons_names=0;
-    el=malloc(sizeof(struct red_tuple_element)*k);
-    if (!el)
-    {
+    } else tup->cons_names=0;
+
+    el=malloc(sizeof(RedTupleElement)*k);
+    if (!el) {
       rsearch->abort=1;
       printf("r42: No memory\n");
       if (tup->cons_names)
@@ -3945,14 +3894,9 @@ struct red_tuple *red_nextconstuple(struct redsearch *rsearch,
 
 
 /* add cons_%s_[...] */ 
-struct red_bvarlist *red_addconsbvar(struct redsearch *rsearch,
-    struct red_bvarlist *cbvars, 
-    struct minisat_solver_t *solver, 
-    struct env *hash, char *consname,
-    struct red_tuple *tuple)
-{
+RedBVarList *red_addconsbvar(RedSearch *rsearch, RedBVarList *cbvars, minisat_solver *solver, Environment *hash, char *consname, RedTuple *tuple) {
   char *res;
-  struct red_bvarlist *list=malloc(sizeof(struct red_bvarlist));
+  RedBVarList *list=malloc(sizeof(RedBVarList));
   int i, arity=tuple->arity;
   int n1=rsearch->n1;
 
@@ -3986,13 +3930,11 @@ struct red_bvarlist *red_addconsbvar(struct redsearch *rsearch,
 /* return the defining formula for constant cons in DE syntax, using the
  * cbvars in rsearch.
  */
-struct list *red_addconsform(struct list *cf, struct cons_symbol *cons,
-    struct redsearch *rsearch)
-{
-  struct red_bvarlist *bv;
-  struct list *list=malloc(sizeof(struct list));
+List *red_addconsform(List *cf, ConsSymbol *cons, RedSearch *rsearch) {
+  RedBVarList *bv;
+  List *list=malloc(sizeof(List));
   int k=rsearch->k;
-  struct minisat_solver_t *solver = rsearch->solver;
+  minisat_solver *solver = rsearch->solver;
   minisat_Lit lit;
 
   for (bv=rsearch->cbvars; bv; bv=bv->next)
@@ -4014,8 +3956,7 @@ struct list *red_addconsform(struct list *cf, struct cons_symbol *cons,
 }
 
 /* returns 1 if this variable is for this constant, otherwise 0 */
-int red_cf_relevant(struct cons_symbol *cons, struct red_bvarlist *bv)
-{
+int red_cf_relevant(ConsSymbol *cons, RedBVarList *bv) {
   int i,j, tlen, clen;
   char *tmp=bv->pos;
   char *cname=cons->name;
@@ -4032,9 +3973,7 @@ int red_cf_relevant(struct cons_symbol *cons, struct red_bvarlist *bv)
 
 /* returns the DE-formula defining cons->name corresponding to bv */
 /* For example "cons->name is (x1=0 & x2=2...&xk=0)" */
-char *red_cf_getconsform(struct cons_symbol *cons, struct red_bvarlist *bv, 
-    int k)
-{
+char *red_cf_getconsform(ConsSymbol *cons, RedBVarList *bv, int k) {
   char *res, *cname=cons->name;
   char *tmp;
   int len, i, j;
@@ -4073,8 +4012,7 @@ char *red_cf_getconsform(struct cons_symbol *cons, struct red_bvarlist *bv,
  * A,B,C... are constants or naturals, not variables 
  */
 /* note that they are already strings */
-int red_cf_vallen(char *tup, int k)
-{
+int red_cf_vallen(char *tup, int k) {
   int len=strlen(tup);
   return (len-(k-1)-2); /* no "[]" and no '.' (k-1 of those) */
 }
@@ -4082,8 +4020,7 @@ int red_cf_vallen(char *tup, int k)
 /* tup is [A.B.C...] - return "x1=A&x2=B&x3=C&x4=D...".
  * k is k and len is an upperbound on the length of this string.
  */
-char *red_cf_gettup(char *tup, int k, int len)
-{
+char *red_cf_gettup(char *tup, int k, int len) {
   char *res = malloc(sizeof(char)*len);
   char *tmp = malloc(sizeof(char)*len);
   int i,j=1,num;
@@ -4118,8 +4055,7 @@ char *red_cf_gettup(char *tup, int k, int len)
 }
 
 /* return the formula in rf (i.e., a conjunction of its clauses) */
-char *red_rftodef(struct red_relforms *rf)
-{
+char *red_rftodef(RedRelForms *rf) {
   char *res;
   char *tmp;
   int len;
@@ -4148,10 +4084,9 @@ char *red_rftodef(struct red_relforms *rf)
 }
 
 /* free the relforms and consforms, but not hyp->rsearch */
-int red_freehyp(struct red_hypot *hyp)
-{
-  struct red_relforms *rf, *rfn;
-  struct list *cf, *cfn;
+int red_freehyp(RedHypot *hyp) {
+  RedRelForms *rf, *rfn;
+  List *cf, *cfn;
   int i,c;
 
   for (cf=hyp->consforms; cf; cf=cfn)
@@ -4174,3 +4109,4 @@ int red_freehyp(struct red_hypot *hyp)
   free(hyp);
   return 1;
 }
+
