@@ -12,9 +12,9 @@
 /* Returns a pointer to a STATIC (don't free) copy of a free-variable
  * in form (when constants from vocab don't count), or NULL if none exist.
  */
-char *free_var(struct node *form, struct vocab *vocab)
+char *free_var(Node *form, Vocabulary *vocab)
 {
-  struct list *list=d_free_var(form,vocab), *tmp;
+  List *list=d_free_var(form,vocab), *tmp;
   char *name;
   if (!list)
     return NULL;
@@ -31,13 +31,13 @@ char *free_var(struct node *form, struct vocab *vocab)
 /* we use the fast interpretations from eval_init_form to check for free
  * variables without strcmp
  */
-char *free_var_fast(struct node *form, struct interp *interp, 
-    const struct structure *struc)
+char *free_var_fast(Node *form, Interp *interp, 
+    const Structure *struc)
 {
   char *c;
-  struct node *relargs;
+  Node *relargs;
   int *iv;
-  struct relation *rel;
+  Relation *rel;
 
   switch (form->label)
   {
@@ -97,15 +97,15 @@ char *free_var_fast(struct node *form, struct interp *interp,
   return NULL; /* unreachable */
 }
 
-char *free_var_fastq(struct node *form, struct interp *interp, 
-    const struct structure *struc)
+char *free_var_fastq(Node *form, Interp *interp, 
+    const Structure *struc)
 {
   int arity=0,i;
   int *old_values, **values;
-  struct node *vl=form->l->l;
-  struct node *tn;
-  struct node *restr = form->l->r;
-  struct node *phi = form->r;
+  Node *vl=form->l->l;
+  Node *tn;
+  Node *restr = form->l->r;
+  Node *phi = form->r;
   char *c=NULL;
 
   for (tn=vl; tn; tn=tn->r)
@@ -133,11 +133,11 @@ char *free_var_fastq(struct node *form, struct interp *interp,
   return c;
 }
 
-char *free_var_fasttc(struct node *form, struct interp *interp, 
-    const struct structure *struc)
+char *free_var_fasttc(Node *form, Interp *interp, 
+    const Structure *struc)
 {
   char *c=NULL;
-  struct node *tmp, *tcargs, *tcform, *relargs;
+  Node *tmp, *tcargs, *tcform, *relargs;
   int *old_values;
   int **values;
   int arity, i;
@@ -193,15 +193,14 @@ char *free_var_fasttc(struct node *form, struct interp *interp,
   return c;
 }
 
-char *free_var_fastsoe(struct node *form, struct interp *interp, 
-    const struct structure *struc)
+char *free_var_fastsoe(Node *form, Interp *interp, const Structure *struc)
 {
   char *varname=form->l->l->l->l->data;
   char *c=NULL;
   int arity =*(int *)form->l->l->l->r->data;
-  struct node *restr=form->l->r;
-  struct node *phi = form->r;
-  struct relation *sov = malloc(sizeof(struct relation));
+  Node *restr=form->l->r;
+  Node *phi = form->r;
+  Relation *sov = malloc(sizeof(Relation));
   sov->name = varname;
   sov->arity = arity;
   sov->next = interp->rel_symbols;
@@ -219,13 +218,13 @@ char *free_var_fastsoe(struct node *form, struct interp *interp,
 }
 
 /* returns a list of the free variables in form */
-struct list *d_free_var(struct node *form, struct vocab *vocab)
+List *d_free_var(Node *form, Vocabulary *vocab)
 {
-  struct list *tmp, *tmp2, *tmp3;
-  struct node *args, *args2, *tn;
+  List *tmp, *tmp2, *tmp3;
+  Node *args, *args2, *tn;
   char *vn;
-  struct cons_symbol *cons;
-  struct rel_symbol *rel; 
+  ConsSymbol *cons;
+  RelationSymbol *rel; 
   switch (form->label)
   {
     case TRUE:
@@ -240,7 +239,7 @@ struct list *d_free_var(struct node *form, struct vocab *vocab)
         if (!strcmp(cons->name,form->data))
           return 0;
       /* not a constant in the vocabulary, so free here*/
-      tmp = malloc(sizeof(struct list));
+      tmp = malloc(sizeof(List));
       if (!tmp)
       {
         err("43: No memory\n");
@@ -283,7 +282,7 @@ struct list *d_free_var(struct node *form, struct vocab *vocab)
           break;
       if (!rel) /* free occurence */
       {
-        tmp = malloc(sizeof(struct list));
+        tmp = malloc(sizeof(List));
         if (!tmp)
         {
           err("44: No memory.\n");
@@ -377,14 +376,14 @@ struct list *d_free_var(struct node *form, struct vocab *vocab)
 }
 
 /* join list1 and list2, with data being null-terminated strings,
- * removing any duplicates (freeing those struct lists but not the strings)
+ * removing any duplicates (freeing those Lists but not the strings)
  * however, we can assume no entries occur twice (or more) in the same list
  * Note: list1 and list2 are modified - they should be forgotten (anything
  * not freed will be in the returned list).
  */
-struct list *join_lists(struct list *list1, struct list *list2)
+List *join_lists(List *list1, List *list2)
 {
-  struct list *done=NULL, *tmp1, *tmp2, *tmp3, *s2, *prev;
+  List *done=NULL, *tmp1, *tmp2, *tmp3, *s2, *prev;
   char *t;
   if (!list1)
     return list2;
@@ -429,11 +428,11 @@ struct list *join_lists(struct list *list1, struct list *list2)
  * which is the varlist from a first-order quantifier.
  * list gets clobbered (but data in it doesn't)
  */
-struct list *remove_args(struct list *list, struct node *args)
+List *remove_args(List *list, Node *args)
 {
   char *name;
-  struct list *tmp, *done=NULL, *tmp3;
-  struct node *cur;
+  List *tmp, *done=NULL, *tmp3;
+  Node *cur;
   int flag;
 
   for (tmp=list; tmp;)
@@ -464,10 +463,10 @@ struct list *remove_args(struct list *list, struct node *args)
  * Based on eval_tc
  * Mangles list, just use the return.
  */
-struct list *remove_tcargs(struct list *list, struct node *tcargs)
+List *remove_tcargs(List *list, Node *tcargs)
 {
-  struct node *tmp;
-  struct list *ret;
+  Node *tmp;
+  List *ret;
   int tup_arity, i;
 
   ret = list;
@@ -508,10 +507,10 @@ struct list *remove_tcargs(struct list *list, struct node *tcargs)
 }
 
 /* remove key from list */
-struct list *list_remove(struct list *list, char *key)
+List *list_remove(List *list, char *key)
 {
   char *name;
-  struct list *tmp, *done=NULL, *tmp3;
+  List *tmp, *done=NULL, *tmp3;
 
   for (tmp=list; tmp;)
   {

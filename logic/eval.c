@@ -38,14 +38,14 @@
       r = teval(formr,interp,struc); \
   } while(0)
 
-/* struct node *parse(char *formula)
+/* Node *parse(char *formula)
  *
  * Returns the root of an AST representing formula.
  * Returns null if this is not possible.
  */
 
 /* 
-   struct node *parse(char *formula)
+   Node *parse(char *formula)
    {
    return NULL;
 
@@ -78,10 +78,8 @@
  * the fast interpretation, making future calls to eval_rec() use the new
  * interpretation (so be careful with parallel/interleaving calls to eval_rec).
  */
-void eval_init_form(struct node *form, struct interp *interp, 
-    const struct structure *struc)
-{
-  struct interp_symbol *is;
+void eval_init_form(Node *form, Interp *interp, const Structure *struc) {
+  InterpSymbol *is;
   char *name;
 
   switch (form->label)
@@ -115,7 +113,7 @@ void eval_init_form(struct node *form, struct interp *interp,
           form->ival=&(is->value);
           return;
         }
-      is = malloc(sizeof(struct interp_symbol));
+      is = malloc(sizeof(InterpSymbol));
       is->name=dupstr(name);
       is->value=-2;
       if (!strcmp("max",name))
@@ -145,15 +143,14 @@ void eval_init_form(struct node *form, struct interp *interp,
 }
 
 /* form is \forall or \exists, handle it */
-void eval_init_form_q(struct node *form, struct interp *interp, const struct structure *struc)
-{
-  struct node *varlist = form->l->l;
-  struct node *restr = form->l->r;
-  struct node *phi = form->r;
-  struct node *tnode;
+void eval_init_form_q(Node *form, Interp *interp, const Structure *struc) {
+  Node *varlist = form->l->l;
+  Node *restr = form->l->r;
+  Node *phi = form->r;
+  Node *tnode;
   char *name;
 
-  struct interp_symbol *is;
+  InterpSymbol *is;
 
   for (tnode=varlist; tnode; tnode=tnode->r)
   {
@@ -166,7 +163,7 @@ void eval_init_form_q(struct node *form, struct interp *interp, const struct str
       }
     if (is)
       continue;
-    is = malloc(sizeof(struct interp_symbol));
+    is = malloc(sizeof(InterpSymbol));
     is->name=dupstr(name);
     is->value=-2;
     tnode->ival=&(is->value);
@@ -181,13 +178,11 @@ void eval_init_form_q(struct node *form, struct interp *interp, const struct str
   return;
 }
 
-void eval_init_form_tc(struct node *form, struct interp *interp,
-    const struct structure *struc)
-{
-  struct node *tcargs = form->l->l;
-  struct node *tcform = form->l->r;
-  struct node *relargs = form->r;
-  struct node *tmp;
+void eval_init_form_tc(Node *form, Interp *interp, const Structure *struc) {
+  Node *tcargs = form->l->l;
+  Node *tcform = form->l->r;
+  Node *relargs = form->r;
+  Node *tmp;
 
   for (tmp=tcargs; tmp; tmp=tmp->r)
   {
@@ -201,12 +196,10 @@ void eval_init_form_tc(struct node *form, struct interp *interp,
   return;
 }
 
-void eval_init_form_pred(struct node *form, struct interp *interp,
-    const struct structure *struc)
-{
-  struct node *relargs=form->r;
-  struct node *tnode;
-  struct relation *rel;
+void eval_init_form_pred(Node *form, Interp *interp, const Structure *struc) {
+  Node *relargs=form->r;
+  Node *tnode;
+  Relation *rel;
   int i, a;
 
   for (tnode=relargs; tnode; tnode=tnode->r)
@@ -226,11 +219,9 @@ void eval_init_form_pred(struct node *form, struct interp *interp,
   return;
 }
 
-void eval_init_form_soe(struct node *form, struct interp *interp,
-    const struct structure *struc)
-{
-  struct node *restr=form->l->r;
-  struct node *phi = form->r;
+void eval_init_form_soe(Node *form, Interp *interp, const Structure *struc) {
+  Node *restr=form->l->r;
+  Node *phi = form->r;
 
   if (restr)
     eval_init_form(restr, interp, struc);
@@ -238,7 +229,7 @@ void eval_init_form_soe(struct node *form, struct interp *interp,
   return;
 }
 
-/* int eval(struct node *form)
+/* int eval(Node *form)
  * 
  * Evaluates the formula form.
  * Returns 1 iff true, 0 iff false.
@@ -246,8 +237,8 @@ void eval_init_form_soe(struct node *form, struct interp *interp,
  * External interface to the evaluator (sets up a fast interpretation and
  * calls eval_rec)
  */
-int eval(struct node *form, struct interp *interp, const struct structure *struc)
-{
+
+int eval(Node *form, Interp *interp, const Structure *struc) {
   char *fv;
   eval_init_form(form, interp, struc);
   fv = free_var_fast(form,interp,struc);
@@ -259,10 +250,9 @@ int eval(struct node *form, struct interp *interp, const struct structure *struc
   return eval_rec(form, interp, struc);
 }
 
-int eval_rec(struct node *form, struct interp *interp, const struct structure *struc)
-{
+int eval_rec(Node *form, Interp *interp, const Structure *struc) {
   int l,r;
-  struct node *forml, *formr;
+  Node *forml, *formr;
 #if 0 /* this really should never happen */
   if (!form)
   {
@@ -331,9 +321,7 @@ int eval_rec(struct node *form, struct interp *interp, const struct structure *s
 /* Evaluate transitive closure with Warshall's Algorithm *
  * Note that this is reflexive.
  */
-int eval_tc(struct node *form, struct interp *interp,
-    const struct structure *struc)
-{
+int eval_tc(Node *form, Interp *interp, const Structure *struc) {
   int *tc_cache;
   int num_args;
   int tup_arity;
@@ -342,10 +330,10 @@ int eval_tc(struct node *form, struct interp *interp,
   int *tup1=NULL;
   int *tup2=NULL;
   int res;
-  struct node *tmp;
-  struct node *tcargs;
-  struct node *tcform;
-  struct node *relargs;
+  Node *tmp;
+  Node *tcargs;
+  Node *tcform;
+  Node *relargs;
   char **t1names;
   char **t2names;
   int i, j, ii;
@@ -520,9 +508,7 @@ int eval_tc(struct node *form, struct interp *interp,
 
 /* Nonsense body to remove warnings of unused parameters */
 /* Of course, implement IFP later */
-int eval_ifp(struct node *form, struct interp *interp,
-    const struct structure *struc)
-{
+int eval_ifp(Node *form, Interp *interp, const Structure *struc) {
   if (form && interp && struc)
     return 0;
   return 1;
@@ -531,9 +517,7 @@ int eval_ifp(struct node *form, struct interp *interp,
 /* We begin by guessing 0-, then 0-...1, then 0-...10, etc.
  * Yay for exponential time.
  */
-int eval_soe(struct node *form, struct interp *interp,
-    const struct structure *struc)
-{
+int eval_soe(Node *form, Interp *interp, const Structure *struc) {
   char *varname=form->l->l->l->l->data;
   int res=0;
   int size = struc->size;
@@ -541,15 +525,15 @@ int eval_soe(struct node *form, struct interp *interp,
   int *cache;
   int i;
 
-  struct node *restr=form->l->r;
-  struct node *phi = form->r;
-  struct relation *sov;
+  Node *restr=form->l->r;
+  Node *phi = form->r;
+  Relation *sov;
 
   int tc_size=trpow(size, arity);
   cache = malloc(tc_size * sizeof(int));
   for (i=0; i<tc_size; i++) 
     cache[i]=0;
-  sov = malloc(sizeof(struct relation));
+  sov = malloc(sizeof(Relation));
   sov->name = varname;
   sov->arity = arity;
   sov->next = interp->rel_symbols;;
@@ -581,10 +565,8 @@ int eval_soe(struct node *form, struct interp *interp,
   return res;
 }
 
-int eval_forall(struct node *form, struct interp *interp, 
-    const struct structure *struc)
-{
-  struct node *not = node(NOT, form->r, 0);
+int eval_forall(Node *form, Interp *interp, const Structure *struc) {
+  Node *not = node(NOT, form->r, 0);
   int res=0;
   if (!not)
     return -1;
@@ -600,19 +582,17 @@ int eval_forall(struct node *form, struct interp *interp,
   return res;
 }
 
-int eval_exists(struct node *form, struct interp *interp, 
-    const struct structure *struc)
-{
+int eval_exists(Node *form, Interp *interp, const Structure *struc) {
   char **varnames;
   int size=struc->size;
   int arity=0;
   int i;
   int res=0;
 
-  struct node *restr = form->l->r;
-  struct node *varlist = form->l->l;
-  struct node *phi = form->r;
-  struct node *tnode=varlist;
+  Node *restr = form->l->r;
+  Node *varlist = form->l->l;
+  Node *phi = form->r;
+  Node *tnode=varlist;
   int *first;
   int *old_values;
   int **values;
@@ -718,14 +698,13 @@ int eval_exists(struct node *form, struct interp *interp,
   return 0;
 }
 
-int eval_pred(struct node *form, struct interp *interp, const struct structure *struc)
-{
-  struct relation *rel;
+int eval_pred(Node *form, Interp *interp, const Structure *struc) {
+  Relation *rel;
   int arity, i, res;
   int *tup;
   int size;
   int num;
-  struct node *relargs;
+  Node *relargs;
   int *old_values;	
   int **values;
 
@@ -801,10 +780,9 @@ int eval_pred(struct node *form, struct interp *interp, const struct structure *
   return res;
 }
 
-int teval(struct node *form, struct interp *interp, const struct structure *struc)
-{
+int teval(Node *form, Interp *interp, const Structure *struc) {
   int l, r;
-  struct node *forml, *formr;
+  Node *forml, *formr;
 #if 0 /* this really should never happen */
   char *name;
   int value;
@@ -852,8 +830,7 @@ int teval(struct node *form, struct interp *interp, const struct structure *stru
 }
 
 /* free the TC caches in form */
-void free_tc_caches(struct node *form)
-{
+void free_tc_caches(Node *form) {
   switch (form->label)
   {
     case NOT:
@@ -890,3 +867,5 @@ void free_tc_caches(struct node *form)
       return;
   }
 }
+
+

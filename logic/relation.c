@@ -12,11 +12,10 @@
 #include <string.h>
 #include <stdio.h>
 
-struct relation *get_relation(const char *name, const struct interp *inter,
-    const struct structure *struc)
+Relation *get_relation(const char *name, const Interp *inter, const Structure *struc)
 {
   /* ignore inter for now :-P */
-  struct relation *rel=0;
+  Relation *rel=0;
 
   if (inter)
     rel = inter->rel_symbols;
@@ -34,11 +33,11 @@ struct relation *get_relation(const char *name, const struct interp *inter,
 /* doesn't combine with fast interpretations -- use OUTSIDE of
  * eval/eval_rec only
  */
-void fill_relcache(struct relation *rel, struct structure *str)
+void fill_relcache(Relation *rel, Structure *str)
 {
   int arity, size;
   int *tuple=NULL;
-  struct interp *interp;
+  Interp *interp;
   int tuple_num, res;
 
   arity = rel->arity;
@@ -71,3 +70,4 @@ void fill_relcache(struct relation *rel, struct structure *str)
   free_interp(interp);
   return;
 }
+

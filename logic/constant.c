@@ -7,12 +7,11 @@
 #include "types.h"
 #include <string.h>
 
-struct constant *get_constant(const char *name,
-    const struct structure *struc)
-{
-  struct constant *cons = struc->cons;
+Constant *get_constant(const char *name, const Structure *struc) {
+  Constant *cons = struc->cons;
 
   while (cons && strcmp(cons->name, name))
     cons=cons->next;
+
   return cons;
 }

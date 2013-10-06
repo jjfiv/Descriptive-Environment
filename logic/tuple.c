@@ -19,7 +19,7 @@
  * if tuple is null, malloc it and return the first.  if tuple is the max,
  * free it and return NULL.
  */
-int *make_next_tuple(int *tuple, const struct reduc_map *rmap, 
+int *make_next_tuple(int *tuple, const ReductionMap *rmap, 
     const int arity, const int size, int *cindex, 
     const int cindexarity, const int k)
 {
