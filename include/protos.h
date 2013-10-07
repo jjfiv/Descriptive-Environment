@@ -6,6 +6,7 @@
 #include "parse.h"
 #include <stdio.h> /* for FILE * */
 #include "soe_parse.tab.h"
+#include "soe_lex.tab.h"
 
 #define DEBUG 1
 
@@ -14,8 +15,6 @@
 #else
 #define err(...)
 #endif
-
-int yyparse(void);
 
 #define numdigits(i) (i==0?1:floor(log10(i))+1)
 
@@ -132,13 +131,6 @@ extern Constant *get_constant(const char *, const Structure *);
 
 /* reduc.c */
 extern ReductionMap *make_rmap(const Reduction *, Structure *);
-
-/* y.tab.c */
-extern int yyparse();
-
-/* lex.yy.c */
-extern void *yy_scan_string(const char *);
-extern void yy_delete_buffer(void *);
 
 /* redfind.c */
 extern int redfind(const BQuery *,const BQuery *,int,int,int,int);

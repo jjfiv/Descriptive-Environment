@@ -11,7 +11,7 @@ static Environment gbl_env;
 Environment *cur_env = &gbl_env;
 
 void init_command(const char *str) {
-  void *bufstate = yy_scan_string(str);
+  YY_BUFFER_STATE bufstate = yy_scan_string(str);
   yyparse();
   do_cmd(cmdtree->l);
   yy_delete_buffer(bufstate);

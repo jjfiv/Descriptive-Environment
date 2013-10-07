@@ -116,11 +116,12 @@ LIBS:= -lminisat-c -lminisat -lm
 
 # define the C source files
 
-EXTERN_SRCS := extern/limboole/limboole.c extern/solver/solver.c extern/hash/hash.c 
+EXTERN_SRCS := extern/limboole/limboole.cc extern/solver/solver.c extern/hash/hash.c 
 
-LEX_SRCS := src/soe_parse.tab.c src/soe_lex.tab.c
-REDFIND_SRCS := $(shell ls redfind/*.c)
-LOGIC_SRCS := $(shell ls logic/*.c)
+LEX_SRCS := src/soe_parse.tab.cc src/soe_lex.tab.cc
+LEX_HDRS := src/soe_parse.tab.h src/soe_lex.tab.h
+REDFIND_SRCS := $(shell ls redfind/*.cc)
+LOGIC_SRCS := $(shell ls logic/*.cc)
 
 CORE_SRCS := src/cmd.o \
 	src/env.o \
@@ -132,8 +133,9 @@ CORE_SRCS := src/cmd.o \
 	src/util.o
 
 MAIN_O := src/main.o
-SRCS := $(LOGIC_SRCS) ${REDFIND_SRCS} ${CORE_SRCS} ${EXTERN_SRCS} ${LEX_SRCS}
-OBJS := $(SRCS:.c=.o)
+SRCS := $(LEX_SRCS) $(LOGIC_SRCS) ${REDFIND_SRCS} ${CORE_SRCS} ${EXTERN_SRCS}
+CCOBJS := $(SRCS:.cc=.o)
+OBJS := $(CCOBJS:.c=.o)
 
 TEST_SRCS := $(shell ls test/*.cc)
 TEST_OBJS := $(TEST_SRCS:.cc=.o)
@@ -154,7 +156,7 @@ test: generate
 	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory run_test
 
-generate: $(LEX_SRCS) $(SATBIND_LIB)
+generate: $(LEX_SRCS) $(LEX_HDRS) $(SATBIND_LIB)
 compile: $(MAIN)
 
 # copy minisat2 headers to minisat-c
@@ -181,14 +183,20 @@ $(TEST): $(SATBIND_LIB) $(OBJS) $(TEST_OBJS)
 %.o:%.c
 	$(CC) -c $(CFLAGS) $(MY_INCLUDES) $< -o $@
 
-%.tab.c:%.y
+%.tab.cc:%.y
 	bison -d $< -o $@
 
 %.tab.h:%.y
 	bison -d $< -o $@
 
-%.tab.c:%.l
+%.tab.cc:%.l
 	flex -o $@ $<
+
+%.tab.cc:%.l
+	flex -o $@ $<
+
+%.tab.h:%.l
+	flex --header=$@ $<
 
 mace4/p9m4-v05.tar.gz:
 	wget -P mace4 http://www.cs.unm.edu/~mccune/prover9/gui/p9m4-v05.tar.gz

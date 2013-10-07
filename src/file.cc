@@ -23,12 +23,6 @@
 #include <math.h>
 #include <ctype.h>
 
-#define INIT_COMMAND(s) \
-  bufstate = yy_scan_string(s); \
-yyparse(); \
-do_cmd(cmdtree->l); \
-yy_delete_buffer(bufstate)
-
 /* Calls Marco's program to draw a structure */
 int do_draw_command(Node *command)
 {
@@ -168,7 +162,7 @@ int do_load(Node *command)
   /* TODO check malloc */
 
   sprintf(buf,"%s:=new structure{graph,%d,E:2 is \\f,s:=0,t:=%d}.\n",assign_id,n,n-1);
-  INIT_COMMAND(buf); /* make a structure with empty adjacency matrix,
+  init_command(buf); /* make a structure with empty adjacency matrix,
                       * now we fill it.
                       */
 
@@ -442,7 +436,7 @@ int do_loadassign(Node *command)
   }
 
   buf = loadstring_getdec(assign_id,count,voc);
-  INIT_COMMAND(buf); /* make a long, empty string */
+  init_command(buf); /* make a long, empty string */
   free(buf);
 
   hnode = hash_lookup(cur_env->id_hash, assign_id);

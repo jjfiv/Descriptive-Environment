@@ -10,7 +10,7 @@
  * chj  11/14/06	Fix for byacc-1.9 compatibility.
  */
 
-extern int yylex(void);
+extern int yyparse();
 
 typedef struct Node {
   struct Node *l;
@@ -31,8 +31,6 @@ Node* vlnode(int, char*, Node *);
 Node* qnode(int, Node*, Node*, Node*);
 Node* arg_node(int, Node *);
 Node* fournode(int, Node*, Node*, Node*, Node*);
-
-extern void* yy_scan_string(const char*);
 
 #endif
 

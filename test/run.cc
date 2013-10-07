@@ -1,13 +1,10 @@
+#include "protos.h"
 #include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <string>
 using std::cout;
 using std::string;
-
-extern "C" {
-#include "protos.h"
-}
 
 void testCommand(const string &str) {
   string withNewline = str + '\n';

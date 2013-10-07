@@ -21,6 +21,10 @@
 #ifndef Minisat_C_Bindings_h
 #define Minisat_C_Bindings_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* SolverTypes:
 */
 typedef struct minisat_solver_t minisat_solver;
@@ -141,5 +145,9 @@ double    learntsize_adjust_inc;
 uint64_t starts, decisions, rnd_decisions, propagations, conflicts;
 uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 */
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif

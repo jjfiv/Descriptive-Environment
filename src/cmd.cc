@@ -5,16 +5,18 @@
 #include <stdio.h>
 #include <string.h>
 #include "protos.h"
+
+extern "C" {
 #define DE_MINISAT /* omit unused bits of MiniSat to avoid warnings */
 #include "solver.h"
 #include "minisat.h"
+}
 
 #define CMD_BUF_SIZE 4096
 
 void command_loop(void)
 {
   char data[CMD_BUF_SIZE];
-  void *bufstate; /* YY_BUFFER_STATE * */;
 
   while(1) {
     // print prompt & flush
@@ -38,7 +40,7 @@ void command_loop(void)
       continue;
     }
 
-    bufstate = yy_scan_string(data);
+    YY_BUFFER_STATE bufstate = yy_scan_string(data);
     if (yyparse())
       continue;
 
@@ -48,8 +50,6 @@ void command_loop(void)
 }
 
 int do_cmd_str(const char *str, size_t len) {
-  void *bufstate; /* YY_BUFFER_STATE * */;
-
   const char* data = &str[0];
 
   if (0 == strncmp(data,"quit",4))
@@ -60,7 +60,7 @@ int do_cmd_str(const char *str, size_t len) {
     return 0;
   }
 
-  bufstate = yy_scan_string(data);
+  YY_BUFFER_STATE bufstate = yy_scan_string(data);
   if (yyparse())
     return -1;
 

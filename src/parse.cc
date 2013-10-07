@@ -139,9 +139,8 @@ Node *fournode(int lab, Node *ll, Node *lr, Node *rl, Node *rr)
   return n;
 }
 
-int yyerror(char *s)
+void yyerror(const char *s)
 {
   printf("%s\n",s);
-  return 1;
 }
 

@@ -29,7 +29,7 @@
 
 extern char *dupstr(const char *);
 
-char *limboole_id = "$Id: limboole.c,v 1.15 2002/11/07 07:12:07 biere Exp $";
+const char *limboole_id = "$Id: limboole.c,v 1.15 2002/11/07 07:12:07 biere Exp $";
 
 /*------------------------------------------------------------------------*/
 /* These are the node types we support.  They are ordered in decreasing
@@ -167,7 +167,7 @@ hash (Mgr * mgr, Type type, void *c0, LNode * c1)
   if (type == VAR)
     return hash_var (mgr, (char *) c0);
   else
-    return hash_op (mgr, type, c0, c1);
+    return hash_op (mgr, type, (LNode*) c0, c1);
 }
 
 /*------------------------------------------------------------------------*/
@@ -183,8 +183,7 @@ eq_var (LNode * n, const char *str)
 static int
 eq_op (LNode * n, Type type, LNode * c0, LNode * c1)
 {
-  return n->type == type && n->data.as_child[0] == c0
-    && n->data.as_child[1] == c1;
+  return n->type == type && n->data.as_child[0] == c0 && n->data.as_child[1] == c1;
 }
 
 /*------------------------------------------------------------------------*/
@@ -195,7 +194,7 @@ eq (LNode * n, Type type, void *c0, LNode * c1)
   if (type == VAR)
     return eq_var (n, (char *) c0);
   else
-    return eq_op (n, type, c0, c1);
+    return eq_op (n, type, (LNode*) c0, c1);
 }
 
 /*------------------------------------------------------------------------*/
@@ -404,9 +403,9 @@ static void
 parse_error (Mgr * mgr, const char *fmt, ...)
 {
   va_list ap;
-  char *name;
 
-  name = mgr->name ? mgr->name : "<stdin>";
+  const char *name = mgr->name ? mgr->name : "<stdin>";
+
   fprintf (mgr->log, "%s:%u:%u: ", name, mgr->token_x + 1, mgr->token_y);
   if (mgr->token == ERROR)
     fputs ("scan error: ", mgr->log);
@@ -837,7 +836,7 @@ tsetin (Mgr * mgr)
 	}
     }
 
-  mgr->posLits = malloc(sizeof(minisat_Lit)*(mgr->idx+1));
+  mgr->posLits = (minisat_Lit*) malloc(sizeof(minisat_Lit)*(mgr->idx+1));
   /* TODO check malloc */
 
   mgr->idx2node = (LNode **) calloc (mgr->idx + 1, sizeof (LNode *));

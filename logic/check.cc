@@ -17,7 +17,7 @@ char *free_var(Node *form, Vocabulary *vocab) {
   char *name;
   if (!list)
     return NULL;
-  name=list->data;
+  name=(char*) list->data;
   while (list)
   {
     tmp=list->next;
@@ -47,9 +47,9 @@ char *free_var_fast(Node *form, Interp *interp, const Structure *struc) {
       iv=form->ival;
       if (iv)
       {
-        if (*iv>=0 || !strcmp(form->data,"max"))
+        if (*iv>=0 || !strcmp((const char*) form->data,"max"))
           return NULL;
-        return form->data;
+        return (char*) form->data;
       }
     case LT:
     case LTE:
@@ -70,9 +70,9 @@ char *free_var_fast(Node *form, Interp *interp, const Structure *struc) {
       return free_var_fast(form->l, interp, struc);
     case PRED:
       /* should also check correct number of arguments */
-      rel = get_relation(form->data, interp, struc);
+      rel = get_relation((const char*) form->data, interp, struc);
       if (!rel)
-        return form->data;
+        return (char*) form->data;
       for (relargs = form->r; relargs; relargs=relargs->r)
       {
         c = free_var_fast(relargs->l, interp, struc);
@@ -96,7 +96,6 @@ char *free_var_fast(Node *form, Interp *interp, const Structure *struc) {
 
 char *free_var_fastq(Node *form, Interp *interp, const Structure *struc) {
   int arity=0,i;
-  int *old_values, **values;
   Node *vl=form->l->l;
   Node *tn;
   Node *restr = form->l->r;
@@ -105,8 +104,8 @@ char *free_var_fastq(Node *form, Interp *interp, const Structure *struc) {
 
   for (tn=vl; tn; tn=tn->r)
     arity++;
-  old_values = malloc(arity*sizeof(int));
-  values = malloc(arity*sizeof(int *));
+  int *old_values = (int*) malloc(arity*sizeof(int));
+  int **values = (int**) malloc(arity*sizeof(int *));
 
   for (tn=vl,i=0; tn; tn=tn->r,i++)
   {
@@ -131,8 +130,6 @@ char *free_var_fastq(Node *form, Interp *interp, const Structure *struc) {
 char *free_var_fasttc(Node *form, Interp *interp, const Structure *struc) {
   char *c=NULL;
   Node *tmp, *tcargs, *tcform, *relargs;
-  int *old_values;
-  int **values;
   int arity, i;
 
   tcargs = form->l->l;
@@ -153,8 +150,8 @@ char *free_var_fasttc(Node *form, Interp *interp, const Structure *struc) {
     if (tmp->l->r)
       arity++;
   }
-  old_values = malloc(sizeof(int)*arity);
-  values = malloc(sizeof(int *)*arity);
+  int *old_values = (int*) malloc(sizeof(int)*arity);
+  int **values = (int**) malloc(sizeof(int *)*arity);
 
   for (tmp=tcargs,i=0; tmp; tmp=tmp->r)
   {
@@ -187,12 +184,12 @@ char *free_var_fasttc(Node *form, Interp *interp, const Structure *struc) {
 }
 
 char *free_var_fastsoe(Node *form, Interp *interp, const Structure *struc) {
-  char *varname=form->l->l->l->l->data;
+  char *varname=(char*)form->l->l->l->l->data;
   char *c=NULL;
   int arity =*(int *)form->l->l->l->r->data;
   Node *restr=form->l->r;
   Node *phi = form->r;
-  Relation *sov = malloc(sizeof(Relation));
+  Relation *sov = (Relation*) malloc(sizeof(Relation));
   sov->name = varname;
   sov->arity = arity;
   sov->next = interp->rel_symbols;
@@ -224,13 +221,13 @@ List *d_free_var(Node *form, Vocabulary *vocab) {
       return NULL;
     case CONSTANT:
     case VAR:
-      if (!strcmp(form->data,"max"))
+      if (!strcmp((const char*)form->data,"max"))
         return 0; /* max is a constant */
       for (cons=vocab->cons_symbols;cons;cons=cons->next)
-        if (!strcmp(cons->name,form->data))
+        if (!strcmp(cons->name,(const char*)form->data))
           return 0;
       /* not a constant in the vocabulary, so free here*/
-      tmp = malloc(sizeof(List));
+      tmp = (List*) malloc(sizeof(List));
       if (!tmp)
       {
         err("43: No memory\n");
@@ -269,11 +266,11 @@ List *d_free_var(Node *form, Vocabulary *vocab) {
     case PRED:
       /* should also check correct number of arguments */
       for (rel = vocab->rel_symbols; rel; rel=rel->next)
-        if (!strcmp(rel->name,form->data))
+        if (!strcmp(rel->name,(const char*) form->data))
           break;
       if (!rel) /* free occurence */
       {
-        tmp = malloc(sizeof(List));
+        tmp = (List*) malloc(sizeof(List));
         if (!tmp)
         {
           err("44: No memory.\n");
@@ -328,7 +325,7 @@ List *d_free_var(Node *form, Vocabulary *vocab) {
       }
       return tmp;
     case SOE:
-      vn = form->l->l->l->l->data; /* SO variable name */
+      vn = (char*) form->l->l->l->l->data; /* SO variable name */
       tn = form->l->r; /* restriction */
       tmp2=NULL;
       if (tn)
@@ -337,7 +334,7 @@ List *d_free_var(Node *form, Vocabulary *vocab) {
       tmp = join_lists(tmp2,tmp3);
       for (tmp2=tmp,tmp3=NULL; tmp2; tmp2=tmp2->next)
       {
-        if (strcmp(tmp2->data,vn))
+        if (strcmp((const char*)tmp2->data,vn))
         {
           tmp3=tmp2;
           continue;
@@ -374,7 +371,6 @@ List *d_free_var(Node *form, Vocabulary *vocab) {
  */
 List *join_lists(List *list1, List *list2) {
   List *done=NULL, *tmp1, *tmp2, *tmp3, *s2, *prev;
-  char *t;
   if (!list1)
     return list2;
   if (!list2)
@@ -382,11 +378,11 @@ List *join_lists(List *list1, List *list2) {
   s2=list2;
   for (tmp1=list1; tmp1;)
   {
-    t=tmp1->data;
+    char *t= (char*) tmp1->data;
     for (tmp2=s2,prev=NULL;tmp2;)
     {
       tmp3=tmp2->next;
-      if (strcmp(t,tmp2->data))
+      if (strcmp(t,(const char*)tmp2->data))
       {
         prev=tmp2;
         tmp2=tmp3;
@@ -429,7 +425,7 @@ List *remove_args(List *list, Node *args) {
     flag = 0;
     name = (char *)tmp->data;
     for (cur=args; cur; cur=cur->r)
-      if (!strcmp(name,cur->data))
+      if (!strcmp(name,(const char*) cur->data))
       {
         flag=1;
         break;
@@ -466,16 +462,16 @@ List *remove_tcargs(List *list, Node *tcargs) {
 
   for (i=0; ;tmp=tmp->r)
   {
-    ret = list_remove(ret, tmp->l->l->data);
+    ret = list_remove(ret, (char*) tmp->l->l->data);
     i++; 
     if (++i<tup_arity)
-      ret = list_remove(ret, tmp->l->r->data);
+      ret = list_remove(ret, (char*) tmp->l->r->data);
     else
       break;
   }
   if (tup_arity&1) /* odd arity means we split one */
   {
-    ret = list_remove(ret, tmp->l->r->data);
+    ret = list_remove(ret, (char*) tmp->l->r->data);
     i=1;
   }
   else
@@ -484,9 +480,9 @@ List *remove_tcargs(List *list, Node *tcargs) {
   {
     if (!tmp)
       break;
-    ret = list_remove(ret, tmp->l->l->data);
+    ret = list_remove(ret, (char*) tmp->l->l->data);
     if (++i<tup_arity)
-      ret = list_remove(ret, tmp->l->r->data);
+      ret = list_remove(ret, (char*) tmp->l->r->data);
     else
       break;
   }
