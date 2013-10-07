@@ -141,7 +141,7 @@ extern ReductionMap *make_rmap(const Reduction *, Structure *);
 extern int redfind(const BQuery *,const BQuery *,int,int,int,int);
 
 /* usemace.c */
-extern int usemace(Node *, Vocabulary *, char *, int);
+extern int usemace(Environment*, Node *, Vocabulary *, char *, int);
 extern int get_mace_model_size(FILE *);
 extern int print_mace(FILE *, Node *);
 extern int t_print_mace(FILE *, Node *);

@@ -1399,6 +1399,6 @@ int do_mace(Environment *env, Node *command) {
   clock = 0;
   if (command->r->r)
     clock = command->r->r->ndata;
-  return usemace(form, vocab, (char*) command->l->data, clock);
+  return usemace(env, form, vocab, (char*) command->l->data, clock);
 }
 

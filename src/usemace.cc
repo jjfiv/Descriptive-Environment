@@ -29,7 +29,7 @@
  * Returns 0 if we didn't find a model, -1 if there was some error,
  * and saves the found model as name otherwise.
  */
-int usemace(Node *form, Vocabulary *voc, char *name, int clock)
+int usemace(Environment *env, Node *form, Vocabulary *voc, char *name, int clock)
 {
   FILE *m;
   char *inp;
@@ -47,7 +47,7 @@ int usemace(Node *form, Vocabulary *voc, char *name, int clock)
    * name doesn't exist
    */
 
-  if (hash_lookup(cur_env->id_hash, name))
+  if (hash_lookup(env->id_hash, name))
   {
     err("53: %s already exists\n",name);
     return 0;
@@ -132,7 +132,7 @@ int usemace(Node *form, Vocabulary *voc, char *name, int clock)
   init_command(inp);
   free(inp);
 
-  hnode = hash_lookup(cur_env->id_hash, name);
+  hnode = hash_lookup(env->id_hash, name);
   hash_data = (Identifier*)hnode_get(hnode);
 
   str = (Structure *)hash_data->def;
