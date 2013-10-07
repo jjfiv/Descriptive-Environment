@@ -1304,7 +1304,9 @@ int do_redfind(Environment *env, Node *command) {
   char *p1name = (char*) command->l->l->data;
   char *p2name = (char*) command->l->r->data;
   BQuery *p1 = getBQuery(env, p1name);
+  if(!p1) return 0;
   BQuery *p2 = getBQuery(env, p2name);
+  if(!p2) return 0;
 
   /* okay, now we want to search for a reduction from p1 to p2. */
   return redfind(p1,p2,k,c,n1,n2);
