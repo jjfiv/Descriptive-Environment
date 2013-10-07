@@ -81,7 +81,7 @@ static inline void   vecp_push   (vecp* v, void* e)
 {
   if (v->size == v->cap) {
     int newsize = v->cap * 2+1;
-    v->ptr = (int*) realloc(v->ptr,newsize * sizeof(void*));
+    v->ptr = (void**) realloc(v->ptr,newsize * sizeof(void*));
     v->cap = newsize; }
   v->ptr[v->size++] = e;
 }

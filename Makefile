@@ -179,7 +179,7 @@ $(TEST): $(SATBIND_LIB) $(OBJS) $(TEST_OBJS)
 	${CXX} -c ${CXXFLAGS} $(MY_INCLUDES) $< -o $@
 
 %.o:%.c
-	$(CXX) -c $(CXXFLAGS) $(MY_INCLUDES) $< -o $@
+	$(CC) -c $(CFLAGS) $(MY_INCLUDES) $< -o $@
 
 %.tab.c:%.y
 	bison -d $< -o $@
