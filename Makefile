@@ -119,7 +119,6 @@ LIBS:= -lminisat-c -lminisat -lm
 EXTERN_SRCS := extern/limboole/limboole.cc extern/solver/solver.c extern/hash/hash.c 
 
 LEX_SRCS := src/soe_parse.tab.cc src/soe_lex.tab.cc
-LEX_HDRS := src/soe_parse.tab.h src/soe_lex.tab.h
 REDFIND_SRCS := $(shell ls redfind/*.cc)
 LOGIC_SRCS := $(shell ls logic/*.cc)
 
@@ -156,7 +155,7 @@ test: generate
 	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory run_test
 
-generate: $(LEX_SRCS) $(LEX_HDRS) $(SATBIND_LIB)
+generate: $(LEX_SRCS)  $(SATBIND_LIB)
 compile: $(MAIN)
 
 # copy minisat2 headers to minisat-c
@@ -186,17 +185,8 @@ $(TEST): $(SATBIND_LIB) $(OBJS) $(TEST_OBJS)
 %.tab.cc:%.y
 	bison -d $< -o $@
 
-%.tab.h:%.y
-	bison -d $< -o $@
-
 %.tab.cc:%.l
 	flex -o $@ $<
-
-%.tab.cc:%.l
-	flex -o $@ $<
-
-%.tab.h:%.l
-	flex --header=$@ $<
 
 mace4/p9m4-v05.tar.gz:
 	wget -P mace4 http://www.cs.unm.edu/~mccune/prover9/gui/p9m4-v05.tar.gz

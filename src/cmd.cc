@@ -34,18 +34,18 @@ void command_loop(void)
 
 /* Executes the command pointed to by command.
 */
-int do_cmd(Node *command)
+int do_cmd(Environment* env, Node *command)
 {
   switch (command->label)
   {
-    case ASSIGN:    return do_assign_command(command);
-    case EXCONS:    return do_excons_command(command);
-    case EXPRED:    return do_expred_command(command);
-    case EXPREDALL: return do_listtuple_command(command);
-    case ABQUERY:   return do_abquery_command(command);
-    case SAVE:      return do_save_command(command);
-    case DRAW:      return do_draw_command(command);
-    case REDFIND:   return do_redfind(command);
+    case ASSIGN:    return do_assign_command(env, command);
+    case EXCONS:    return do_excons_command(env, command);
+    case EXPRED:    return do_expred_command(env, command);
+    case EXPREDALL: return do_listtuple_command(env, command);
+    case ABQUERY:   return do_abquery_command(env, command);
+    case SAVE:      return do_save_command(env, command);
+    case DRAW:      return do_draw_command(env, command);
+    case REDFIND:   return do_redfind(env, command);
     default: break;
   }
   printf("1: Unrecognized command (%d)\n",command->label);
@@ -58,7 +58,7 @@ int do_cmd(Node *command)
 /* int do_save_command(Node *command) */
 /* in file/file.c */
 
-int do_abquery_command(Node *command)
+int do_abquery_command(Environment *env, Node *command)
 {
   char *sname;
   char *bname;
@@ -71,7 +71,7 @@ int do_abquery_command(Node *command)
 
   bname = (char*) command->l->data;
   sname = (char*) command->r->data;
-  hnode = hash_lookup(cur_env->id_hash, bname);
+  hnode = hash_lookup(env->id_hash, bname);
   if (!hnode)
   {
     err("18: Query %s does not exist\n",bname);
@@ -86,7 +86,7 @@ int do_abquery_command(Node *command)
 
   bq = (BQuery *)hash_data->def;
 
-  hnode = hash_lookup(cur_env->id_hash, sname);
+  hnode = hash_lookup(env->id_hash, sname);
   if (!hnode)
   {
     err("20: Structure %s does not exist\n",sname);
@@ -509,8 +509,7 @@ int do_minisat_query(const Structure *struc)
   return res;
 }
 
-int do_listtuple_command(Node *command)
-{
+int do_listtuple_command(Environment *env, Node *command) {
   Structure *str;
   Relation *rel;
   Identifier *hash_data;
@@ -524,7 +523,7 @@ int do_listtuple_command(Node *command)
   char* sname = (char*) command->l->data;
   char* rname = (char*) command->r->data;
 
-  hnode = hash_lookup(cur_env->id_hash, sname);
+  hnode = hash_lookup(env->id_hash, sname);
 
   if (!hnode)
   {
@@ -592,8 +591,7 @@ int do_listtuple_command(Node *command)
   return 1;
 }
 
-int do_expred_command(Node *command)
-{
+int do_expred_command(Environment *env, Node *command) {
   Structure *str;
   Identifier *hash_data;
   hnode_t *hnode;
@@ -604,7 +602,7 @@ int do_expred_command(Node *command)
   char* sname = (char*) command->l->data;
   char* rname = (char*) command->r->data;
 
-  hnode = hash_lookup(cur_env->id_hash, sname);
+  hnode = hash_lookup(env->id_hash, sname);
 
   if (!hnode)
   {
@@ -638,8 +636,7 @@ int do_expred_command(Node *command)
   return 1;
 }
 
-int do_excons_command(Node *command)
-{
+int do_excons_command(Environment *env, Node *command) {
   Structure *str;
   Constant *cons;
   char *sname;
@@ -652,7 +649,7 @@ int do_excons_command(Node *command)
   sname = (char *)command->l->data;
   cname = (char *)command->r->data;
 
-  hnode = hash_lookup(cur_env->id_hash, sname);
+  hnode = hash_lookup(env->id_hash, sname);
 
   if (!hnode)
   {
@@ -696,32 +693,26 @@ int do_excons_command(Node *command)
   return 1;
 }
 
-int do_assign_command(Node *command)
-{
+int do_assign_command(Environment *env, Node *command) {
   char *new_name = (char*) command->l->data;
-  if (hash_lookup(cur_env->id_hash, new_name))
+  if (hash_lookup(env->id_hash, new_name))
   {
     err("22: %s already exists\n", new_name);
     return 0;
   }
   switch (command->r->label)
   {
-    case VOCAB: return do_vocab_assign(command);
-    case STRUC: return do_struc_assign(command);
-    case REDUC: return do_reduc_assign(command);
-    case APPLY: return do_apply_assign(command);
-    case BQUERY: return do_bquery_assign(command);
-    case LOAD: return do_load(command);
-    case LOADSTRING: return do_loadassign(command);
-    case MACE: return do_mace(command);
+    case VOCAB:      return do_vocab_assign(env, command);
+    case STRUC:      return do_struc_assign(env, command);
+    case REDUC:      return do_reduc_assign(env, command);
+    case APPLY:      return do_apply_assign(env, command);
+    case BQUERY:     return do_bquery_assign(env, command);
+    case LOAD:       return do_load(env, command);
+    case LOADSTRING: return do_loadassign(env, command);
+    case MACE:       return do_mace(env, command);
     default: return -1;
   }
 }
-
-/* int do_load(Node *command)
- *
- * in file/file.c
- */
 
 /*This is a bit tricky.
  * Basically, the universe of the new structure will consist of
@@ -730,8 +721,7 @@ int do_assign_command(Node *command)
  * (or other, we don't restrict the user) way.  We remap these tuples back to
  * the naturals, so E(0,0) is possible (instead of E(<0,0,0,0,0...>,<0,0,0..>).
  */ 
-int do_apply_assign(Node *command)
-{
+int do_apply_assign(Environment *env, Node *command) {
   Reduction *reduc;
   Structure *ostruc;
   Structure *new_id;
@@ -766,7 +756,7 @@ int do_apply_assign(Node *command)
   /* this should already be checked in do_assign_command above 
    * (chj 11/1/11)
    */
-  hnode = hash_lookup(cur_env->id_hash, command->r->l->data); /* reduc */
+  hnode = hash_lookup(env->id_hash, command->r->l->data); /* reduc */
   if (!hnode)
   {
     err("15: Nonexistent reduction or query %s\n",(char *)command->r->l->data);
@@ -781,7 +771,7 @@ int do_apply_assign(Node *command)
 
   reduc = (Reduction *)hash_data->def;
 
-  hnode = hash_lookup(cur_env->id_hash, command->r->r->data); /* struc */
+  hnode = hash_lookup(env->id_hash, command->r->r->data); /* struc */
   if (!hnode)
   {
     err("35: Structure %s does not exist\n",(char *)command->r->r->data);
@@ -808,8 +798,8 @@ int do_apply_assign(Node *command)
   new_id->rels = prevr = 0;
   new_id->vocab = reduc->to_vocab;
   cindex = 0;
-  /* num_tups = trpow(ostruc->size,k); */
-  /* num_of_ktuples = trpow(rmap->size,k); */
+  /* num_tups = de_pow(ostruc->size,k); */
+  /* num_of_ktuples = de_pow(rmap->size,k); */
 
   /* this is a bit tricky, we want to get the relations.  We evaluate them on
    * a rel->arity'ary tuple of k-ary tuples, BUT only if these k-ary tuples are
@@ -838,7 +828,7 @@ int do_apply_assign(Node *command)
     newr->name = rel->name;
     newr->arity = rel->arity;
     newr->parse_cache = 0; /* TODO HACK THIS IN */
-    relsize = trpow(size, rel->arity);
+    relsize = de_pow(size, rel->arity);
     newr->cache = (int*) malloc(relsize*sizeof(int));
     relsize--;
     /* ci = malloc(rel->arity*sizeof(int)); */
@@ -957,7 +947,7 @@ int do_apply_assign(Node *command)
   hash_data->def = new_id;
   hash_data->type = STRUC;
   /* TODO check if the id already exists */
-  if (!hash_alloc_insert(cur_env->id_hash,hash_data->name,hash_data))
+  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
   {
     /* TODO error handling */
     return 1;
@@ -965,8 +955,7 @@ int do_apply_assign(Node *command)
   return 1;
 }
 
-int do_bquery_assign(Node *command)
-{
+int do_bquery_assign(Environment *env, Node *command) {
   char *vname;
   char *name;
   Identifier *hash_data;
@@ -974,7 +963,7 @@ int do_bquery_assign(Node *command)
   BQuery *new_id;
 
   vname = (char*) command->r->l->data;
-  hnode = hash_lookup(cur_env->id_hash, vname);
+  hnode = hash_lookup(env->id_hash, vname);
   if (!hnode)
   {
     err("16: Vocabulary %s doesn't exist\n",vname);
@@ -998,7 +987,7 @@ int do_bquery_assign(Node *command)
   hash_data->def = new_id;
   hash_data->type = BQUERY;
 
-  if (!hash_alloc_insert(cur_env->id_hash, hash_data->name, hash_data))
+  if (!hash_alloc_insert(env->id_hash, hash_data->name, hash_data))
   {
     /* TODO error handling */
     return 0;
@@ -1009,8 +998,7 @@ int do_bquery_assign(Node *command)
 
 /* TODO sanity checking to make sure the reduction defines a structure
  * of the correct vocab, etc. */
-int do_reduc_assign(Node *command)
-{
+int do_reduc_assign(Environment *env, Node *command) {
   Node *cmdexpr = command->r;
   Node *t;
   char *fvname, *tvname;
@@ -1030,7 +1018,7 @@ int do_reduc_assign(Node *command)
   fvname = (char*) cmdexpr->l->l->l->data;
   tvname = (char*) cmdexpr->l->l->r->data;
 
-  hnode = hash_lookup(cur_env->id_hash, fvname);
+  hnode = hash_lookup(env->id_hash, fvname);
   if (!hnode)
   {
     err("14: Vocabulary %s doesn't exist\n",fvname);
@@ -1046,7 +1034,7 @@ int do_reduc_assign(Node *command)
 
   from_vocab = (Vocabulary *)hash_data->def;
 
-  hnode = hash_lookup(cur_env->id_hash, tvname);
+  hnode = hash_lookup(env->id_hash, tvname);
   if (!hnode)
   {
     err("14: Vocabulary %s doesn't exist\n",tvname);
@@ -1121,7 +1109,7 @@ int do_reduc_assign(Node *command)
   hash_data->def = new_id;
   hash_data->type=REDUC;
 
-  if (!hash_alloc_insert(cur_env->id_hash,hash_data->name,hash_data))
+  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
   {
     /*free_reduc(new_id */ /*TODO*/
     /*error full hash */
@@ -1130,8 +1118,7 @@ int do_reduc_assign(Node *command)
   return 1;
 }
 
-int do_vocab_assign(Node *command)
-{
+int do_vocab_assign(Environment *env, Node *command) {
   Node *assign_id = command->l;
   Node *cmdexpr = command->r;
   Node *t;
@@ -1147,7 +1134,7 @@ int do_vocab_assign(Node *command)
 
   new_id = (Vocabulary*) malloc(sizeof(Vocabulary));
   new_id ->name = dupstr((const char*) assign_id->data);
-  new_id->id = cur_env->next_id++;
+  new_id->id = env->next_id++;
   new_id->cons_symbols = 0;
   new_id->rel_symbols = 0;
   while (t && t->label == CVRELARG)
@@ -1182,7 +1169,7 @@ int do_vocab_assign(Node *command)
   hash_data->def = new_id;
   hash_data->type = VOCAB;
 
-  if (!hash_alloc_insert(cur_env->id_hash,hash_data->name,hash_data))
+  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
   {
     /* free_vocab(new_id); */
     /* error full hash */
@@ -1193,8 +1180,7 @@ int do_vocab_assign(Node *command)
 
 /* TODO make sure that the structure definition matches the vocabulary given */
 
-int do_struc_assign(Node *command)
-{
+int do_struc_assign(Environment *env, Node *command) {
   Node *assign_id = command->l;
   Node *cmdexpr = command->r;
   Node *t;
@@ -1221,7 +1207,7 @@ int do_struc_assign(Node *command)
 
   vname=(char*) t->l->l->data;
 
-  hnode = hash_lookup(cur_env->id_hash, vname);
+  hnode = hash_lookup(env->id_hash, vname);
   if (!hnode)
   {
     printf("2: Nonexistent vocabulary\n");
@@ -1246,7 +1232,7 @@ int do_struc_assign(Node *command)
   assert(t->label==CSARGS);
   new_id = (Structure*) malloc(sizeof(Structure));
   new_id->name = dupstr((const char*) assign_id->data);
-  new_id->id = cur_env->next_id++;
+  new_id->id = env->next_id++;
   new_id->cons = 0;
   new_id->rels = 0;
   new_id->vocab = voc;
@@ -1259,7 +1245,7 @@ int do_struc_assign(Node *command)
     rel_name=(char*) t->l->l->data;
     rel_arity=*(int *)(t->l->r->data);
     rel_form=t->r->l;
-    cache_size = trpow(size, rel_arity);
+    cache_size = de_pow(size, rel_arity);
     cache_pt = (int*) malloc(cache_size*sizeof(int));
 
     tmpr = (Relation*) malloc(sizeof(Relation));
@@ -1312,7 +1298,7 @@ int do_struc_assign(Node *command)
 
   /* TODO check if the id already exists and reject? if so */
 
-  if (!hash_alloc_insert(cur_env->id_hash,hash_data->name,hash_data))
+  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
   {
     /* free_struc(new_id); */
     /* error full hash */
@@ -1322,8 +1308,7 @@ int do_struc_assign(Node *command)
 }
 
 /* redfind is in redfind/redfind.c */
-int do_redfind(Node *command)
-{
+int do_redfind(Environment *env, Node *command) {
   Identifier *hash_data;
   hnode_t *hnode;
   char *p1name = (char*) command->l->l->data;
@@ -1350,7 +1335,7 @@ int do_redfind(Node *command)
     }
   }
 
-  hnode = hash_lookup(cur_env->id_hash,p1name);
+  hnode = hash_lookup(env->id_hash,p1name);
   if (!hnode)
   {
     err("rc1: Boolean query %s doesn't exist\n",p1name);
@@ -1364,7 +1349,7 @@ int do_redfind(Node *command)
   }
   p1 = (BQuery *)hash_data->def;
 
-  hnode = hash_lookup(cur_env->id_hash,p2name);
+  hnode = hash_lookup(env->id_hash,p2name);
   if (!hnode)
   {
     err("rc3: Boolean query %s doesn't exist\n",p2name);
@@ -1383,15 +1368,14 @@ int do_redfind(Node *command)
 }
 
 /* usemace is in mace/usemace.c */
-int do_mace(Node *command)
-{
+int do_mace(Environment *env, Node *command) {
   Identifier *hash_data;
   hnode_t *hnode;
   char *vname = (char*) command->r->l->l->data, *freevar;
   Vocabulary *vocab;
   Node *form;
   int clock;
-  hnode = hash_lookup(cur_env->id_hash,vname);
+  hnode = hash_lookup(env->id_hash,vname);
   if (!hnode)
   {
     err("40: Vocabulary %s doesn't exist\n",vname);

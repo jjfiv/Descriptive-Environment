@@ -24,7 +24,7 @@
 #include <ctype.h>
 
 /* Calls Marco's program to draw a structure */
-int do_draw_command(Node *command)
+int do_draw_command(Environment *env, Node *command)
 {
   char *tfn;
   FILE *tmp, *m;
@@ -34,7 +34,7 @@ int do_draw_command(Node *command)
   char *name= (char*) command->l->data;
 
   Identifier *hash_data;
-  hnode_t *hnode = hash_lookup(cur_env->id_hash, name);
+  hnode_t *hnode = hash_lookup(env->id_hash, name);
   int len;
 
   if (!hnode)
@@ -92,9 +92,7 @@ int do_draw_command(Node *command)
 /* This is done by first creating an empty graph of the proper size, and
  * then adding the edges as they appear.
  */
-int do_load(Node *command)
-{
-  void *bufstate;
+int do_load(Environment *env, Node *command) {
   char *assign_id = (char*) command->l->data;
   FILE *f;
   int  i,j,k;
@@ -166,7 +164,7 @@ int do_load(Node *command)
                       * now we fill it.
                       */
 
-  hnode = hash_lookup(cur_env->id_hash, assign_id);
+  hnode = hash_lookup(env->id_hash, assign_id);
   hash_data = (Identifier*)hnode_get(hnode);
 
   str = (Structure *)hash_data->def;
@@ -213,8 +211,7 @@ int do_load(Node *command)
   return 1;
 }
 
-int do_save_command(Node *command)
-{
+int do_save_command(Environment *env, Node *command) {
   char *id=(char*) command->l->data;
   char *fn=(char*) command->r->data;
   FILE *f;
@@ -223,7 +220,7 @@ int do_save_command(Node *command)
   Identifier *hash_data;
   hnode_t *hnode;
 
-  hnode = hash_lookup(cur_env->id_hash, id);
+  hnode = hash_lookup(env->id_hash, id);
 
   if (!hnode)
   {
@@ -338,9 +335,8 @@ int save_voc_inner(Vocabulary *voc, FILE *f)
  * no difference between upper/lower-case.
  * The vocabulary is implicit, characters that occur are monadic predicates.
  */
-int do_loadassign(Node *command)
+int do_loadassign(Environment *env, Node *command)
 {
-  void *bufstate;
   char *assign_id = (char*) command->l->data;
   char *fn= (char*) command->r->r->data;
   /* fn has a leading and trailing \" that we want to remove,
@@ -395,7 +391,7 @@ int do_loadassign(Node *command)
 
   fclose(f);
 
-  hnode = hash_lookup(cur_env->id_hash, vocname);
+  hnode = hash_lookup(env->id_hash, vocname);
   if (!hnode)
   {
     printf("??: Vocabulary %s doesn't exist.\n",vocname);
@@ -439,7 +435,7 @@ int do_loadassign(Node *command)
   init_command(buf); /* make a long, empty string */
   free(buf);
 
-  hnode = hash_lookup(cur_env->id_hash, assign_id);
+  hnode = hash_lookup(env->id_hash, assign_id);
   hash_data = (Identifier*)hnode_get(hnode);
 
   struc = (Structure *)hash_data->def;

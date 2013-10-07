@@ -20,10 +20,10 @@
  */
 
 %{
-#include "soe_parse.tab.h"
-#include <stdio.h>
+#include <cstdio>
 extern char* dupstr(const char *);
 extern int fileno(FILE *);
+#include "soe_parse.tab.hh"
 
  /*extern int yylval;*/
  /*extern YYSTYPE yylval;*/

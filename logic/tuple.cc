@@ -74,7 +74,7 @@ int *make_next_tuple(int *tuple, const ReductionMap *rmap,
 int *cindex_to_tuple(int *tuple, const int cindex, const int arity, 
     const int size)
 {
-  int i, p=trpow(size,arity-1), c=cindex;
+  int i, p=de_pow(size,arity-1), c=cindex;
   for (i=0; i<arity; i++)
   {
     tuple[i] = c / p;

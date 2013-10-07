@@ -39,7 +39,7 @@ ReductionMap *make_rmap(const Reduction *reduc, Structure *struc)
   k = reduc->k;
   size = struc->size;
   /* TODO check mallocs */
-  num_tuples = trpow(size,k);
+  num_tuples = de_pow(size,k);
   interp = new_interp(struc);
 
   rmap = (ReductionMap*) malloc(sizeof(ReductionMap));

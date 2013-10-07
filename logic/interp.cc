@@ -1,13 +1,5 @@
 // ISC LICENSE
-/* interp.c
- * Skip Jordan
- *
- * Utility functions for interpretations.
- * chj	11/16/06	created
- * chj  12/11/06        bug fix to off-by-one error in add_tup_to_interp
- * chj   4/18/12        replace trpow&get_order for trivial performance benefit
- * chj	 7/13/12	changes for fast interpretations
- */
+// Utility functions for interpretations.
 
 #include "types.h"
 #include "protos.h"

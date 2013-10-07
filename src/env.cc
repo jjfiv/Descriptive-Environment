@@ -20,14 +20,14 @@ void runCommand(string cmd) {
   // use string as command
   YY_BUFFER_STATE bufstate = yy_scan_string(cmd.c_str());
   yyparse();
-  do_cmd(cmdtree->l);
+  do_cmd(cur_env, cmdtree->l);
   yy_delete_buffer(bufstate);
 }
 
 void init_command(const char *str) {
   YY_BUFFER_STATE bufstate = yy_scan_string(str);
   yyparse();
-  do_cmd(cmdtree->l);
+  do_cmd(cur_env, cmdtree->l);
   yy_delete_buffer(bufstate);
 }
 

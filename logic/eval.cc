@@ -356,7 +356,7 @@ int eval_tc(Node *form, Interp *interp, const Structure *struc) {
     printf("14:TC of arity %d given %d arguments\n",num_args,i);
     return -1;
   }
-  num_tuples = trpow(size,tup_arity);
+  num_tuples = de_pow(size,tup_arity);
 
   if (form->data) /* check for a cache */
   {
@@ -529,7 +529,7 @@ int eval_soe(Node *form, Interp *interp, const Structure *struc) {
   Node *phi = form->r;
   Relation *sov;
 
-  int tc_size=trpow(size, arity);
+  int tc_size=de_pow(size, arity);
   cache = (int*) malloc(tc_size * sizeof(int));
   for (i=0; i<tc_size; i++) 
     cache[i]=0;

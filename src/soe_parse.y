@@ -22,6 +22,7 @@
 %{
   #include "parse.h"
   extern void yyerror(const char *msg);
+  extern int yylex(void);
 %}
 
 %union {

@@ -7,8 +7,11 @@
 #include <cstdio> /* for FILE * */
 #include <string>
 using namespace std;
-#include "soe_parse.tab.h"
-#include "soe_lex.tab.h"
+#include "soe_parse.tab.hh"
+
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+extern YY_BUFFER_STATE yy_scan_string (const char *yy_str  );
+extern void yy_delete_buffer (YY_BUFFER_STATE  b );
 
 #define DEBUG 1
 
@@ -28,34 +31,34 @@ void init_env(void);
 /* cmd.c */
 extern void command_loop(void);
 extern int do_cmd_str(const char *, size_t);
-extern int do_cmd(Node *);
-extern int do_assign_command(Node *);
-extern int do_vocab_assign(Node *);
-extern int do_struc_assign(Node *);
-extern int do_reduc_assign(Node *);
-extern int do_expred_command(Node *);
-extern int do_excons_command(Node *);
-extern int do_listtuple_command(Node *);
-extern int do_apply_assign(Node *);
-extern int do_bquery_assign(Node *);
-extern int do_abquery_command(Node *);
+extern int do_cmd(Environment *, Node *);
+extern int do_assign_command(Environment *, Node *);
+extern int do_vocab_assign(Environment *, Node *);
+extern int do_struc_assign(Environment *, Node *);
+extern int do_reduc_assign(Environment *, Node *);
+extern int do_expred_command(Environment *, Node *);
+extern int do_excons_command(Environment *, Node *);
+extern int do_listtuple_command(Environment *, Node *);
+extern int do_apply_assign(Environment *, Node *);
+extern int do_bquery_assign(Environment *, Node *);
+extern int do_abquery_command(Environment *, Node *);
 extern int do_minisat_query(const Structure *);
 extern int do_threecolorsat_query(const Structure *);
 extern int do_minisat2_query(const Structure *);
 extern int do_threecolor_sat2_query(const Structure *);
-extern int do_mace(Node *);
-extern int do_fd(Node *);
-extern int do_redfind(Node *);
+extern int do_mace(Environment *, Node *);
+extern int do_fd(Environment *, Node *);
+extern int do_redfind(Environment *, Node *);
 
 /* file.c */
-extern int do_draw_command(Node *);
-extern int do_load(Node *);
-extern int do_save_command(Node *);
+extern int do_draw_command(Environment *, Node *);
+extern int do_load(Environment *, Node *);
+extern int do_save_command(Environment *, Node *);
 extern int save_struc(Structure *, FILE *);
 extern int save_tuple_line(Relation *, int *, FILE *);
 extern int save_voc_inner(Vocabulary *, FILE *);
 extern char *loadstring_getdec(char *, int, Vocabulary *);
-extern int do_loadassign(Node *);
+extern int do_loadassign(Environment *, Node *);
 extern void loadstring_convert(Structure *, int, char *);
 
 /* help.c */
@@ -104,8 +107,7 @@ extern Interp *dup_interp(Interp *);
 extern int get_order(int);
 extern Interp *fake_add_tup_to_interp(Interp *, int *, int);
 extern Interp *add_tup_to_interp(Interp *, const int *, const int);
-/* trpow was a different implementation, but de_pow is equivalent and faster */
-#define trpow(a,b) de_pow(a,b)
+
 extern int get_interp_value(const char *, const Interp *);
 extern int get_xi_interp_value(int, Interp *);
 extern Interp *remove_xi_interp(int, Interp *);
