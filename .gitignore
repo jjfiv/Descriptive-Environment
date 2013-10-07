@@ -2,10 +2,7 @@
 build
 de
 test/test_de
-lex.yy.c
-y.tab.c
-y.tab.h
 mace4
 tags
-*.tab.c
+*.tab.cc
 *.tab.h
