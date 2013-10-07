@@ -4,7 +4,9 @@
 
 #include "types.h"
 #include "parse.h"
-#include <stdio.h> /* for FILE * */
+#include <cstdio> /* for FILE * */
+#include <string>
+using namespace std;
 #include "soe_parse.tab.h"
 #include "soe_lex.tab.h"
 
@@ -19,6 +21,7 @@
 #define numdigits(i) (i==0?1:floor(log10(i))+1)
 
 /* env.c */
+void runCommand(string cmd);
 void init_command(const char *);
 void init_env(void);
 
@@ -56,7 +59,7 @@ extern int do_loadassign(Node *);
 extern void loadstring_convert(Structure *, int, char *);
 
 /* help.c */
-extern int do_help(const char *);
+extern int do_help(void);
 
 /* check.c */
 extern char *free_var(Node *, Vocabulary *);
@@ -147,6 +150,7 @@ extern int need_arithmetic(Node *);
 extern char *dupstr(const char *);
 extern long de_pow(int x, short p);
 extern List *free_list(List *);
+extern string simplify(const string &);
 
 #endif
 

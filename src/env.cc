@@ -10,6 +10,20 @@
 static Environment gbl_env;
 Environment *cur_env = &gbl_env;
 
+void runCommand(string cmd) {
+  if(cmd == "" || cmd == "quit" || cmd == "help") 
+    return;
+
+  if(cmd.back() != '\n')
+    cmd += '\n';
+
+  // use string as command
+  YY_BUFFER_STATE bufstate = yy_scan_string(cmd.c_str());
+  yyparse();
+  do_cmd(cmdtree->l);
+  yy_delete_buffer(bufstate);
+}
+
 void init_command(const char *str) {
   YY_BUFFER_STATE bufstate = yy_scan_string(str);
   yyparse();

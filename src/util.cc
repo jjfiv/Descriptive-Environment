@@ -1,8 +1,9 @@
 // ISC LICENSE
 
 #include "types.h"
-#include <string.h>
-#include <stdlib.h>
+#include "protos.h"
+#include <cstring>
+#include <cstdlib>
 
 /* strdup implementation.  strdup is non-ANSI and a reserved name for string.h */
 char *dupstr(const char *inp)
@@ -58,4 +59,24 @@ long de_pow(int x, short p)
     tmp = tmp * tmp * (((p <<= 1) < 0)? x : 1);
   return tmp;
 }
+
+/** compact and trim spaces */
+string simplify(const string &str) {
+  string out;
+  bool lastSpace = true;
+  for(char c : str) {
+    if(c <= ' ' && !lastSpace) {
+      out += ' ';
+      lastSpace = true;
+    } else if(c > ' ') {
+      lastSpace = false;
+      out += c;
+    }
+  }
+  if(lastSpace && out.size() > 0) {
+    out.pop_back();
+  }
+  return out;
+}
+
 

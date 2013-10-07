@@ -1,13 +1,12 @@
 //ISC LICENSE
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 
-/* The user has just typed inp, which begins with help */
-int do_help(const char *inp)
+void do_help(void)
 {
-  if (!inp) return 1; /* quick hack to remove a warning on -Wextra */
-  printf("\n"
+  printf(
+      "\n"
       "This is the Descriptive Environment (DE) described in\n"
       "\"Experimental Descriptive Complexity\" (2012).\n"
       "\n"
@@ -20,6 +19,6 @@ int do_help(const char *inp)
       "   a reduction to sat and the MiniSat SAT solver.\n"
       "\n"
       "Type \"quit\" to quit.\n"
-      "See the README, and the paper and file \"tests\" for examples.\n\n");
-  return 1;
+      "See the README, and the paper and file \"tests\" for examples.\n\n"
+      );
 }

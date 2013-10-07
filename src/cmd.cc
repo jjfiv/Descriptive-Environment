@@ -1,10 +1,12 @@
 // ISC LICENSE
 #include "parse.h"
 #include "types.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "protos.h"
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+using namespace std;
 
 extern "C" {
 #define DE_MINISAT /* omit unused bits of MiniSat to avoid warnings */
@@ -12,62 +14,22 @@ extern "C" {
 #include "minisat.h"
 }
 
-#define CMD_BUF_SIZE 4096
-
 void command_loop(void)
 {
-  char data[CMD_BUF_SIZE];
-
-  while(1) {
+  while(cin) {
+    string cmd;
     // print prompt & flush
-    printf("> "); fflush(stdout);
+    cout << "> "; cout.flush();
 
-    // clear the buffer
-    memset(data, 0, CMD_BUF_SIZE);
-    if(NULL == fgets(data,CMD_BUF_SIZE,stdin)) {
-      // EOF sent
-      return;
-    }
+    if(!getline(cin, cmd)) break;
+    cmd = simplify(cmd);
 
-    // ignore empty strings
-    if(data[0] == '\n') continue;
+    if (cmd == "") continue;
+    if (cmd == "quit") break;
+    if (cmd == "help") { do_help(); continue; }
 
-    if (0 == strncmp(data,"quit",4))
-      return;
-    
-    if (0 == strncmp(data,"help",4)) {
-      do_help(data);
-      continue;
-    }
-
-    YY_BUFFER_STATE bufstate = yy_scan_string(data);
-    if (yyparse())
-      continue;
-
-    do_cmd(cmdtree->l);
-    yy_delete_buffer(bufstate);
+    runCommand(cmd);
   }
-}
-
-int do_cmd_str(const char *str, size_t len) {
-  const char* data = &str[0];
-
-  if (0 == strncmp(data,"quit",4))
-    return 0;
-
-  if (0 == strncmp(data,"help",4)) {
-    do_help(data);
-    return 0;
-  }
-
-  YY_BUFFER_STATE bufstate = yy_scan_string(data);
-  if (yyparse())
-    return -1;
-
-  do_cmd(cmdtree->l);
-  yy_delete_buffer(bufstate);
-
-  return 0;
 }
 
 /* Executes the command pointed to by command.

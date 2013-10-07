@@ -207,7 +207,7 @@ run: all mace4/p9m4-v05/bin/mace4
 	@PATH=$(PATH):mace4/p9m4-v05/bin rlwrap ./$(MAIN)
 
 run_test: $(TEST) mace4/p9m4-v05/bin/mace4
-	PATH=$(PATH):mace4/p9m4-v05/bin ./$(TEST) | tee test/actual.out
+	PATH=$(PATH):mace4/p9m4-v05/bin ./$(TEST) > test/actual.out
 	diff test/expected.out test/actual.out
 	
 
