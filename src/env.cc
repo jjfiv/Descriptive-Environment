@@ -46,3 +46,41 @@ void init_env(void)
   init_command("threecolorwithsat2 is new bquery{graph, \\t}.\n");
 }
 
+Identifier* getBinding(Environment *env, const char *name) {
+  hnode_t *hd = hash_lookup(env->id_hash, name);
+  if(!hd) return nullptr;
+  return (Identifier*) hnode_get(hd);
+}
+
+BQuery* getBQuery(Environment *env, const char *name) {
+  Identifier *id = getBinding(env, name);
+  if(!id) {
+    err("18: Query %s does not exist\n",name);
+    return nullptr;
+  }
+  if(id->type != BQUERY) {
+    err("19: %s is not a query\n",name);
+    return nullptr;
+  }
+  return (BQuery *)id->def;
+}
+
+Structure* getStructure(Environment *env, const char *name) {
+  Identifier *id = getBinding(env, name);
+  if(!id) {
+    err("20: Structure %s does not exist\n",name);
+    return nullptr;
+  }
+  if(id->type != STRUC) {
+    err("21: %s is not a structure\n",name);
+    return nullptr;
+  }
+  return (Structure *)id->def;
+}
+
+
+
+
+
+
+

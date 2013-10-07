@@ -60,45 +60,16 @@ int do_cmd(Environment* env, Node *command)
 
 int do_abquery_command(Environment *env, Node *command)
 {
-  char *sname;
-  char *bname;
-  Structure *struc;
-  BQuery *bq;
-  hnode_t *hnode;
-  Identifier *hash_data;
   int res;
   Interp *interp;
 
-  bname = (char*) command->l->data;
-  sname = (char*) command->r->data;
-  hnode = hash_lookup(env->id_hash, bname);
-  if (!hnode)
-  {
-    err("18: Query %s does not exist\n",bname);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != BQUERY)
-  {
-    err("19: %s is not a query\n",bname);
-    return 0;
-  }
+  const char *bname = (const char*) command->l->data;
+  const char *sname = (const char*) command->r->data;
 
-  bq = (BQuery *)hash_data->def;
-
-  hnode = hash_lookup(env->id_hash, sname);
-  if (!hnode)
-  {
-    err("20: Structure %s does not exist\n",sname);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != STRUC)
-  {
-    err("21: %s is not a structure\n",sname);
-    return 0;
-  }
-  struc = (Structure *)hash_data->def;
+  BQuery *bq = getBQuery(env, bname);
+  if(!bq) return 0;
+  Structure* struc = getStructure(env, sname);
+  if(!struc) return 0;
 
   /* minisat is a builtin query using the Minisat-C solver */
   if (!strcmp(bname, "minisat"))

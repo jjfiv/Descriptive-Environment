@@ -27,6 +27,9 @@ extern void yy_delete_buffer (YY_BUFFER_STATE  b );
 void runCommand(string cmd);
 void init_command(const char *);
 void init_env(void);
+Identifier* getBinding(Environment*, const char*);
+BQuery* getBQuery(Environment*, const char*);
+Structure* getStructure(Environment*, const char*);
 
 /* cmd.c */
 extern void command_loop(void);
