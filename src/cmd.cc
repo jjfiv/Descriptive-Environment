@@ -1280,11 +1280,6 @@ int do_struc_assign(Environment *env, Node *command) {
 
 /* redfind is in redfind/redfind.c */
 int do_redfind(Environment *env, Node *command) {
-  Identifier *hash_data;
-  hnode_t *hnode;
-  char *p1name = (char*) command->l->l->data;
-  char *p2name = (char*) command->l->r->data;
-  BQuery *p1, *p2;
   int k, c, n1, n2;
 
   if (!(command->r->l))
@@ -1306,33 +1301,10 @@ int do_redfind(Environment *env, Node *command) {
     }
   }
 
-  hnode = hash_lookup(env->id_hash,p1name);
-  if (!hnode)
-  {
-    err("rc1: Boolean query %s doesn't exist\n",p1name);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != BQUERY)
-  {
-    err("rc2: %s is not a Boolean query\n",p1name);
-    return 0;
-  }
-  p1 = (BQuery *)hash_data->def;
-
-  hnode = hash_lookup(env->id_hash,p2name);
-  if (!hnode)
-  {
-    err("rc3: Boolean query %s doesn't exist\n",p2name);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != BQUERY)
-  {
-    err("rc4: %s is not a Boolean query\n",p2name);
-    return 0;
-  }
-  p2 = (BQuery *)hash_data->def;
+  char *p1name = (char*) command->l->l->data;
+  char *p2name = (char*) command->l->r->data;
+  BQuery *p1 = getBQuery(env, p1name);
+  BQuery *p2 = getBQuery(env, p2name);
 
   /* okay, now we want to search for a reduction from p1 to p2. */
   return redfind(p1,p2,k,c,n1,n2);
