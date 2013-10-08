@@ -1559,32 +1559,31 @@ char *ex_p1rec_exists(RedSearch *rsearch, Node *form,
   return ret;
 }
 
-Example *get_any_example(int n, const BQuery *p1)
+Example *get_any_example(Environment *env, int n, const BQuery *p1)
 {
   Example *e;
-  RelationSymbol *rs;
   ConsSymbol *cs;
   Vocabulary *voc = p1->voc;
   Interp *interp;
   int i, max, arity;
   Relation *rel;
 
-  string name = gensym(cur_env);
+  string name = gensym(env);
 
   // create a new structure
   std::stringstream structDef;
   structDef << name << ":=new structure{" << voc->name << "," << n;
-  for (rs=voc->rel_symbols; rs; rs=rs->next)
+  for (RelationSymbol *rs=voc->rel_symbols; rs; rs=rs->next)
     structDef << "," << rs->name << ":" << rs->arity << " is \\f";
   for (cs=voc->cons_symbols; cs; cs=cs->next)
     structDef << "," << cs->name << ":=0";
   structDef << "}.";
 
-  runCommand(structDef.str());
+  runCommand(env, structDef.str());
 
-  Structure *ex = getStructure(cur_env, name.c_str());
+  Structure *ex = getStructure(env, name.c_str());
   assert(ex);
-  removeBinding(cur_env, name.c_str());
+  removeBinding(env, name.c_str());
 
   e = (Example*) malloc(sizeof(Example));
   e->a=ex;
@@ -1608,84 +1607,37 @@ Example *get_any_example(int n, const BQuery *p1)
 /* solver has a satisfying assignment representing a counter-example.
  * Return it as a (Example *)
  */
-Example *ex_getsatex(minisat_solver *solver,
-    RedSearch *rsearch,
-    Environment *env)
-{
+Example *ex_getsatex(minisat_solver *solver, RedSearch *rsearch, Environment *env) {
   Vocabulary *voc=rsearch->p1->voc;
-  Structure *ex;
   Example *e;
-  RelationSymbol *rs;
   Relation *rel;
   ConsSymbol *cs;
   Constant *cons;
   int i,n=rsearch->n;
   int *tuple;
   int a;
-  char c;
   Interp *interp;
 
-  char *inp;
-  char name[6];
-
   char *relname, *consname;
-  Identifier *hash_data;
-  hnode_t *hnode;
 
-  int len=0,t;
-  for (c='A'; c<='Z'; c++)
-  {
-    for (t=0; t<999; t++)
-    {
-      sprintf(name,"%c%d",c,t);
-      hnode = hash_lookup(cur_env->id_hash, name);
-      if (!hnode)
-        break;
-    }
-    if (!hnode)
-      break;
-  }
-
-  len = 4+2+3+1+10+strlen(voc->name)+1+numdigits(n)+1;
-  /* A???:=new structure{vocab,n,*/
-  for (rs=voc->rel_symbols; rs; rs=rs->next)
-    len+=strlen(rs->name)+1+numdigits(rs->arity)+7;
-  /* NAME:arity is \f, */
+  string name = gensym(cur_env);
+  std::stringstream cmd;
+  cmd << name << ":=new structure{" << voc->name << "," << n;
+  for (RelationSymbol *rs=voc->rel_symbols; rs; rs=rs->next)
+    cmd << "," << rs->name << ":" << rs->arity << " is \\f";
   for (cs=voc->cons_symbols; cs; cs=cs->next)
-    len+=strlen(cs->name)+4; /*NAME:=0,*/
-  len+=4; /*}.\n\0*/
+    cmd << ","<<cs->name<<":=0";
+  cmd << "}.\n";
 
-  inp = (char*) malloc(sizeof(char)*len);
-
-  sprintf(inp,"%s:=new structure{%s,%d",name,voc->name,n);
-  for (rs=voc->rel_symbols; rs; rs=rs->next)
-  {
-    t=strlen(inp);
-    sprintf(inp+t,",%s:%d is \\f",rs->name,rs->arity);
-  }
-  for (cs=voc->cons_symbols; cs; cs=cs->next)
-  {
-    t=strlen(inp);
-    sprintf(inp+t,",%s:=0",cs->name);
-  }
-  strcat(inp,"}.\n");
-
-  runCommand(inp);
-  free(inp);
-
-  hnode = hash_lookup(cur_env->id_hash, name);
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  ex = (Structure *)hash_data->def;
-
-  hash_delete_free(cur_env->id_hash, hnode);
-  /* free(hash_data->name); */
-  free(hash_data);
+  runCommand(cur_env, cmd.str());
+  Structure *ex = getStructure(cur_env, name);
+  removeBinding(cur_env, name);
 
   e = (Example*) malloc(sizeof(Example));
   e->a=ex;
 
-  for (rs=voc->rel_symbols,i=0; rs; rs=rs->next)
+  RelationSymbol *rs;
+  for (rs=voc->rel_symbols; rs; rs=rs->next)
   {
     a=rs->arity;
     relname = rs->name;
@@ -2350,7 +2302,7 @@ char *ex_p2part_pred(RedSearch *rsearch, Node *form,
     Interp *interp)
 {
   Node *relargs=form->r;
-  char *relname = (char *)form->data;
+  const string relname((char *)form->data);
   Vocabulary *voc=rsearch->p2->voc;
 
   char *res;
@@ -2359,28 +2311,25 @@ char *ex_p2part_pred(RedSearch *rsearch, Node *form,
 
   RedTuple *rtup;
   int arity;
-  RelationSymbol *rs;
 
+  RelationSymbol *rs;
   for (rs=voc->rel_symbols; rs; rs=rs->next)
-    if (!strcmp(rs->name, relname))
+    if(relname == rs->name)
       break;
 
-  if (!rs)
-  {
+  if (!rs) {
     rsearch->abort=1;
-    printf("r11: redfind can't evaluate %s\n",relname);
+    printf("r11: redfind can't evaluate %s\n",relname.c_str());
     return ex_make_rf_form_true();
   }
 
   arity = rs->arity;
 
-  rtup = red_rf_argstotup(rsearch,relargs,arity,rsearch->p2->voc, outsize,
-      interp, relname);
-
+  rtup = red_rf_argstotup(rsearch,relargs,arity,rsearch->p2->voc, outsize, interp, relname.c_str());
   if (!rtup)
     return ex_make_rf_form_false();
 
-  res = ex_rf_getrelform(rsearch, relname, rtup);
+  res = ex_rf_getrelform(rsearch, relname.c_str(), rtup);
   tmp = (char*) malloc(sizeof(char)*(strlen(res)+3));
   sprintf(tmp,"(%s)",res);
   free(res);
@@ -2389,9 +2338,7 @@ char *ex_p2part_pred(RedSearch *rsearch, Node *form,
   return res;
 }
 
-char *ex_rf_getrelform(RedSearch *rsearch, char *relname,
-    RedTuple *rtup)
-{
+char *ex_rf_getrelform(RedSearch *rsearch, const char *relname, RedTuple *rtup) {
   int c=rsearch->c;
   int i;
   char *res=NULL, *tmp;
@@ -2408,9 +2355,7 @@ char *ex_rf_getrelform(RedSearch *rsearch, char *relname,
 /* return (%s), where the string is the formula corresponding to
  * clause cl of the reduction (rsearch->solver) for relname(rtup).
  */
-char *ex_rf_getrf_clause(RedSearch *rsearch, char *relname,
-    RedTuple *rtup,int cl)
-{
+char *ex_rf_getrf_clause(RedSearch *rsearch, const char *relname, RedTuple *rtup,int cl) {
   RedBVarList *bv;
   RedBVarList **clause;
   int *signs;

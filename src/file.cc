@@ -100,7 +100,7 @@ int do_load(Environment *env, Node *command) {
 
   /* make a structure with empty adjacency matrix */
   string cmd = stringf("%s:=new structure{graph,%d,E:2 is \\f,s:=0,t:=%d}.\n",assign_id,n,n-1);
-  runCommand(cmd); 
+  runCommand(env, cmd); 
 
   // get the structure we just made and fill it
   Structure *str = getStructure(env, assign_id);
@@ -341,7 +341,7 @@ int do_loadassign(Environment *env, Node *command)
   }
 
   buf = loadstring_getdec(assign_id,count,voc);
-  runCommand(buf); /* make a long, empty string */
+  runCommand(env, buf); /* make a long, empty string */
   free(buf);
 
   Structure *struc = getStructure(env, assign_id);

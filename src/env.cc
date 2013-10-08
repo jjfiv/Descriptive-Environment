@@ -10,7 +10,7 @@
 static Environment gbl_env;
 Environment *cur_env = &gbl_env;
 
-void runCommand(string cmd) {
+void runCommand(Environment *env, string cmd) {
   if(cmd == "" || cmd == "quit" || cmd == "help") 
     return;
   if(cmd.back() != '\n')
@@ -23,7 +23,7 @@ void runCommand(string cmd) {
     cerr << "failed to parse: " << cmd;
     return;
   }
-  do_cmd(cur_env, cmdtree->l);
+  do_cmd(env, cmdtree->l);
   yy_delete_buffer(bufstate);
 }
 
@@ -34,12 +34,12 @@ void init_env(void)
 
   cur_env->id_hash = hash_create(MAX_IDS, (hash_comp_t)strcmp, 0);	
   cur_env->next_id=0;
-  runCommand("sat is new vocabulary{P:2, N:2}.\n");
-  runCommand("minisat is new bquery{sat, \\t}.\n");
-  runCommand("graph is new vocabulary{E:2,s,t}.\n");
-  runCommand("threecolorwithsat is new bquery{graph, \\t}.\n");
-  runCommand("minisat2 is new bquery{sat, \\t}.\n");
-  runCommand("threecolorwithsat2 is new bquery{graph, \\t}.\n");
+  runCommand(cur_env, "sat is new vocabulary{P:2, N:2}.\n");
+  runCommand(cur_env, "minisat is new bquery{sat, \\t}.\n");
+  runCommand(cur_env, "graph is new vocabulary{E:2,s,t}.\n");
+  runCommand(cur_env, "threecolorwithsat is new bquery{graph, \\t}.\n");
+  runCommand(cur_env, "minisat2 is new bquery{sat, \\t}.\n");
+  runCommand(cur_env, "threecolorwithsat2 is new bquery{graph, \\t}.\n");
 }
 
 Identifier* getBinding(Environment *env, string name) {

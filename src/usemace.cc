@@ -110,7 +110,7 @@ int usemace(Environment *env, Node *form, Vocabulary *voc, char *name, int clock
     
     cmd << "}.\n";
 
-    runCommand(cmd.str());
+    runCommand(env, cmd.str());
   }
 
   Structure *str = getStructure(env, name);

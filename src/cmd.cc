@@ -27,7 +27,7 @@ void command_loop(void) {
     if (cmd == "quit") break;
     if (cmd == "help") { do_help(); continue; }
 
-    runCommand(cmd);
+    runCommand(cur_env, cmd);
   }
 }
 
@@ -1079,20 +1079,16 @@ int do_struc_assign(Environment *env, Node *command) {
 int do_redfind(Environment *env, Node *command) {
   int k, c, n1, n2;
 
-  if (!(command->r->l))
-  {
+  if (!(command->r->l)) {
     k=1;
     c=1;
     n1=n2=3;
-  }
-  else
-  {
+  } else {
     k=*(int *)command->r->l->data;
     c=*(int *)command->r->r->l->data;
     if (command->r->r->r->label != RF_RANGE)
       n1=n2=*(int *)command->r->r->r->data;
-    else
-    {
+    else {
       n1 = *(int *)command->r->r->r->l->data;
       n2 = *(int *)command->r->r->r->r->data;
     }
@@ -1106,7 +1102,7 @@ int do_redfind(Environment *env, Node *command) {
   if(!p2) return 0;
 
   /* okay, now we want to search for a reduction from p1 to p2. */
-  return redfind(p1,p2,k,c,n1,n2);
+  return redfind(env, p1,p2,k,c,n1,n2);
 }
 
 /* usemace is in mace/usemace.c */

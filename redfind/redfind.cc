@@ -33,7 +33,7 @@
  * are in CNF, and each formula must be a conjunction of at
  * most c disjunctions.
  */
-int redfind(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
+int redfind(Environment *env, const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
   Example *ex=NULL;
   RedHypot *hypot=NULL;
   RedSearch *rsearch = NULL;
@@ -51,10 +51,10 @@ int redfind(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
 
   red_constant_forms(rsearch);
 
-  ex = get_any_example(n1,p1);
+  ex = get_any_example(env, n1,p1);
 
 #ifdef REDFIND_DEBUG
-  red_printex(ex,rsearch);
+  red_printex(env, ex,rsearch);
 #endif
 
   while (!done)
@@ -89,7 +89,7 @@ int redfind(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
 
 #ifdef REDFIND_DEBUG
     printf("\n      -- Next candidate reduction --\n");
-    red_printhyp(hypot);
+    red_printhyp(env, hypot);
     printf("\n");
 #endif
 
@@ -121,7 +121,7 @@ int redfind(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
 #ifdef REDFIND_DEBUG
   printf("No counter-examples found.\n");
 #endif
-  red_printhyp(hypot);
+  red_printhyp(env, hypot);
   red_freersearch(rsearch);
   /* add_reduction(p1, p2, hypot); */
 
@@ -340,8 +340,7 @@ int red_checkfreetcvars(Node *form, Vocabulary *voc) {
 /* return 0 if there are no nested tc, 1 otherwise. depth is 1 if we're in
  * a TC currently */
 int red_checknestedtc(Node *form, int depth) {
-  switch (form->label)
-  {
+  switch (form->label) {
     case TRUE:
     case FALSE:
     case EQUALS:
@@ -377,8 +376,7 @@ int red_checknestedtc(Node *form, int depth) {
 
 #ifdef REDFIND_DEBUG
 /* debugging output, print the current example */
-void red_printex(Example *ex, RedSearch *rsearch)
-{
+void red_printex(Environment *env, Example *ex, RedSearch *rsearch) {
   Structure *str = ex->a;
   Relation *rel;
   int arity, size;
@@ -495,8 +493,8 @@ void red_freebvars(RedBVarList *bvars)
   return;
 }
 
-void red_printhyp(RedHypot *hyp) {
-  string name = gensym(cur_env);
+void red_printhyp(Environment *env, RedHypot *hyp) {
+  string name = gensym(env);
   string cmd = red_hypottocmd(hyp->rsearch,hyp, name);
   cout << ": " << cmd;
 }
@@ -532,32 +530,32 @@ void init_truefalse_rsearch(RedSearch *rsearch)
 {
   minisat_solver *solver=rsearch->solver;
   Environment *env=rsearch->hash;
-  RedBVarList *list = (RedBVarList*) malloc(sizeof(RedBVarList)<<1);
+  RedBVarList *rbl = (RedBVarList*) malloc(sizeof(RedBVarList)<<1);
 
-  list->pos = (char*) "T";
-  list->neg = NULL;
-  list->posVar=minisat_newVar(solver);
-  minisat_setFrozen(solver,list->posVar, minisat_l_True);
-  list->posLit=minisat_mkLit(list->posVar);
-  list->next = NULL;
+  rbl->pos = (char*) "T";
+  rbl->neg = NULL;
+  rbl->posVar=minisat_newVar(solver);
+  minisat_setFrozen(solver,rbl->posVar, minisat_l_True);
+  rbl->posLit=minisat_mkLit(rbl->posVar);
+  rbl->next = NULL;
 
-  hash_alloc_insert(env->id_hash, "T", list);
-  list++;
+  hash_alloc_insert(env->id_hash, "T", rbl);
+  rbl++;
 
-  list->pos = (char*) "F";
-  list->neg = NULL;
-  list->posVar=minisat_newVar(solver);
-  minisat_setFrozen(solver, list->posVar, minisat_l_True);
-  list->posLit=minisat_mkLit(list->posVar);
-  list->next = NULL;
+  rbl->pos = (char*) "F";
+  rbl->neg = NULL;
+  rbl->posVar=minisat_newVar(solver);
+  minisat_setFrozen(solver, rbl->posVar, minisat_l_True);
+  rbl->posLit=minisat_mkLit(rbl->posVar);
+  rbl->next = NULL;
 
-  hash_alloc_insert(env->id_hash, "F", list);
+  hash_alloc_insert(env->id_hash, "F", rbl);
 
   minisat_addClause_begin(solver);
-  minisat_addClause_addLit(solver, (list-1)->posLit);
+  minisat_addClause_addLit(solver, (rbl-1)->posLit);
   minisat_addClause_commit(solver);
   minisat_addClause_begin(solver);
-  minisat_addClause_addLit(solver, minisat_negate(list->posLit));
+  minisat_addClause_addLit(solver, minisat_negate(rbl->posLit));
   minisat_addClause_commit(solver);
   return;
 }
@@ -1090,9 +1088,7 @@ string red_hypottocmd(RedSearch *rsearch, RedHypot *red, string name)
   for (RedRelForms *rf=red->relforms; rf; rf=rf->next) {
     result << "," << rf->name << ":" << rf->arity << " is ";
     if (rf->c) {
-      char *tmp = red_rftodef(rf);
-      result << tmp;
-      free(tmp);
+      result << red_rftodef(rf);
     } else {
       result << "\\t";
     }
@@ -1111,14 +1107,14 @@ string red_hypottocmd(RedSearch *rsearch, RedHypot *red, string name)
 /* red is a red_hypot.  Return it as a (Reduction), where additional
  * parameters are from rsearch.
  */
-Reduction *red_hypottored(RedSearch *rsearch, RedHypot *red) {
-  string name = gensym(cur_env);
+Reduction *red_hypottored(Environment *env, RedSearch *rsearch, RedHypot *red) {
+  string name = gensym(env);
   string cmd = red_hypottocmd(rsearch,red, name);
-  runCommand(cmd);
+  runCommand(env, cmd);
 
-  Reduction *res = getReduction(cur_env, name);
+  Reduction *res = getReduction(env, name);
   assert(res);
-  removeBinding(cur_env, name);
+  removeBinding(env, name);
 
   return res;
 }
@@ -1520,7 +1516,7 @@ char *red_rf_getrelvar(RedSearch *rsearch, const char *relname,
 RedTuple *red_rf_argstotup(RedSearch *rsearch,
     Node *relargs, int arity, 
     Vocabulary *voc, int outsize, 
-    Interp *interp, char *relname)
+    Interp *interp, const char *relname)
 {
   int i,j,num_cons;
   RedTuple *tup;
@@ -1644,8 +1640,7 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
           len=12+numdigits(a1)+
             numdigits(a2)+numdigits(k1)+
             numdigits(k2);
-          if (k1<k2 || (k1==k2&&a1<a2))
-          {
+          if (k1<k2 || (k1==k2&&a1<a2)) {
             if (v1==v2)
               len+=3;
             lits[i]=(char*) malloc(sizeof(char)*len);
@@ -1655,7 +1650,6 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
               sprintf(lits[i],"noteq[x-%d-%d.x-%d-%d]",k1,a1,k2,a2);
             i++;
           }
-#ifdef REDFIND_SUCC
           if (v1!=v2+1)
             len = len+1;
           else
@@ -1666,7 +1660,6 @@ ConsBVars *red_getinconslits(RedSearch *rsearch,
           else
             sprintf(lits[i],"noteq[x-%d-%d.+x-%d-%d]",k1,a1,k2,a2);
           i++;
-#endif
         }
       }
       /* we did pairs of vars, now x-k1-a1=d */
@@ -1892,7 +1885,6 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
               sprintf(lits[i],"noteq[x-%d-%d.x-%d-%d]",k1,a1,k2,a2);
             i++;
           }
-#ifdef REDFIND_SUCC
           if (v1==v2+1)
             len = len+1;
           else
@@ -1903,7 +1895,6 @@ ConsBVars *red_getconslits(RedSearch *rsearch,
           else
             sprintf(lits[i],"noteq[x-%d-%d.+x-%d-%d]",k1,a1,k2,a2);
           i++;
-#endif
         }
       }
 
@@ -2093,10 +2084,8 @@ int red_getnumconslits(RedSearch *rsearch, ExRelation *er)
    * either they're equal or they're not
    */
   num_cons += ((k*arity)*(k*arity-1))>>1;
-#ifdef REDFIND_SUCC
   /* for each distinct pair of variables, x=y+1 or not */
   num_cons+=(k*arity)*(k*arity-1);
-#endif
 
   /* for each of (numb_cons)*k*arity constant (of p1->voc!)-variable
    * pairs, either they're equal or they're not
@@ -2858,7 +2847,6 @@ RedBVarList *red_add_veqv(RedSearch *rsearch,
           return 0;
         }
       }
-#ifdef REDFIND_SUCC
       tmp = (char*) malloc(sizeof(char)*(len+11+a+b+1));
       if (!tmp)
       {
@@ -2874,7 +2862,6 @@ RedBVarList *red_add_veqv(RedSearch *rsearch,
         printf("r??: No memory.\n");
         return 0;
       }
-#endif
     }
   }
 
@@ -3969,32 +3956,16 @@ char *red_cf_gettup(char *tup, int k, int len) {
 }
 
 /* return the formula in rf (i.e., a conjunction of its clauses) */
-char *red_rftodef(RedRelForms *rf) {
-  char *res;
-  char *tmp;
-  int len;
-  int i;
-  int c=rf->c;
-  char **forms = rf->forms;
+string red_rftodef(RedRelForms *rf) {
+  if(rf->c == 0)
+    return "\\t";
 
-  len = (c-1) + (c<<1)+1; /* '&' and '(',')' and '\0' */
-  for (i=0; i<c; i++)
-    len+=strlen(forms[i]);
-
-  res = (char*) malloc(sizeof(char)*len);
-  tmp = (char*) malloc(sizeof(char)*len);
-
-  res[0]='\0';
-  for (i=0; i<c; i++)
-  {
-    sprintf(tmp,"(%s)",forms[i]);
-    if (i!=0)
-      strcat(res,"|");
-    strcat(res,tmp);
+  std::stringstream dnf;
+  for (int i=0; i<rf->c; i++) {
+    if(i!=0) dnf << "|";
+    dnf << "(" << rf->forms[i] << ")";
   }
-
-  free(tmp);
-  return res;
+  return dnf.str();
 }
 
 /* free the relforms and consforms, but not hyp->rsearch */

@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     if(trimmed == "" || trimmed[0] == '#') continue;
     
     cout << "> " << trimmed << "\n";
-    runCommand(trimmed);
+    runCommand(cur_env, trimmed);
   }
 
 
