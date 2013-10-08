@@ -20,10 +20,13 @@
 #include "parse.h"
 #include "types.h"
 #include "protos.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <sstream>
 
 /* Tries to find a model of form with vocabulary voc, using Mace4.
  * Returns 0 if we didn't find a model, -1 if there was some error,
@@ -32,13 +35,9 @@
 int usemace(Environment *env, Node *form, Vocabulary *voc, char *name, int clock)
 {
   FILE *m;
-  char *inp;
-  Structure *str;
   RelationSymbol *rel;
   ConsSymbol *cons;
-  Identifier *hash_data;
-  hnode_t *hnode;
-  int n, t, formlength, arith;
+  int n,arith;
   char *tfn;
   char *mace;
   FILE *tmp;
@@ -47,7 +46,7 @@ int usemace(Environment *env, Node *form, Vocabulary *voc, char *name, int clock
    * name doesn't exist
    */
 
-  if (hash_lookup(env->id_hash, name))
+  if (getBinding(env, name))
   {
     err("53: %s already exists\n",name);
     return 0;
@@ -98,46 +97,25 @@ int usemace(Environment *env, Node *form, Vocabulary *voc, char *name, int clock
     return 0;
   }
 
-  formlength = strlen(name)+16+strlen(voc->name)+1+
-    numdigits(n)+1; /* name:=new structure{vocab,N,*/
-  for (rel=voc->rel_symbols; rel; rel=rel->next)
-    formlength += strlen(rel->name)+1+numdigits(rel->arity)+
-      7; /* NAME:arity is \f, */
-  for (cons=voc->cons_symbols; cons; cons=cons->next)
-    formlength += strlen(cons->name)+4; /* NAME:=0, */
-  formlength += 4; /* }.\n\0 */
-
-  inp = (char*) malloc(sizeof(char)*formlength);
-  if (!inp)
+  // create a new structure by evaluating string
   {
-    err("48: No memory.\n");
-    pclose(m);
-    remove(tfn);
-    return -1;
+    std::stringstream cmd;
+    cmd << name << ":=new structure{" << voc->name << "," << n;
+    
+    for (rel=voc->rel_symbols; rel; rel=rel->next)
+      cmd << "," << rel->name << ":" << rel->arity << " is \\f";
+    
+    for (cons=voc->cons_symbols; cons; cons=cons->next)
+      cmd << "," << cons->name << ":=0";
+    
+    cmd << "}.\n";
+
+    runCommand(cmd.str());
   }
 
-  sprintf(inp,"%s:=new structure{%s,%d",name,voc->name,n);
-  for (rel=voc->rel_symbols; rel; rel=rel->next)
-  {
-    t=strlen(inp);
-    sprintf(inp+t,",%s:%d is \\f",rel->name,rel->arity);
-  }
-  for (cons=voc->cons_symbols; cons; cons=cons->next)
-  {
-    t=strlen(inp);
-    sprintf(inp+t,",%s:=0",cons->name);
-  }
-  strcat(inp,"}.\n");
+  Structure *str = getStructure(env, name);
 
-  init_command(inp);
-  free(inp);
-
-  hnode = hash_lookup(env->id_hash, name);
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  str = (Structure *)hash_data->def;
-
-  int status = 1;
+  int status = 0;
   if(1 != make_mace_model(str,m)) {
     status = -1;
   }
