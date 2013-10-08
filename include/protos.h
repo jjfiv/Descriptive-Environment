@@ -31,6 +31,7 @@ void init_env(void);
 string gensym(Environment *env);
 Identifier* getBinding(Environment*, string name);
 void removeBinding(Environment*, string name);
+Identifier* makeBinding(Environment*, char *name, int type, void* data);
 BQuery* getBQuery(Environment*, string name);
 Structure* getStructure(Environment*, string name);
 Vocabulary* getVocab(Environment *env, string name);

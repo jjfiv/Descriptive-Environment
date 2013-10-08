@@ -119,6 +119,25 @@ string gensym(Environment *env) {
   return "";
 }
 
+Identifier* makeBinding(Environment *env, char* name, int type, void *data) {
+  Identifier *id = (Identifier*) malloc(sizeof(Identifier));
+  if(!id) {
+    cerr << "makeBinding::malloc error!\n";
+    return nullptr;
+  }
+  id->name = name;
+  id->def = data;
+  id->type = type;
+
+  if(!hash_alloc_insert(env->id_hash, id->name, id)) {
+    // TODO hash_alloc_insert error
+    cerr << "makeBinding::hash_alloc_insert error!\n";
+    return nullptr;
+  }
+
+  return id;
+}
+
 
 
 

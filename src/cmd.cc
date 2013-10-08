@@ -14,8 +14,7 @@ extern "C" {
 #include "minisat.h"
 }
 
-void command_loop(void)
-{
+void command_loop(void) {
   while(cin) {
     string cmd;
     // print prompt & flush
@@ -34,10 +33,8 @@ void command_loop(void)
 
 /* Executes the command pointed to by command.
 */
-int do_cmd(Environment* env, Node *command)
-{
-  switch (command->label)
-  {
+int do_cmd(Environment* env, Node *command) {
+  switch (command->label) {
     case ASSIGN:    return do_assign_command(env, command);
     case EXCONS:    return do_excons_command(env, command);
     case EXPRED:    return do_expred_command(env, command);
@@ -63,8 +60,8 @@ int do_abquery_command(Environment *env, Node *command)
   int res;
   Interp *interp;
 
-  const char *bname = (const char*) command->l->data;
-  const char *sname = (const char*) command->r->data;
+  const string bname = (const char*) command->l->data;
+  const string sname = (const char*) command->r->data;
 
   BQuery *bq = getBQuery(env, bname);
   if(!bq) return 0;
@@ -72,26 +69,19 @@ int do_abquery_command(Environment *env, Node *command)
   if(!struc) return 0;
 
   /* minisat is a builtin query using the Minisat-C solver */
-  if (!strcmp(bname, "minisat"))
-    return do_minisat_query(struc);
-  /* threecolorwithsat is an experimental builtin boolean query
-   * on graphs evaluated by composing a reduction with minisat.
-   */
-  else if (!strcmp(bname, "threecolorwithsat"))
-    return do_threecolorsat_query(struc);
-  else if (!strcmp(bname, "minisat2"))
-    return do_minisat2_query(struc);
-  else if (!strcmp(bname, "threecolorwithsat2"))
-    return do_threecolor_sat2_query(struc);
+  if(bname == "minisat") return do_minisat_query(struc);
+  if(bname == "minisat2") return do_minisat2_query(struc);
+  if(bname == "threecolorwithsat") return do_threecolorsat_query(struc);
+  if(bname == "threecolorwithsat2") return do_threecolor_sat2_query(struc);
 
+  // TODO bname == ?
   interp = new_interp(struc);
   res = eval(bq->form, interp, struc);
   free_interp(interp);
 
   /* can't keep the TC cache here */
   free_tc_caches(bq->form);
-  if (res)
-  {
+  if (res) {
     printf(":\\t\n");
     return 1;
   }
@@ -638,8 +628,6 @@ int do_assign_command(Environment *env, Node *command) {
  * the naturals, so E(0,0) is possible (instead of E(<0,0,0,0,0...>,<0,0,0..>).
  */ 
 int do_apply_assign(Environment *env, Node *command) {
-  Structure *new_id;
-
   Relation *rel;
   Relation *newr;
   Relation *prevr;
@@ -674,7 +662,7 @@ int do_apply_assign(Environment *env, Node *command) {
   if(!ostruc) return 0;
 
   /* TODO CHECK TYPES ON VOCABULARIES */
-  new_id = (Structure*) malloc(sizeof(Structure));
+  Structure *new_id = (Structure*) malloc(sizeof(Structure));
   rmap = make_rmap(reduc, ostruc);
   k = reduc->k;
   size = rmap->size;
@@ -829,44 +817,26 @@ int do_apply_assign(Environment *env, Node *command) {
   free(rmap->nat_to_tup);
   free(rmap->tup_to_nat);
   free(rmap);
-  
-  Identifier *hash_data = (Identifier*) malloc(sizeof(Identifier));
-  hash_data->name = new_id->name;
-  hash_data->def = new_id;
-  hash_data->type = STRUC;
-  /* TODO check if the id already exists */
-  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
-  {
-    /* TODO error handling */
-    return 1;
-  }
+
+  if(!makeBinding(env, new_id->name, STRUC, new_id))
+    return 0;
+
   return 1;
 }
 
 int do_bquery_assign(Environment *env, Node *command) {
-  char *vname;
-  char *name;
-  BQuery *new_id;
-
-  vname = (char*) command->r->l->data;
+  const char *vname = (char*) command->r->l->data;
 
   Vocabulary *vocab = getVocab(env, vname);
   if(!vocab) return 0;
 
-  name = dupstr((const char*) command->l->data);
-  new_id = (BQuery*) malloc(sizeof(BQuery));
+  char *name = dupstr((const char*) command->l->data);
+  BQuery *new_id = (BQuery*) malloc(sizeof(BQuery));
   new_id->name = name;
   new_id->voc = vocab;
   new_id->form = command->r->r;	
-
-  Identifier *hash_data = (Identifier*) malloc(sizeof(Identifier));
-  hash_data->name = new_id->name;
-  hash_data->def = new_id;
-  hash_data->type = BQUERY;
-
-  if (!hash_alloc_insert(env->id_hash, hash_data->name, hash_data))
-  {
-    /* TODO error handling */
+  
+  if(!makeBinding(env, name, BQUERY, new_id)) {
     return 0;
   }
 
@@ -884,7 +854,6 @@ int do_reduc_assign(Environment *env, Node *command) {
   int k;
   Relation *tmpr, *prevr=NULL;
   ConsForm *tmpc, *prevc=NULL;
-  Identifier *hash_data;
   char *rel_name;
   int rel_arity;
   Node *rel_form;
@@ -952,17 +921,9 @@ int do_reduc_assign(Environment *env, Node *command) {
     t = t->r;
   }
 
-  hash_data = (Identifier*) malloc(sizeof(Identifier));
-  hash_data->name = new_id->name;
-  hash_data->def = new_id;
-  hash_data->type=REDUC;
-
-  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
-  {
-    /*free_reduc(new_id */ /*TODO*/
-    /*error full hash */
+  if(!makeBinding(env, new_id->name, REDUC, new_id))
     return 0;
-  }
+
   return 1;
 }
 
@@ -976,7 +937,6 @@ int do_vocab_assign(Environment *env, Node *command) {
   RelationSymbol *prevr=NULL;
   ConsSymbol *tmpc;
   ConsSymbol *prevc=NULL;
-  Identifier *hash_data;
 
   t = cmdexpr->l;
 
@@ -1011,18 +971,9 @@ int do_vocab_assign(Environment *env, Node *command) {
     t=t->r;
   }
 
-  hash_data=(Identifier*) malloc(sizeof(Identifier));
-
-  hash_data->name = new_id->name;
-  hash_data->def = new_id;
-  hash_data->type = VOCAB;
-
-  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
-  {
-    /* free_vocab(new_id); */
-    /* error full hash */
+  if(!makeBinding(env, new_id->name, VOCAB, new_id))
     return 0;
-  }
+
   return 1;
 }
 
@@ -1041,8 +992,6 @@ int do_struc_assign(Environment *env, Node *command) {
 
   int *cache_pt;
   int size, cache_size, i;
-
-  Identifier *hash_data;
 
   char *rel_name;
   int rel_arity;
@@ -1120,21 +1069,9 @@ int do_struc_assign(Environment *env, Node *command) {
     t = t->r;
   }
 
-  hash_data=(Identifier*) malloc(sizeof(Identifier));
-
-  hash_data->name = new_id->name;
-  hash_data->def = new_id;
-  hash_data->type = STRUC;
-
-
-  /* TODO check if the id already exists and reject? if so */
-
-  if (!hash_alloc_insert(env->id_hash,hash_data->name,hash_data))
-  {
-    /* free_struc(new_id); */
-    /* error full hash */
+  if(!makeBinding(env, new_id->name, STRUC, new_id))
     return 0;
-  }
+
   return 1;
 }
 
