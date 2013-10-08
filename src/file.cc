@@ -28,30 +28,11 @@ int do_draw_command(Environment *env, Node *command)
 {
   char *tfn;
   FILE *tmp, *m;
-  Structure *str;
   char *exec;
 
   char *name= (char*) command->l->data;
 
-  Identifier *hash_data;
-  hnode_t *hnode = hash_lookup(env->id_hash, name);
-  int len;
-
-  if (!hnode)
-  {
-    err("56: Nonexistent object %s\n",name);
-    return 0;
-  }
-
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  if (hash_data->type!=STRUC)
-  {
-    err("57: %s is not a structure\n",name);
-    return 0;
-  }
-
-  str = (Structure*) hash_data->def;
+  Structure *str = getStructure(env, name);
 
   tfn = tmpnam(NULL);
   tmp = fopen(tfn,"w");
@@ -62,7 +43,7 @@ int do_draw_command(Environment *env, Node *command)
     return 0;
   }
 
-  len = strlen(tfn);
+  size_t len = strlen(tfn);
   exec = (char*) malloc(sizeof(char)*(len+8));
 
   if (!len)
@@ -101,10 +82,7 @@ int do_load(Environment *env, Node *command) {
   int c;
   char oc;
   int n,m, n_digits,buflen;
-  Structure *str;
   Relation *rel;
-  Identifier *hash_data;
-  hnode_t *hnode;
 
   /* fn has a leading and trailing \" that we want to remove,
    * so -2 length +1 for the \0
@@ -163,11 +141,9 @@ int do_load(Environment *env, Node *command) {
   init_command(buf); /* make a structure with empty adjacency matrix,
                       * now we fill it.
                       */
+  free(buf);
 
-  hnode = hash_lookup(env->id_hash, assign_id);
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  str = (Structure *)hash_data->def;
+  Structure *str = getStructure(env, assign_id);
   rel = get_relation("E", NULL, str);
 
   for (i=0; i<n*n;)
@@ -207,7 +183,6 @@ int do_load(Environment *env, Node *command) {
       rel->cache[(j-1)*n+i-1]=1; /* undirected */
     }
 
-  free(buf);
   return 1;
 }
 
@@ -217,44 +192,37 @@ int do_save_command(Environment *env, Node *command) {
   FILE *f;
   int fnl=strlen(fn);
   char *filename=(char*) malloc(fnl-1);
-  Identifier *hash_data;
-  hnode_t *hnode;
-
-  hnode = hash_lookup(env->id_hash, id);
-
-  if (!hnode)
-  {
+ 
+  Identifier *identifier = getBinding(env, id);
+  if(!identifier) {
     printf("37: Nonexistent object %s\n",id);
     return 0;
   }
-
-  hash_data = (Identifier*)hnode_get(hnode);
 
   strncpy(filename,fn+1,fnl-2);
   filename[fnl-2]='\0';
 
   f = fopen(filename, "r");
-  if (f)
-  {
+  if (f) {
     fclose(f);
     err("38: File already exists.\n");
     free(filename);
     return -1;
   }
 
-  switch (hash_data->type)
+  switch (identifier->type)
   {
     case STRUC:
       f = fopen(filename, "w");
-      return save_struc((Structure *)hash_data->def,
-          f);
+      return save_struc((Structure *)identifier->def, f);
     default:
       err("39: Saving this object is not supported.\n");
       free(filename);
       return -1;
   }
-  fclose(f);
+  
   free(filename);
+  fclose(f);
   return 1;
 }
 
@@ -349,10 +317,6 @@ int do_loadassign(Environment *env, Node *command)
   int  i;
   char *buf;
   int c;
-  Structure *struc;
-  Vocabulary *voc;
-  Identifier *hash_data;
-  hnode_t *hnode;
   int count=0;
   char *str;
   RelationSymbol *rs;
@@ -391,23 +355,8 @@ int do_loadassign(Environment *env, Node *command)
 
   fclose(f);
 
-  hnode = hash_lookup(env->id_hash, vocname);
-  if (!hnode)
-  {
-    printf("??: Vocabulary %s doesn't exist.\n",vocname);
-    free(str);
-    return -1;
-  }
-
-  hash_data = (Identifier*)hnode_get(hnode);
-  if (hash_data->type != VOCAB)
-  {
-    printf("??: %s is not a vocabulary.\n",vocname);
-    free(str);
-    return -1;
-  }
-
-  voc = (Vocabulary *)hash_data->def;
+  Vocabulary *voc = getVocab(env, vocname);
+  if(!voc) return -1;
 
   if (voc->cons_symbols)
   {
@@ -435,10 +384,7 @@ int do_loadassign(Environment *env, Node *command)
   init_command(buf); /* make a long, empty string */
   free(buf);
 
-  hnode = hash_lookup(env->id_hash, assign_id);
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  struc = (Structure *)hash_data->def;
+  Structure *struc = getStructure(env, assign_id);
 
   loadstring_convert(struc,count,str);
   free(str);
@@ -468,7 +414,7 @@ char *loadstring_getdec(char *assign_id, int count, Vocabulary *voc)
 
   sprintf(ret+strlen(ret)-1,"}.\n");
   return ret;
-  }
+}
 
 
 void loadstring_convert(Structure *struc, int count, char *str)

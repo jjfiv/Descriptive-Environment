@@ -78,6 +78,18 @@ Structure* getStructure(Environment *env, const char *name) {
   return (Structure *)id->def;
 }
 
+Vocabulary* getVocab(Environment *env, const char *name) {
+  Identifier *id = getBinding(env, name);
+  if(!id) {
+    err("22: Vocabulary %s does not exist\n",name);
+    return nullptr;
+  }
+  if(id->type != VOCAB) {
+    err("23: %s is not a vocabulary.\n",name);
+    return nullptr;
+  }
+  return (Vocabulary *)id->def;
+}
 
 
 

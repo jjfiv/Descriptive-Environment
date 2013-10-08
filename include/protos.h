@@ -30,6 +30,7 @@ void init_env(void);
 Identifier* getBinding(Environment*, const char*);
 BQuery* getBQuery(Environment*, const char*);
 Structure* getStructure(Environment*, const char*);
+Vocabulary* getVocab(Environment *env, const char *name);
 
 /* cmd.c */
 extern void command_loop(void);
