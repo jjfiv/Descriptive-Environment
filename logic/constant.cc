@@ -5,13 +5,15 @@
 
 #include "protos.h"
 #include "types.h"
-#include <string.h>
+#include <string>
+using std::string;
 
 Constant *get_constant(const char *name, const Structure *struc) {
-  Constant *cons = struc->cons;
+  const string qname(name);
 
-  while (cons && strcmp(cons->name, name))
-    cons=cons->next;
-
-  return cons;
+  for(Constant *cons = struc->cons; cons; cons=cons->next) {
+    if(cons->name == qname)
+      return cons;
+  }
+  return nullptr;
 }
