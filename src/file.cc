@@ -26,39 +26,26 @@
 /* Calls Marco's program to draw a structure */
 int do_draw_command(Environment *env, Node *command)
 {
-  char *tfn;
-  FILE *tmp, *m;
-  char *exec;
-
-  char *name= (char*) command->l->data;
+  const char *name= (const char*) command->l->data;
 
   Structure *str = getStructure(env, name);
 
-  tfn = tmpnam(NULL);
-  tmp = fopen(tfn,"w");
-
+  char *tfn = tmpnam(NULL);
+  FILE *tmp = fopen(tfn,"w");
   if (!tmp)
   {
     err("58: Can't open temporary file %s for writing\n",tfn);
     return 0;
   }
 
-  size_t len = strlen(tfn);
-  exec = (char*) malloc(sizeof(char)*(len+8));
-
-  if (!len)
-  {
-    err("59: No memory\n");
-    fclose(tmp);
-    return 0;
-  }
-
   save_struc(str, tmp);
 
-  sprintf(exec, "de_draw %s",tfn);
-  m = popen(exec, "r");
-  if (!m)
+  const string prog = string("de_draw ")+tfn;
+  FILE *m = popen(prog.c_str(), "r");
+  if (!m) {
     err("60: Unable to execute de_draw\n");
+  }
+
   pclose(m);
   remove(tfn);
   return 0;
@@ -77,11 +64,10 @@ int do_load(Environment *env, Node *command) {
   char *assign_id = (char*) command->l->data;
   FILE *f;
   int  i,j,k;
-  char *buf;
   char tmp[8];
   int c;
   char oc;
-  int n,m, n_digits,buflen;
+  int n,m;
   Relation *rel;
 
   /* fn has a leading and trailing \" that we want to remove,
@@ -130,19 +116,11 @@ int do_load(Environment *env, Node *command) {
     return -1;
   }
 
-  /* need n digits to represent n */
-  n_digits=numdigits(n);
+  /* make a structure with empty adjacency matrix */
+  string cmd = stringf("%s:=new structure{graph,%d,E:2 is \\f,s:=0,t:=%d}.\n",assign_id,n,n-1);
+  runCommand(cmd); 
 
-  buflen = strlen(assign_id)+22+(n_digits<<1)+19+4;
-  buf = (char*) malloc(sizeof(char)*buflen);
-  /* TODO check malloc */
-
-  sprintf(buf,"%s:=new structure{graph,%d,E:2 is \\f,s:=0,t:=%d}.\n",assign_id,n,n-1);
-  init_command(buf); /* make a structure with empty adjacency matrix,
-                      * now we fill it.
-                      */
-  free(buf);
-
+  // get the structure we just made and fill it
   Structure *str = getStructure(env, assign_id);
   rel = get_relation("E", NULL, str);
 

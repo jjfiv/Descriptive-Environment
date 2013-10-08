@@ -4,6 +4,7 @@
 #include "protos.h"
 #include <cstring>
 #include <cstdlib>
+#include <cstdarg>
 
 /* strdup implementation.  strdup is non-ANSI and a reserved name for string.h */
 char *dupstr(const char *inp)
@@ -79,4 +80,27 @@ string simplify(const string &str) {
   return out;
 }
 
+string stringf(const char* fmt, ...) {
+  string buf;
+  int len = 0;
+  va_list args;
+
+  // calculate length
+  va_start(args, fmt);
+  len = vsnprintf(nullptr, 0, fmt, args)+1;
+  va_end(args);
+
+  // resize buf appropriately
+  buf.resize(len);
+
+  // fill in data
+  va_start(args, fmt);
+  len = vsnprintf(&buf[0], buf.size(), fmt, args);
+  va_end(args);
+
+  // chop null
+  buf.resize(len); 
+
+  return buf;
+}
 

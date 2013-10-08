@@ -158,6 +158,7 @@ extern char *dupstr(const char *);
 extern long de_pow(int x, short p);
 extern List *free_list(List *);
 extern string simplify(const string &);
+extern string stringf(const char *fmt, ...);
 
 #endif
 
