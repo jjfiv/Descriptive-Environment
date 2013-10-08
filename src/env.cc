@@ -91,7 +91,18 @@ Vocabulary* getVocab(Environment *env, const char *name) {
   return (Vocabulary *)id->def;
 }
 
-
+Reduction* getReduction(Environment *env, const char *name) {
+  Identifier *id = getBinding(env, name);
+  if(!id) {
+    err("22: Reduction %s does not exist\n",name);
+    return nullptr;
+  }
+  if(id->type != REDUC) {
+    err("23: %s is not a reduction.\n",name);
+    return nullptr;
+  }
+  return (Reduction *)id->def;
+}
 
 
 

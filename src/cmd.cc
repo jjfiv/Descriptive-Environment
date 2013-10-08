@@ -481,10 +481,7 @@ int do_minisat_query(const Structure *struc)
 }
 
 int do_listtuple_command(Environment *env, Node *command) {
-  Structure *str;
   Relation *rel;
-  Identifier *hash_data;
-  hnode_t *hnode;
   int arity, size;
   int *tuple=NULL;
   Interp *interp;
@@ -494,23 +491,9 @@ int do_listtuple_command(Environment *env, Node *command) {
   char* sname = (char*) command->l->data;
   char* rname = (char*) command->r->data;
 
-  hnode = hash_lookup(env->id_hash, sname);
+  Structure *str = getStructure(env, sname);
+  if(!str) return 0;
 
-  if (!hnode)
-  {
-    printf("10: Nonexistent structure %s\n",sname);
-    return 0;
-  }
-
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  if (hash_data->type != STRUC)
-  {
-    printf("12: %s is not a structure.\n",sname);
-    return 0;
-  }
-
-  str = (Structure *)hash_data->def;
   rel = get_relation(rname, NULL, str);
 
   if (!rel)
@@ -563,9 +546,6 @@ int do_listtuple_command(Environment *env, Node *command) {
 }
 
 int do_expred_command(Environment *env, Node *command) {
-  Structure *str;
-  Identifier *hash_data;
-  hnode_t *hnode;
   int value;
   char ans;
   Interp *inter;
@@ -573,23 +553,8 @@ int do_expred_command(Environment *env, Node *command) {
   char* sname = (char*) command->l->data;
   char* rname = (char*) command->r->data;
 
-  hnode = hash_lookup(env->id_hash, sname);
-
-  if (!hnode)
-  {
-    printf("7: Nonexistent structure %s\n",sname);
-    return 0;
-  }
-
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  if (hash_data->type != STRUC)
-  {
-    printf("12: %s is not a structure.\n",sname);
-    return 0;
-  }
-
-  str = (Structure *)hash_data->def;
+  Structure *str = getStructure(env, sname);
+  if(!str) return 0;
 
   inter = new_interp(str);
   value = eval(command->r, inter, str);
@@ -608,40 +573,20 @@ int do_expred_command(Environment *env, Node *command) {
 }
 
 int do_excons_command(Environment *env, Node *command) {
-  Structure *str;
   Constant *cons;
   char *sname;
   char *cname;
-  Identifier *hash_data;
-  hnode_t *hnode;
   Interp *interp;
   int value;
 
   sname = (char *)command->l->data;
   cname = (char *)command->r->data;
 
-  hnode = hash_lookup(env->id_hash, sname);
-
-  if (!hnode)
-  {
-    printf("6: Nonexistent structure %s\n",sname);
-    return 0;
-  }
-
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  if (hash_data->type != STRUC)
-  {
-    printf("28: %s is not a structure.\n",sname);
-    return 0;
-  }
-
-  str = (Structure *)(hash_data->def);
+  Structure *str = getStructure(env, sname);
+  if(!str) return 0;
 
   cons = get_constant(cname,str);
-
-  if (!cons)
-  {
+  if (!cons) {
     printf("33: Constant %s does not exist in %s\n",cname,sname);
     return 0;
   }
@@ -666,13 +611,13 @@ int do_excons_command(Environment *env, Node *command) {
 
 int do_assign_command(Environment *env, Node *command) {
   char *new_name = (char*) command->l->data;
-  if (hash_lookup(env->id_hash, new_name))
-  {
+
+  if (getBinding(env, new_name)) {
     err("22: %s already exists\n", new_name);
     return 0;
   }
-  switch (command->r->label)
-  {
+
+  switch (command->r->label) {
     case VOCAB:      return do_vocab_assign(env, command);
     case STRUC:      return do_struc_assign(env, command);
     case REDUC:      return do_reduc_assign(env, command);
@@ -693,8 +638,6 @@ int do_assign_command(Environment *env, Node *command) {
  * the naturals, so E(0,0) is possible (instead of E(<0,0,0,0,0...>,<0,0,0..>).
  */ 
 int do_apply_assign(Environment *env, Node *command) {
-  Reduction *reduc;
-  Structure *ostruc;
   Structure *new_id;
 
   Relation *rel;
@@ -717,8 +660,6 @@ int do_apply_assign(Environment *env, Node *command) {
   int size, relsize;
   int **values;
 
-  hnode_t *hnode;
-  Identifier *hash_data;
   Interp *interp;
   int firstcall;
   ReductionMap *rmap;
@@ -727,35 +668,10 @@ int do_apply_assign(Environment *env, Node *command) {
   /* this should already be checked in do_assign_command above 
    * (chj 11/1/11)
    */
-  hnode = hash_lookup(env->id_hash, command->r->l->data); /* reduc */
-  if (!hnode)
-  {
-    err("15: Nonexistent reduction or query %s\n",(char *)command->r->l->data);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != REDUC)
-  {
-    err("34: %s is not a reduction\n",(char *)command->r->l->data);
-    return 0;
-  }
-
-  reduc = (Reduction *)hash_data->def;
-
-  hnode = hash_lookup(env->id_hash, command->r->r->data); /* struc */
-  if (!hnode)
-  {
-    err("35: Structure %s does not exist\n",(char *)command->r->r->data);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != STRUC)
-  {
-    err("36: %s is not a structure\n",(char *)command->r->r->data);
-    return 0;
-  }
-
-  ostruc = (Structure *)hash_data->def;
+  Reduction *reduc = getReduction(env, (const char*) command->r->l->data);
+  if(!reduc) return 0;
+  Structure *ostruc = getStructure(env, (const char*) command->r->r->data);
+  if(!ostruc) return 0;
 
   /* TODO CHECK TYPES ON VOCABULARIES */
   new_id = (Structure*) malloc(sizeof(Structure));
@@ -913,7 +829,8 @@ int do_apply_assign(Environment *env, Node *command) {
   free(rmap->nat_to_tup);
   free(rmap->tup_to_nat);
   free(rmap);
-  hash_data = (Identifier*) malloc(sizeof(Identifier));
+  
+  Identifier *hash_data = (Identifier*) malloc(sizeof(Identifier));
   hash_data->name = new_id->name;
   hash_data->def = new_id;
   hash_data->type = STRUC;
@@ -929,31 +846,20 @@ int do_apply_assign(Environment *env, Node *command) {
 int do_bquery_assign(Environment *env, Node *command) {
   char *vname;
   char *name;
-  Identifier *hash_data;
-  hnode_t *hnode;
   BQuery *new_id;
 
   vname = (char*) command->r->l->data;
-  hnode = hash_lookup(env->id_hash, vname);
-  if (!hnode)
-  {
-    err("16: Vocabulary %s doesn't exist\n",vname);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != VOCAB)
-  {
-    err("17: %s is not a vocabulary\n",vname);
-    return 0;
-  }
+
+  Vocabulary *vocab = getVocab(env, vname);
+  if(!vocab) return 0;
 
   name = dupstr((const char*) command->l->data);
   new_id = (BQuery*) malloc(sizeof(BQuery));
   new_id->name = name;
-  new_id->voc = (Vocabulary *)hash_data->def;
+  new_id->voc = vocab;
   new_id->form = command->r->r;	
 
-  hash_data = (Identifier*) malloc(sizeof(Identifier));
+  Identifier *hash_data = (Identifier*) malloc(sizeof(Identifier));
   hash_data->name = new_id->name;
   hash_data->def = new_id;
   hash_data->type = BQUERY;
@@ -975,13 +881,10 @@ int do_reduc_assign(Environment *env, Node *command) {
   char *fvname, *tvname;
 
   Reduction *new_id;
-  Vocabulary *from_vocab;
-  Vocabulary *to_vocab;
   int k;
   Relation *tmpr, *prevr=NULL;
   ConsForm *tmpc, *prevc=NULL;
   Identifier *hash_data;
-  hnode_t *hnode;
   char *rel_name;
   int rel_arity;
   Node *rel_form;
@@ -989,37 +892,11 @@ int do_reduc_assign(Environment *env, Node *command) {
   fvname = (char*) cmdexpr->l->l->l->data;
   tvname = (char*) cmdexpr->l->l->r->data;
 
-  hnode = hash_lookup(env->id_hash, fvname);
-  if (!hnode)
-  {
-    err("14: Vocabulary %s doesn't exist\n",fvname);
-    return 0;
-  }
-  hash_data = (Identifier*)hnode_get(hnode);
+  Vocabulary *from_vocab = getVocab(env, fvname);
+  if(!from_vocab) return 0;
+  Vocabulary *to_vocab = getVocab(env, tvname);
+  if(!to_vocab) return 0;
 
-  if (hash_data->type != VOCAB)
-  {
-    err("15: %s is not a vocabulary\n",fvname);
-    return 0;
-  }
-
-  from_vocab = (Vocabulary *)hash_data->def;
-
-  hnode = hash_lookup(env->id_hash, tvname);
-  if (!hnode)
-  {
-    err("14: Vocabulary %s doesn't exist\n",tvname);
-    return 0;
-  }
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  if (hash_data->type != VOCAB)
-  {
-    err("15: %s is not a vocabulary\n",tvname);
-    return 0;
-  }
-
-  to_vocab = (Vocabulary *)hash_data->def;
   k = *(int *)(cmdexpr->r->l->data);
   t = cmdexpr->l->r;
   new_id = (Reduction*) malloc(sizeof(Reduction)); 
@@ -1162,9 +1039,6 @@ int do_struc_assign(Environment *env, Node *command) {
   Constant *tmpc;
   Constant *prevc=0;
 
-  Vocabulary *voc;
-  hnode_t *hnode; 
-  char *vname;
   int *cache_pt;
   int size, cache_size, i;
 
@@ -1176,23 +1050,9 @@ int do_struc_assign(Environment *env, Node *command) {
 
   t = cmdexpr->l;
 
-  vname=(char*) t->l->l->data;
-
-  hnode = hash_lookup(env->id_hash, vname);
-  if (!hnode)
-  {
-    printf("2: Nonexistent vocabulary\n");
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-
-  if (hash_data->type != VOCAB)
-  {
-    printf("13: %s is not a vocabulary\n",vname);
-    return 0;
-  }
-
-  voc = (Vocabulary *) hash_data->def;
+  const char *vname = (const char*) t->l->l->data;
+  Vocabulary *voc = getVocab(env, vname);
+  if(!voc) return 0;
 
   if ((size=teval(t->l->r,new_interp(NULL),NULL))<0)
   {
@@ -1314,34 +1174,19 @@ int do_redfind(Environment *env, Node *command) {
 
 /* usemace is in mace/usemace.c */
 int do_mace(Environment *env, Node *command) {
-  Identifier *hash_data;
-  hnode_t *hnode;
-  char *vname = (char*) command->r->l->l->data, *freevar;
-  Vocabulary *vocab;
-  Node *form;
-  int clock;
-  hnode = hash_lookup(env->id_hash,vname);
-  if (!hnode)
-  {
-    err("40: Vocabulary %s doesn't exist\n",vname);
-    return 0;
-  }
-  hash_data = (Identifier *)hnode_get(hnode);
-  if (hash_data->type != VOCAB)
-  {
-    err("41: %s is not a vocabulary\n",vname);
-    return 0;
-  }
+  const char *vname = (char*) command->r->l->l->data;
 
-  vocab = (Vocabulary *)hash_data->def;
-  form = command->r->l->r;
-  freevar = free_var(form,vocab);
-  if (freevar)
-  {
+  Vocabulary *vocab = getVocab(env, vname);
+  if(!vocab) return 0;
+
+  Node *form = command->r->l->r;
+  char *freevar = free_var(form,vocab);
+  if (freevar) {
     err("42: %s is free.\n",freevar);
     return 0;
   }
-  clock = 0;
+
+  int clock = 0;
   if (command->r->r)
     clock = command->r->r->ndata;
   return usemace(env, form, vocab, (char*) command->l->data, clock);
