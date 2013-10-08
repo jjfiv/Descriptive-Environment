@@ -24,30 +24,12 @@
 #include <ctype.h>
 
 /* Calls Marco's program to draw a structure */
-int do_draw_command(Environment *env, Node *command)
-{
-  const char *name= (const char*) command->l->data;
+int do_draw_command(Environment *env, Node *command) {
+  //const char *name= (const char*) command->l->data;
+  //Structure *str = getStructure(env, name);
 
-  Structure *str = getStructure(env, name);
+  cout << "TODO\n";
 
-  char *tfn = tmpnam(NULL);
-  FILE *tmp = fopen(tfn,"w");
-  if (!tmp)
-  {
-    err("58: Can't open temporary file %s for writing\n",tfn);
-    return 0;
-  }
-
-  save_struc(str, tmp);
-
-  const string prog = string("de_draw ")+tfn;
-  FILE *m = popen(prog.c_str(), "r");
-  if (!m) {
-    err("60: Unable to execute de_draw\n");
-  }
-
-  pclose(m);
-  remove(tfn);
   return 0;
 }
 
@@ -359,7 +341,7 @@ int do_loadassign(Environment *env, Node *command)
   }
 
   buf = loadstring_getdec(assign_id,count,voc);
-  init_command(buf); /* make a long, empty string */
+  runCommand(buf); /* make a long, empty string */
   free(buf);
 
   Structure *struc = getStructure(env, assign_id);

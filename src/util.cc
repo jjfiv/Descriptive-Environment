@@ -4,21 +4,20 @@
 #include "protos.h"
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
 #include <cstdarg>
 
 /* strdup implementation.  strdup is non-ANSI and a reserved name for string.h */
-char *dupstr(const char *inp)
-{
+char *dupstr(const char *inp) {
   int len = strlen(inp);
   char *copy = (char*) malloc(sizeof(char)*(len+1));
-
   if (!copy)
-    return copy;
+    return nullptr;
 
+  for(int i=0; i<len; i++) {
+    copy[i] = inp[i];
+  }
   copy[len] = '\0';
-
-  for (len--; len>=0; len--)
-    copy[len] = inp[len];
 
   return copy;
 }
@@ -103,4 +102,5 @@ string stringf(const char* fmt, ...) {
 
   return buf;
 }
+
 

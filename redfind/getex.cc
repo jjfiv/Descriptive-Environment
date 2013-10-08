@@ -19,15 +19,18 @@
 #include "redtypes.h"
 #include "protos.h"
 #include "redprotos.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
 #include <ctype.h>
 #include <time.h>
 #include "parse.h"
 #include "minisat.h"
 #include <sys/time.h>
+
+#include <sstream>
+#include <string>
 
 #ifndef REDFIND_RANDEX
 #define REDFIND_RANDEX 1
@@ -1558,69 +1561,30 @@ char *ex_p1rec_exists(RedSearch *rsearch, Node *form,
 
 Example *get_any_example(int n, const BQuery *p1)
 {
-  Structure *ex;
   Example *e;
   RelationSymbol *rs;
   ConsSymbol *cs;
   Vocabulary *voc = p1->voc;
-  Identifier *hash_data;
-  hnode_t *hnode;
-  char *inp;
   Interp *interp;
-  char name[6];
-  char c;
   int i, max, arity;
   Relation *rel;
 
-  int len=0,t;
-  for (c='A'; c<='Z'; c++)
-  {
-    for (t=0; t<999; t++)
-    {
-      sprintf(name,"%c%d",c,t);
-      hnode = hash_lookup(cur_env->id_hash, name);
-      if (!hnode)
-        break;
-    }
-    if (!hnode)
-      break;
-  }
+  string name = gensym(cur_env);
 
-  len = 4+2+3+1+10+strlen(voc->name)+1+numdigits(n)+1;
-  /* A???:=new structure{vocab,n,*/
+  // create a new structure
+  std::stringstream structDef;
+  structDef << name << ":=new structure{" << voc->name << "," << n;
   for (rs=voc->rel_symbols; rs; rs=rs->next)
-    len+=strlen(rs->name)+1+numdigits(rs->arity)+7;
-  /* NAME:arity is \f, */
+    structDef << "," << rs->name << ":" << rs->arity << " is \\f";
   for (cs=voc->cons_symbols; cs; cs=cs->next)
-    len+=strlen(cs->name)+4; /*NAME:=0,*/
-  len+=4; /*}.\n\0*/
+    structDef << "," << cs->name << ":=0";
+  structDef << "}.";
 
-  inp = (char*) malloc(sizeof(char)*len);
+  runCommand(structDef.str());
 
-  sprintf(inp,"%s:=new structure{%s,%d",name,voc->name,n);
-  for (rs=voc->rel_symbols; rs; rs=rs->next)
-  {
-    t=strlen(inp);
-    sprintf(inp+t,",%s:%d is \\f",rs->name,rs->arity);
-  }
-  for (cs=voc->cons_symbols; cs; cs=cs->next)
-  {
-    t=strlen(inp);
-    sprintf(inp+t,",%s:=0",cs->name);
-  }
-  strcat(inp,"}.\n");
-
-  init_command(inp);
-  free(inp);
-
-  hnode = hash_lookup(cur_env->id_hash, name);
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  ex = (Structure *)hash_data->def;
-
-  hash_delete_free(cur_env->id_hash, hnode);
-  /* free(hash_data->name); */
-  free(hash_data);
+  Structure *ex = getStructure(cur_env, name.c_str());
+  assert(ex);
+  removeBinding(cur_env, name.c_str());
 
   e = (Example*) malloc(sizeof(Example));
   e->a=ex;
@@ -1706,7 +1670,7 @@ Example *ex_getsatex(minisat_solver *solver,
   }
   strcat(inp,"}.\n");
 
-  init_command(inp);
+  runCommand(inp);
   free(inp);
 
   hnode = hash_lookup(cur_env->id_hash, name);

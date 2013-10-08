@@ -6,6 +6,8 @@
 #include "parse.h"
 #include <cstdio> /* for FILE * */
 #include <string>
+#include <sstream>
+#include <iostream>
 using namespace std;
 #include "soe_parse.tab.hh"
 
@@ -25,13 +27,14 @@ extern void yy_delete_buffer (YY_BUFFER_STATE  b );
 
 /* env.c */
 void runCommand(string cmd);
-void init_command(const char *);
 void init_env(void);
-Identifier* getBinding(Environment*, const char*);
-BQuery* getBQuery(Environment*, const char*);
-Structure* getStructure(Environment*, const char*);
-Vocabulary* getVocab(Environment *env, const char *name);
-Reduction* getReduction(Environment *env, const char *name);
+string gensym(Environment *env);
+Identifier* getBinding(Environment*, string name);
+void removeBinding(Environment*, string name);
+BQuery* getBQuery(Environment*, string name);
+Structure* getStructure(Environment*, string name);
+Vocabulary* getVocab(Environment *env, string name);
+Reduction* getReduction(Environment *env, string name);
 
 /* cmd.c */
 extern void command_loop(void);
@@ -154,11 +157,12 @@ extern int make_mace_model(Structure *, FILE *);
 extern int need_arithmetic(Node *);
 
 /* util.c */
-extern char *dupstr(const char *);
-extern long de_pow(int x, short p);
-extern List *free_list(List *);
-extern string simplify(const string &);
-extern string stringf(const char *fmt, ...);
+char *dupstr(const char *);
+long de_pow(int x, short p);
+List *free_list(List *);
+string simplify(const string &);
+string stringf(const char *fmt, ...);
+string temporaryFileName();
 
 #endif
 

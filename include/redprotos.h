@@ -13,6 +13,8 @@
 #include "parse.h"
 #include "redtypes.h"
 #include "minisat.h"
+#include <string>
+using std::string;
 
 #ifndef RED_MAXVARS
 #define RED_MAXVARS 65536
@@ -174,7 +176,7 @@ extern ConsBVars *red_getconslits(RedSearch *, const Example *, ExRelation *);
 extern char *make_predform(RedSearch*,const Example*);
 extern List *red_free_exrel(Environment *env, List *);
 extern void red_add_exrel(RedSearch *,char *,char *,RedTuple *);
-extern char *red_hypottocmd(RedSearch *, RedHypot *);
+extern string red_hypottocmd(RedSearch *, RedHypot *, string);
 extern char *red_cf_getconsform(ConsSymbol *,RedBVarList *,int);
 extern RedRelForms *red_relform_addlit(RedRelForms *, RedBVarList *, RelationSymbol *, int, int, int);
 extern char *make_rf_tc(RedSearch *, Node *, Interp *, const Example *);

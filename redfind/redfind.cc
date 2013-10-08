@@ -495,12 +495,10 @@ void red_freebvars(RedBVarList *bvars)
   return;
 }
 
-void red_printhyp(RedHypot *hyp)
-{
-  char *cmd = red_hypottocmd(hyp->rsearch,hyp);
-  printf(": %s",cmd);
-  free(cmd);
-  return;
+void red_printhyp(RedHypot *hyp) {
+  string name = gensym(cur_env);
+  string cmd = red_hypottocmd(hyp->rsearch,hyp, name);
+  cout << ": " << cmd;
 }
 
 RedSearch *red_init_rsearch(const BQuery *p1, const BQuery *p2, int k, int c, int n1, int n2) {
@@ -1072,128 +1070,56 @@ RedHypot *red_getsatred(RedSearch *rsearch)
 }
 
 /* returns the DE command for red_hypot */
-char *red_hypottocmd(RedSearch *rsearch, RedHypot *red)
+string red_hypottocmd(RedSearch *rsearch, RedHypot *red, string name)
 {
-  char c;
-  hnode_t *hnode;
-  char *inp;
   char *voc1=rsearch->p1->voc->name;
   char *voc2=rsearch->p2->voc->name;
-  RedRelForms *rf;
-  int tt;
-  char *tmpinp;
-  char *tmp;
   int k=rsearch->k;
-  char phi0[]="\\t"; /* Currently, we assume phi0==\t, as this
-                      * simplifies the map between new elements of the
-                      * universe and k-tuples
-                      */
-  char **relforms;
-  char name[5];
-  List *cf;
+  const char *phi0="\\t"; /* Currently, we assume phi0==\t, as this
+                           * simplifies the map between new elements of the
+                           * universe and k-tuples
+                           */
 
-  int len=0,t;
-  for (c='A'; c<='Z'; c++)
-  {
-    for (tt=0; tt<999; tt++)
-    {
-      sprintf(name,"%c%d",c,tt);
-      hnode = hash_lookup(cur_env->id_hash, name);
-      if (!hnode)
-        break;
+  std::stringstream result;
+
+  result << name << ":=new reduction{";
+  result << voc1 << "," << voc2 << "," << k << "," << phi0;
+
+  // list relations
+  int t=0;
+  for (RedRelForms *rf=red->relforms; rf; rf=rf->next) {
+    result << "," << rf->name << ":" << rf->arity << " is ";
+    if (rf->c) {
+      char *tmp = red_rftodef(rf);
+      result << tmp;
+      free(tmp);
+    } else {
+      result << "\\t";
     }
-    if (!hnode)
-      break;
-  }
-  sprintf(name,"%c%d",c,tt);
-
-  len=4+2+3+1+10+strlen(voc1)+1+strlen(voc2)+1+numdigits(k)+1+
-    strlen(phi0)+1; /* A???:=new reduction{voc1,voc2,k,phi0, */
-
-  t=0;
-  for (rf=red->relforms; rf; rf=rf->next)
     t++;
-
-  relforms = (char**) malloc(sizeof(char**)*t);
-  for (t=0,rf=red->relforms; rf; t++,rf=rf->next)
-  {
-    if (rf->c)
-      tmp = red_rftodef(rf);
-    else
-    {
-      tmp=(char*) malloc(sizeof(char)*3);
-      sprintf(tmp,"\\t");
-    }
-    len+=strlen(rf->name)+1+numdigits(rf->arity)+4+
-      strlen(tmp)+1; /* NAME:arity is tmp, */
-    relforms[t]=tmp;
   }
 
-  for (cf=red->consforms; cf; cf=cf->next)
-    len+=strlen((char *)cf->data)+1; /* c is \phi, */
-
-  len+=4; /* }.\n\0 */
-
-  inp = (char*) malloc(sizeof(char)*len);
-  tmpinp = (char*) malloc(sizeof(char)*len);
-
-  sprintf(inp,"%s:=new reduction{%s,%s,%d,%s",name,voc1,voc2,k,phi0);
-  for (t=0,rf=red->relforms; rf; t++,rf=rf->next)
-  {
-    sprintf(tmpinp,",%s:%d is %s",rf->name,rf->arity,relforms[t]);
-    free(relforms[t]);
-    strcat(inp,tmpinp);
+  // list constants
+  for(List *cf=red->consforms; cf; cf=cf->next) {
+    result << "," << (char*) cf->data;
   }
-  free(relforms);
-  free(tmpinp);
 
-  for (cf=red->consforms; cf; cf=cf->next)
-  {
-    strcat(inp,",");
-    strcat(inp,(char *)cf->data);
-  }
-  strcat(inp,"}.\n");
-  return inp;
+  result << "}.\n";
+  return result.str();
 }
 
 /* red is a red_hypot.  Return it as a (Reduction), where additional
  * parameters are from rsearch.
  */
-Reduction *red_hypottored(RedSearch *rsearch,
-    RedHypot *red)
-{
-  Identifier *hash_data;
-  hnode_t *hnode;
-  char *inp = red_hypottocmd(rsearch,red);
-  char name[5];
-  Reduction *res;
-  char c;
-  int tt;
-  for (c='A'; c<='Z'; c++)
-  {
-    for (tt=0; tt<999; tt++)
-    {
-      sprintf(name,"%c%d",c,tt);
-      hnode = hash_lookup(cur_env->id_hash, name);
-      if (!hnode)
-        break;
-    }
-    if (!hnode)
-      break;
-  }
-  sprintf(name,"%c%d",c,tt);
+Reduction *red_hypottored(RedSearch *rsearch, RedHypot *red) {
+  string name = gensym(cur_env);
+  string cmd = red_hypottocmd(rsearch,red, name);
+  runCommand(cmd);
 
-  init_command(inp);
-  free(inp);
+  Reduction *res = getReduction(cur_env, name);
+  assert(res);
+  removeBinding(cur_env, name);
 
-  hnode = hash_lookup(cur_env->id_hash, name);
-  hash_data = (Identifier*)hnode_get(hnode);
-
-  res = (Reduction *)hash_data->def;
-
-  hash_delete_free(cur_env->id_hash, hnode);
-  /* free(hash_data->name); */
-  free(hash_data);
   return res;
 }
 

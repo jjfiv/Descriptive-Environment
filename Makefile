@@ -53,6 +53,10 @@ OCFLAGS:=-O3 -fomit-frame-pointer
 #OCFLAGS = -O3 -g 
 #OCFLAGS = -O0 -g
 
+ifdef DEBUG
+	OCFLAGS += -g
+endif
+
 ifdef REDFIND_SUCC
 OCFLAGS += -DREDFIND_SUCC
 endif
