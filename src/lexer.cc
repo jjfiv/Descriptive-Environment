@@ -184,9 +184,9 @@ static vector<LexerStringAction> StringActions = {
 };
 
 struct Token {
-  Token(TokenType t): type(t) { }
-  Token(int number): type(NUMBER), integer(number) { }
-  Token(TokenType t, string s): type(t), data(s) { }
+  Token(TokenType t, int l, int c): type(t), line(l), col(c) { }
+  Token(int number, int l, int c): type(NUMBER), integer(number) { }
+  Token(TokenType t, string s, int l, int c): type(t), data(s) { }
 
   string toString() {
     if(type == NUMBER) {
@@ -201,6 +201,10 @@ struct Token {
   TokenType type;
   int integer;
   string data;
+
+  // for debugging / errors
+  int line = -1;
+  int col = -1;
 };
 
 class LexerStream {
@@ -211,6 +215,7 @@ class LexerStream {
 
     void skip(int n) {
       buffer = buffer.substr(n);
+      col += n;
     }
     int peek() {
       if(!ensure(1))
@@ -230,6 +235,10 @@ class LexerStream {
       if(!ensure(1))
         return -1;
       char result = buffer[0];
+      if(result == '\n') {
+        line ++;
+        col = 0;
+      }
       buffer = buffer.substr(1);
       return result;
     }
@@ -249,6 +258,8 @@ class LexerStream {
       // return 
       return readAmt >= delta;
     }
+    int line = 0;
+    int col = 0;
   private:
     string buffer;
     std::ifstream fp;
@@ -257,12 +268,14 @@ class LexerStream {
 
 static Token fileName(LexerStream &input) {
   assert(input.peek() == '\"');
+  int line = input.line;
+  int col = input.col;
   input.next();
   string str;
   while(input.peek() != '\"' && input.peek() != -1) {
     str += (char) input.next();
   }
-  return Token(FILENAME, str);
+  return Token(FILENAME, str, line, col);
 }
 
 static void ignoreWhitespace(LexerStream &input) {
@@ -276,14 +289,15 @@ Token nextToken(LexerStream &input) {
     case '\"':
       return fileName(input);
     case -1:
-      return NEWLINE;
+      return {NEWLINE, input.line, input.col};
     case '\n':
       input.skip(1);
-      return NEWLINE;
+      return {NEWLINE, input.line, input.col};
     case '\t': case ' ':
       ignoreWhitespace(input);
       return nextToken(input);
-    default: break;
+    default:
+      break;
   }
 
   // table driven lexing
@@ -291,10 +305,11 @@ Token nextToken(LexerStream &input) {
     const string &id = action.s;
     if(input.peekEquals(id)) {
       input.skip(id.size());
-      return action.type;
+      return {action.type, input.line, input.col};
     }
   }
 
-  return ERROR;
+  input.skip(1);
+  return {ERROR, input.line, input.col};
 }
 
