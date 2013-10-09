@@ -62,7 +62,6 @@ extern int fileno(FILE *);
 
 "redfind"       {return REDFIND;}
 "fd"		{return FD;}
-"\""		{return QUOTE;}
 "{"		{return LBRACE;}
 "}"		{return RBRACE;}
 "is"		{return ASSIGN;}

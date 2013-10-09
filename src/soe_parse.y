@@ -77,7 +77,6 @@
 %token VOCAB
 %token STRUC
 
-%token QUOTE
 %token REDUC
 %token BQUERY
 %token QUERY

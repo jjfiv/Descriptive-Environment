@@ -10,6 +10,7 @@
 #include <iostream>
 using namespace std;
 #include "soe_parse.tab.hh"
+#include "util.hh"
 
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 extern YY_BUFFER_STATE yy_scan_string (const char *yy_str  );
@@ -147,14 +148,6 @@ int print_mace(FILE *, Node *);
 int t_print_mace(FILE *, Node *);
 int make_mace_model(Structure *, FILE *);
 int need_arithmetic(Node *);
-
-/* util.c */
-char *dupstr(const char *);
-long de_pow(int x, short p);
-List *free_list(List *);
-string simplify(const string &);
-string stringf(const char *fmt, ...);
-string temporaryFileName();
 
 #endif
 
