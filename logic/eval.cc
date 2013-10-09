@@ -38,19 +38,27 @@
       r = teval(formr,interp,struc); \
   } while(0)
 
-/* Node *parse(char *formula)
- *
- * Returns the root of an AST representing formula.
- * Returns null if this is not possible.
- */
 
-/* 
-   Node *parse(char *formula)
-   {
-   return NULL;
+static InterpSymbol* findInterpSymbol(Interp *interp, const string name) {
+  for(InterpSymbol *is=interp->symbols; is; is=is->next) {
+    if(name == is->name) {
+      return is;
+    }
+  }
+  return nullptr;
+}
 
-   }
-   */
+static InterpSymbol* putInterpSymbol(Interp *interp, const char *name, int value) {
+  InterpSymbol *is = (InterpSymbol*) malloc(sizeof(InterpSymbol));
+  is->name = dupstr(name);
+  is->value = value;
+
+  // insert into list
+  is->next = interp->symbols;
+  interp->symbols = is;
+
+  return is;
+}
 
 /* initiate interp to have one element for each variable and constant symbol
  * that we need to interpret in form.  For each node, set a pointer to the 
@@ -101,26 +109,21 @@ void eval_init_form(Node *form, Interp *interp, const Structure *struc) {
     case PLUS:
     case MINUS:
       eval_init_form(form->r, interp, struc);
+      eval_init_form(form->l, interp, struc);
+      return;
     case NOT:
       eval_init_form(form->l, interp, struc);
       return;
     case CONSTANT:
     case VAR:
       name = (char *)form->data;
-      for (is=interp->symbols; is; is=is->next)
-        if (!strcmp(is->name,name))
-        {
-          form->ival=&(is->value);
-          return;
-        }
-      is = (InterpSymbol*) malloc(sizeof(InterpSymbol));
-      is->name=dupstr(name);
-      is->value=-2;
-      if (!strcmp("max",name))
-        is->value = struc->size-1;
+      is = findInterpSymbol(interp, name);
+      if(!is) {
+        is = putInterpSymbol(interp, name, -2);
+        if (!strcmp("max",name)) // max is magical
+          is->value = struc->size-1;
+      }
       form->ival=&(is->value);
-      is->next = interp->symbols;
-      interp->symbols = is;
       return;
     case EXISTS:
     case FORALL:
@@ -148,27 +151,15 @@ void eval_init_form_q(Node *form, Interp *interp, const Structure *struc) {
   Node *restr = form->l->r;
   Node *phi = form->r;
   Node *tnode;
-  char *name;
 
-  InterpSymbol *is;
-
-  for (tnode=varlist; tnode; tnode=tnode->r)
-  {
-    name = (char*) tnode->data;
-    for (is=interp->symbols; is; is=is->next)
-      if (!strcmp(is->name,name))
-      {
-        tnode->ival=&(is->value);
-        break;
-      }
-    if (is)
-      continue;
-    is = (InterpSymbol*) malloc(sizeof(InterpSymbol));
-    is->name=dupstr(name);
-    is->value=-2;
-    tnode->ival=&(is->value);
-    is->next = interp->symbols;
-    interp->symbols = is;
+  for (tnode=varlist; tnode; tnode=tnode->r) {
+    const char *name = (const char*) tnode->data;
+    InterpSymbol *is = findInterpSymbol(interp, name);
+    if (!is) {
+      is = putInterpSymbol(interp, name, -2);
+    }
+    assert(is);
+    tnode->ival = &(is->value);
   }
 
   if (restr)
@@ -242,8 +233,7 @@ int eval(Node *form, Interp *interp, const Structure *struc) {
   char *fv;
   eval_init_form(form, interp, struc);
   fv = free_var_fast(form,interp,struc);
-  if (fv)
-  {
+  if (fv) {
     printf("??: Symbol %s occurs free in formula.\n",fv);
     return 0;
   }
@@ -597,8 +587,7 @@ int eval_exists(Node *form, Interp *interp, const Structure *struc) {
   int *old_values;
   int **values;
 
-  while (tnode)
-  {
+  while (tnode) {
     arity++;
     tnode = tnode->r;
   }
@@ -609,8 +598,7 @@ int eval_exists(Node *form, Interp *interp, const Structure *struc) {
 
   tnode = varlist;
 
-  for (i=0; i<arity; i++)
-  {
+  for (i=0; i<arity; i++) {
     varnames[i]=(char*) tnode->data;
     values[i]=tnode->ival;
     old_values[i]=*(values[i]);
@@ -713,9 +701,8 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
    * or so formula.
    */
   rel = get_relation((char*) form->data, interp, struc);
-  if (!rel)
-  {
-    printf("4:Relation symbol %s is undefined\n",(char *)form->l->data);
+  if (!rel) {
+    printf("4:Relation symbol %s is undefined\n",(char *)form->data);
     return -1;
   }
   arity = rel->arity;
@@ -723,11 +710,9 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
   relargs = form->r;
   size = struc->size;
 
-  for (i=0; relargs && i<arity; i++)
-  {
+  for (i=0; relargs && i<arity; i++) {
     tup[i] = teval(relargs->l, interp, struc);
-    if (tup[i]>=struc->size || tup[i]<0)
-    {
+    if (tup[i]>=struc->size || tup[i]<0) {
 #ifdef DEBUG
       printf("d: %dth argument to %s out of range\n",i,rel->name);
 #endif
@@ -737,15 +722,13 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
     }
     relargs = relargs->r;
   }
-  if (relargs || i!=arity)
-  {
+  if (relargs || i!=arity) {
     printf("6: Relation symbol %s used with incorrect arity\n",rel->name);
     free(tup);
     return -1;
   }
 
-  if (rel->cache)
-  {
+  if (rel->cache) {
     num = tuple_cindex(tup, arity, size);
     if (rel->cache[num]>=0)
     {
@@ -758,8 +741,7 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
   /* instead of two small mallocs, cast for clarity */
   values = (int **)(old_values+arity);
 
-  for (i=0; i<arity; i++)
-  {
+  for (i=0; i<arity; i++) {
     values[i] = get_xi_ival(i+1,interp);
     old_values[i] = *(values[i]);
     *(values[i]) = tup[i];
@@ -770,8 +752,7 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
   for (i=0; i<arity; i++)
     *(values[i]) = old_values[i];
 
-  if (rel->cache)
-  {
+  if (rel->cache) {
     num = tuple_cindex(tup, arity, size);
     rel->cache[num]=res;
   }
@@ -789,8 +770,7 @@ int teval(Node *form, Interp *interp, const Structure *struc) {
   if (!form)
     return -1;
 #endif
-  switch (form->label)
-  {
+  switch (form->label) {
     case CONSTANT:
     case VAR:
       return *(form->ival);
