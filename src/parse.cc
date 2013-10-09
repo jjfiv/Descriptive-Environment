@@ -5,6 +5,7 @@
 #include "parse.h"
 #include <string.h>
 #include "protos.h"
+#include "lexer.hh"
 
 /**
  * Global variables
@@ -144,3 +145,48 @@ void yyerror(const char *s)
   printf("%s\n",s);
 }
 
+/*
+// subvector
+vector<Token> subv(const vector<Token> &in, int start) {
+  return vector<Token>(in.begin()+start, in.end());
+}
+
+static Node *mkNode() {
+  return (Node*) malloc(sizeof(Node));
+}
+
+static Node* identifier(const Token &id) {
+  return snode(ID, id.data.c_str());
+}
+
+using namespace Lexer;
+Node* newParse(vector<Token> input) {
+  //assign_cmd
+  if(input[0] == Lexer::IDENTIFIER &&
+     input[1] == Lexer::ASSIGN) {
+    return node(ASSIGN, identifier(input[0]), cmdexpr(subv(input, 2)));
+  }
+  
+  //struc_ex_cmd
+  if(input[0] == Lexer::IDENTIFIER &&
+     input[1] == Lexer::PERIOD &&
+     input[3] == Lexer::LPAREN) {
+    return node(EXPRED, identifier(input[0]),
+        vlnode(PRED, input[2].c_str(),
+        relargs(subv(input,4)));
+  }
+
+  if(input[0] == Lexer::IDENTIFIER &&
+     input[1] == Lexer::PERIOD &&
+     input[2] == Lexer::IDENTIFIER) {
+    return node(EXPREDALL, identifier(input[0]), identifier(input[2]));
+  }
+
+  if(input[0] == Lexer::IDENTIFIER &&
+     input[1] == Lexer::ASSIGN) {
+  return node(ASSIGN, identifier(input[0])
+  }
+
+  return nullptr;
+}
+*/

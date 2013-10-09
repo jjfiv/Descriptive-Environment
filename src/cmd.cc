@@ -8,6 +8,8 @@
 #include <iostream>
 using namespace std;
 
+static int do_explain_command(Environment *env, Node *command);
+
 extern "C" {
 #define DE_MINISAT /* omit unused bits of MiniSat to avoid warnings */
 #include "solver.h"
@@ -47,7 +49,7 @@ void command_loop(void) {
 int do_cmd(Environment* env, Node *command) {
   switch (command->label) {
     case ASSIGN:    return do_assign_command(env, command);
-    case EXCONS:    return do_excons_command(env, command);
+    case EXPLAIN:   return do_explain_command(env, command);
     case EXPRED:    return do_expred_command(env, command);
     case EXPREDALL: return do_listtuple_command(env, command);
     case ABQUERY:   return do_abquery_command(env, command);
@@ -497,8 +499,7 @@ int do_listtuple_command(Environment *env, Node *command) {
 
   rel = get_relation(rname, NULL, str);
 
-  if (!rel)
-  {
+  if (!rel) {
     printf("11: Relation %s does not exist in %s\n",rname,sname);
     return 0;
   }
@@ -573,41 +574,45 @@ int do_expred_command(Environment *env, Node *command) {
   return 1;
 }
 
-int do_excons_command(Environment *env, Node *command) {
-  Constant *cons;
-  char *sname;
-  char *cname;
-  Interp *interp;
-  int value;
-
-  sname = (char *)command->l->data;
-  cname = (char *)command->r->data;
-
-  Structure *str = getStructure(env, sname);
+/**
+ * Does something with the following forms:
+ * Struct.R.
+ * Struct.R(args)
+ * Struct.const
+ */
+static int do_explain_command(Environment *env, Node *command) {
+  const string structName = (const char*)command->l->data;
+  Structure *str = getStructure(env, structName);
   if(!str) return 0;
 
-  cons = get_constant(cname,str);
-  if (!cons) {
-    printf("33: Constant %s does not exist in %s\n",cname,sname);
-    return 0;
+  string query = (const char*) command->r->data;
+  // find out if it's a relation or a constant
+  Relation *rel = get_relation(query, nullptr, str);
+  Constant *constant = get_constant(query, str);
+
+  if(constant) {
+    Interp* interp = new_interp(str);
+
+    int value = constant->value;
+    if(value == -1)
+      value=teval(constant->parse_cache, interp, str);
+
+    free(interp);
+    if(value == -1) {
+      cout << "7: Invalid constant definition for " 
+           << structName << "." << query <<"\n";
+      return 0;
+    }
+    cout << ":" << value << "\n";
+    return 1;
+  } else if(rel) {
+    if(command->r->r) { // has something in parens
+      do_expred_command(env, command);
+    } else {
+      do_listtuple_command(env, command);
+    }
   }
-
-  interp = new_interp(str);
-
-  /* done?: TODO check if this is right and free that interp */
-  value = cons->value;
-  if (value==-1)
-    value=teval(cons->parse_cache, interp, str);
-
-  free(interp);
-  if (value == -1)
-  {
-    printf("7: Invalid constant definition for %s.%s\n",sname,cname);
-    return 0;
-  }
-
-  printf(":%d\n",value);
-  return 1;
+  return 0;
 }
 
 int do_assign_command(Environment *env, Node *command) {

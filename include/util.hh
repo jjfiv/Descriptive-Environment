@@ -2,7 +2,11 @@
 #define _UTIL_HH
 
 #include <string>
+#include <iostream>
 using std::string;
+
+#define show(x) \
+  std::cout << __FILE__ ":" << __LINE__ << ": " #x << " = " << x << '\n'
 
 typedef struct List List;
 

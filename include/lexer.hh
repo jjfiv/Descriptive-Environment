@@ -70,6 +70,9 @@ struct Token {
   Token(int number, int l, int c): type(NUMBER), integer(number), line(l), col(c) { }
   Token(TokenType t, string s, int l, int c): type(t), data(s), line(l), col(c) { }
 
+  bool operator==(const TokenType rhs) { return type == rhs; }
+
+  const char* c_str() const { return data.c_str(); }
   string toString() const;
 
   TokenType type;

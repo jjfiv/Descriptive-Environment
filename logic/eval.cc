@@ -764,36 +764,12 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
 int teval(Node *form, Interp *interp, const Structure *struc) {
   int l, r;
   Node *forml, *formr;
-#if 0 /* this really should never happen */
-  char *name;
-  int value;
-  if (!form)
-    return -1;
-#endif
   switch (form->label) {
     case CONSTANT:
     case VAR:
       return *(form->ival);
-#if 0 /* none of that should ever happen */
-      name = (char *)form->data;
-      /* max, but NULL struc may be used in redfind.
-       * we'll add it to the interpretation in that case.
-       */
-      if (form->ival)
-        return *(form->ival);
-      if (!strcmp(name,"max") && struc)
-        return struc->size-1;
-      value = get_interp_value(name,interp);
-      if (value<0)
-      {
-        printf("9:Symbol %s not in interpretation.\n",name);
-        return -1;
-      }
-      return value;
-#endif
     case NUMBER:
       return form->ndata;
-
     case MULT:
       setlr();
       return l*r;
@@ -806,7 +782,6 @@ int teval(Node *form, Interp *interp, const Structure *struc) {
     default:
       return -1;
   }
-
 }
 
 /* free the TC caches in form */

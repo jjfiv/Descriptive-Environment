@@ -12,22 +12,23 @@
 #include <string.h>
 #include <stdio.h>
 
-Relation *get_relation(const char *name, const Interp *inter, const Structure *struc)
-{
-  /* ignore inter for now :-P */
-  Relation *rel=0;
-
-  if (inter)
-    rel = inter->rel_symbols;
-
-  while (rel && strcmp(rel->name, name))
-    rel = rel->next;
-  if (rel || !struc)
-    return rel;
-  rel = struc->rels;
-  while (rel && strcmp(rel->name, name))
-    rel=rel->next;
-  return rel;
+Relation *get_relation(const string &name, const Interp *inter, const Structure *struc) {
+  assert(inter || struc);
+  // use interpretation first
+  if (inter) {
+    for(Relation *rel = inter->rel_symbols; rel; rel = rel->next) {
+      if(name == rel->name)
+        return rel;
+    }
+  }
+  // then use structure
+  if(struc) {
+    for(Relation *rel = struc->rels; rel; rel = rel->next) {
+      if(name == rel->name)
+        return rel;
+    }
+  }
+  return nullptr;
 }
 
 /* doesn't combine with fast interpretations -- use OUTSIDE of

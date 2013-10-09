@@ -129,11 +129,11 @@ char *add_tup_to_output(char *, const int *, const int, const int);
 int *cindex_to_tuple(int *, const int, const int, const int);
 
 /* relation.c */
-Relation *get_relation(const char *, const Interp *, const Structure *);
+Relation *get_relation(const string &, const Interp *, const Structure *);
 void fill_relcache(Relation *, Structure *);
 
 /* constant.c */
-Constant *get_constant(const char *, const Structure *);
+Constant *get_constant(const string &, const Structure *);
 
 /* reduc.c */
 ReductionMap *make_rmap(const Reduction *, Structure *);

@@ -103,7 +103,7 @@
 %token ERROR
 
 %token VARLIST VLR EXPREDALL TCARGS CRRELDEF SOVARLIST LFPARGS
-%token RELARGS EXCONS EXPRED APPLY CRCONSDEF ABQUERY
+%token RELARGS EXPRED APPLY CRCONSDEF ABQUERY EXPLAIN
 
 %token RF_RANGE
 
@@ -291,11 +291,11 @@ bquery_cmd:
 
 struc_ex_cmd:
     id PERIOD PRED LPAREN relargs RPAREN  
-       {$$=node(EXPRED,$1,vlnode(PRED,$3,$5));} 
+       {$$=node(EXPLAIN,$1,vlnode(PRED,$3,$5));} 
   | id PERIOD pred 
-       {$$=node(EXPREDALL,$1,$3);}
+       {$$=node(EXPLAIN,$1,$3);}
   | id PERIOD constant
-       {$$=node(EXCONS,$1,$3);}
+       {$$=node(EXPLAIN,$1,$3);}
   ;
 
 assign_cmd:
