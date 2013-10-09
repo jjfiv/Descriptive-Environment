@@ -14,6 +14,24 @@ extern "C" {
 #include "minisat.h"
 }
 
+#include "lexer.hh"
+
+void debug_lexer(string cmd) {
+  cout << "debug_lexer: "<<cmd<< "\n";
+  using namespace Lexer;
+  istringstream ss(cmd);
+  LexerStream lex(ss);
+  
+  while(true) {
+    Token next = nextToken(lex);
+    cout << next.toString() << " ";
+    if(next.type == Lexer::NEWLINE || next.type == Lexer::ERROR) {
+      cout << "\n";
+      return;
+    }
+  }
+}
+
 void command_loop(void) {
   while(cin) {
     string cmd;
@@ -22,6 +40,8 @@ void command_loop(void) {
 
     if(!getline(cin, cmd)) break;
     cmd = simplify(cmd);
+
+    debug_lexer(cmd);
 
     if (cmd == "") continue;
     if (cmd == "quit") break;

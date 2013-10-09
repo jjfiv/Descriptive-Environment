@@ -4,7 +4,7 @@
 #include <string>
 using std::string;
 
-typedef struct List;
+typedef struct List List;
 
 char *dupstr(const char *);
 long de_pow(int x, short p);

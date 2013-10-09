@@ -108,7 +108,7 @@ endif
 
 
 CFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c11
-CXXFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c++11 -fpermissive
+CXXFLAGS:=${OCFLAGS} ${WCFLAGS} -Wall -Wno-strict-aliasing -std=c++11
 
 MY_INCLUDES:=-Iinclude -Isrc
 
@@ -133,6 +133,7 @@ CORE_SRCS := src/cmd.o \
 	src/parse.o \
 	src/reduc.o \
 	src/usemace.o \
+	src/lexer.o \
 	src/util.o
 
 MAIN_O := src/main.o

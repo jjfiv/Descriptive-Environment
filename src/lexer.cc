@@ -1,73 +1,18 @@
 #include <string>
 #include <cassert>
 #include <cstdio>
-#include <iostream>
-#include <fstream>
 #include <vector>
+#include "lexer.hh"
 #include "util.hh"
 using std::string;
 using std::vector;
 
+using namespace Lexer;
+
+/**
+ * toString functionality starts here
+ */
 #define returnAsString(tt) case tt: return #tt
-enum TokenType {
-  TC,
-  IFP,
-  FORALL,
-  EXISTS,
-  LPAREN,
-  RPAREN,
-  LBRACK,
-  RBRACK,
-
-  AND,
-  OR,
-  NOT,
-  IFF,
-  IMPLIES,
-  XOR,
-
-  LT,
-  LTE,
-  EQUALS,
-  NEQUALS,
-
-  TRUE,
-  FALSE,
-  MULT,
-  PLUS,
-  MINUS,
-  COMMA,
-  COLON,
-
-  REDFIND,
-  QUOTE,
-  LBRACE,
-  RBRACE,
-  ASSIGN,
-  NEW,
-  REDUC,
-  BQUERY,
-  QUERY,
-  STRUC,
-  VOCAB,
-  LOAD,
-  LOADSTRING,
-  SAVE,
-  SIZE,
-  DRAW,
-  MACE,
-
-  CONSTANT,
-  NUMBER,
-  VAR,
-  PRED,
-  FILENAME,
-
-  NEWLINE,
-  PERIOD,
-  ERROR,
-};
-
 static const char* tokenTypeToString(TokenType tt) {
   switch(tt) {
     returnAsString(TC);
@@ -112,16 +57,23 @@ static const char* tokenTypeToString(TokenType tt) {
     returnAsString(SIZE);
     returnAsString(DRAW);
     returnAsString(MACE);
-    returnAsString(CONSTANT);
     returnAsString(NUMBER);
-    returnAsString(VAR);
-    returnAsString(PRED);
-    returnAsString(FILENAME);
+    returnAsString(QUOTED);
+    returnAsString(IDENTIFIER);
     returnAsString(NEWLINE);
     returnAsString(PERIOD);
     returnAsString(ERROR);
   }
   return "UNKNOWN";
+}
+string Token::toString() const {
+  if(type == NUMBER) {
+    return stringf("NUMBER(%d)", integer);
+  }
+  if(data.size()) {
+    return string(tokenTypeToString(type))+"("+data+")";
+  }
+  return tokenTypeToString(type);
 }
 
 struct LexerCharAction {
@@ -164,6 +116,8 @@ static vector<LexerStringAction> StringActions = {
   {"size", SIZE},
   {"draw", DRAW},
   {"mace", MACE},
+  {"{", LBRACE},
+  {"}", RBRACE},
   {"(", LPAREN},
   {")", RPAREN},
   {"[", LBRACK},
@@ -183,90 +137,56 @@ static vector<LexerStringAction> StringActions = {
   {":", COLON}
 };
 
-struct Token {
-  Token(TokenType t, int l, int c): type(t), line(l), col(c) { }
-  Token(int number, int l, int c): type(NUMBER), integer(number) { }
-  Token(TokenType t, string s, int l, int c): type(t), data(s) { }
-
-  string toString() {
-    if(type == NUMBER) {
-      return stringf("NUMBER(%d)", integer);
-    }
-    if(data.size()) {
-      return string(tokenTypeToString(type))+"("+data+")";
-    }
-    return tokenTypeToString(type);
+bool LexerStream::good() const {
+  return is.good() || buffer.size();
+}
+void LexerStream::skip(int n) {
+  buffer = buffer.substr(n);
+  col += n;
+}
+int LexerStream::peek() {
+  if(!ensure(1))
+    return -1;
+  return buffer[0];
+}
+bool LexerStream::peekEquals(const string &ref) {
+  if(!ensure(ref.size()))
+    return false;
+  for(size_t i=0; i<ref.size(); i++) {
+    if(buffer[i] != ref[i])
+      return false;
   }
+  return true;
+}
+int LexerStream::next() {
+  if(!ensure(1))
+    return -1;
+  char result = buffer[0];
+  if(result == '\n') {
+    line ++;
+    col = 0;
+  }
+  buffer = buffer.substr(1);
+  return result;
+}
+bool LexerStream::ensure(size_t n) {
+  if(n < buffer.size()) return true;
+  int delta = (n - buffer.size());
+  
+  // read into a tmp buffer
+  vector<char> tmp;
+  tmp.reserve(4096);
+  is.read(&tmp[0], 4096);
+  int readAmt = is.gcount();
 
-  TokenType type;
-  int integer;
-  string data;
+  // append to string what we can
+  buffer.append(&tmp[0], readAmt);
 
-  // for debugging / errors
-  int line = -1;
-  int col = -1;
-};
+  // return 
+  return readAmt >= delta;
+}
 
-class LexerStream {
-  public:
-    explicit LexerStream(const char *fn) : fp(fn), is(fp) { }
-    explicit LexerStream(std::istream &i) : is(i) { }
-    bool good() const { return is.good() || buffer.size(); }
-
-    void skip(int n) {
-      buffer = buffer.substr(n);
-      col += n;
-    }
-    int peek() {
-      if(!ensure(1))
-        return -1;
-      return buffer[0];
-    }
-    bool peekEquals(const string &ref) {
-      if(!ensure(ref.size()))
-        return false;
-      for(int i=0; i<ref.size(); i++) {
-        if(buffer[i] != ref[i])
-          return false;
-      }
-      return true;
-    }
-    int next() {
-      if(!ensure(1))
-        return -1;
-      char result = buffer[0];
-      if(result == '\n') {
-        line ++;
-        col = 0;
-      }
-      buffer = buffer.substr(1);
-      return result;
-    }
-    bool ensure(int n) {
-      if(n < buffer.size()) return true;
-      int delta = (n - buffer.size());
-      
-      // read into a tmp buffer
-      vector<char> tmp;
-      tmp.reserve(4096);
-      is.read(&tmp[0], 4096);
-      int readAmt = is.gcount();
-
-      // append to string what we can
-      buffer.append(&tmp[0], readAmt);
-
-      // return 
-      return readAmt >= delta;
-    }
-    int line = 0;
-    int col = 0;
-  private:
-    string buffer;
-    std::ifstream fp;
-    std::istream &is;
-};
-
-static Token fileName(LexerStream &input) {
+static Token quoted(LexerStream &input) {
   assert(input.peek() == '\"');
   int line = input.line;
   int col = input.col;
@@ -275,7 +195,7 @@ static Token fileName(LexerStream &input) {
   while(input.peek() != '\"' && input.peek() != -1) {
     str += (char) input.next();
   }
-  return Token(FILENAME, str, line, col);
+  return {QUOTED, str, line, col};
 }
 
 static void ignoreWhitespace(LexerStream &input) {
@@ -283,11 +203,37 @@ static void ignoreWhitespace(LexerStream &input) {
     input.next();
 }
 
-Token nextToken(LexerStream &input) {
+static Token identifier(LexerStream &input) {
+  // must be an identifier
+  string id;
+  while(input.peek() != -1) {
+    char next = input.peek();
+    if(isalpha(next) || isdigit(next)) {
+      id += input.next();
+    } else break;
+  }
+
+  // if we started with a digit, we should be a number
+  assert(!isdigit(id[0]));
+
+  return {IDENTIFIER, id, input.line, input.col};
+}
+
+static Token number(LexerStream &input) {
+  // must be an identifier
+  string num;
+  while(input.peek() != -1 && isdigit(input.peek())) {
+    num += input.next();
+  }
+  int data = atoi(num.c_str());
+  return {data, input.line, input.col};
+}
+
+Token Lexer::nextToken(LexerStream &input) {
   // handle whitespace, end of file, quotes
   switch(input.peek()) {
     case '\"':
-      return fileName(input);
+      return quoted(input);
     case -1:
       return {NEWLINE, input.line, input.col};
     case '\n':
@@ -309,7 +255,10 @@ Token nextToken(LexerStream &input) {
     }
   }
 
-  input.skip(1);
-  return {ERROR, input.line, input.col};
+  if(isdigit(input.peek())) {
+    return number(input);
+  } else {
+    return identifier(input);
+  }
 }
 
