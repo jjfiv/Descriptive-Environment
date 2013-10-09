@@ -17,19 +17,10 @@ extern "C" {
 #include "lexer.hh"
 
 void debug_lexer(string cmd) {
-  cout << "debug_lexer: "<<cmd<< "\n";
-  using namespace Lexer;
-  istringstream ss(cmd);
-  LexerStream lex(ss);
-  
-  while(true) {
-    Token next = nextToken(lex);
-    cout << next.toString() << " ";
-    if(next.type == Lexer::NEWLINE || next.type == Lexer::ERROR) {
-      cout << "\n";
-      return;
-    }
+  for(auto tok : Lexer::lexString(cmd)) {
+    cout << tok.toString() << " ";
   }
+  cout << "\n";
 }
 
 void command_loop(void) {

@@ -1,11 +1,10 @@
 #include <string>
 #include <cassert>
 #include <cstdio>
-#include <vector>
+#include <sstream>
 #include "lexer.hh"
 #include "util.hh"
 using std::string;
-using std::vector;
 
 using namespace Lexer;
 
@@ -137,54 +136,64 @@ static vector<LexerStringAction> StringActions = {
   {":", COLON}
 };
 
-bool LexerStream::good() const {
-  return is.good() || buffer.size();
-}
-void LexerStream::skip(int n) {
-  buffer = buffer.substr(n);
-  col += n;
-}
-int LexerStream::peek() {
-  if(!ensure(1))
-    return -1;
-  return buffer[0];
-}
-bool LexerStream::peekEquals(const string &ref) {
-  if(!ensure(ref.size()))
-    return false;
-  for(size_t i=0; i<ref.size(); i++) {
-    if(buffer[i] != ref[i])
-      return false;
-  }
-  return true;
-}
-int LexerStream::next() {
-  if(!ensure(1))
-    return -1;
-  char result = buffer[0];
-  if(result == '\n') {
-    line ++;
-    col = 0;
-  }
-  buffer = buffer.substr(1);
-  return result;
-}
-bool LexerStream::ensure(size_t n) {
-  if(n < buffer.size()) return true;
-  int delta = (n - buffer.size());
-  
-  // read into a tmp buffer
-  vector<char> tmp;
-  tmp.reserve(4096);
-  is.read(&tmp[0], 4096);
-  int readAmt = is.gcount();
+class LexerStream {
+  public:
+    explicit LexerStream(const char *fn) : fp(fn), is(fp) { }
+    explicit LexerStream(std::istream &i) : is(i) { }
+    
+    void skip(int n) {
+      buffer = buffer.substr(n);
+      col += n;
+    }
+    int next() {
+      if(!ensure(1))
+        return -1;
+      char result = buffer[0];
+      if(result == '\n') {
+        line ++;
+        col = 0;
+      }
+      buffer = buffer.substr(1);
+      return result;
+    }
+    int peek() {
+      if(!ensure(1)) return -1;
+      return buffer[0];
+    }
+    bool peekEquals(const string &ref) {
+      if(!ensure(ref.size()))
+        return false;
+      for(size_t i=0; i<ref.size(); i++) {
+        if(buffer[i] != ref[i])
+          return false;
+      }
+      return true;
+    }
 
-  // append to string what we can
-  buffer.append(&tmp[0], readAmt);
+    int line = 0;
+    int col = 0;
+  private:
+    bool ensure(size_t n) {
+      if(n < buffer.size()) return true;
+      int delta = (n - buffer.size());
 
-  // return 
-  return readAmt >= delta;
-}
+      // read into a tmp buffer
+      vector<char> tmp;
+      tmp.reserve(4096);
+      is.read(&tmp[0], 4096);
+      int readAmt = is.gcount();
+
+      // append to string what we can
+      buffer.append(&tmp[0], readAmt);
+
+      // return 
+      return readAmt >= delta;
+    }
+
+    string buffer;
+    std::ifstream fp;
+    std::istream &is;
+};
 
 static Token quoted(LexerStream &input) {
   assert(input.peek() == '\"');
@@ -229,7 +238,7 @@ static Token number(LexerStream &input) {
   return {data, input.line, input.col};
 }
 
-Token Lexer::nextToken(LexerStream &input) {
+static Token nextToken(LexerStream &input) {
   // handle whitespace, end of file, quotes
   switch(input.peek()) {
     case '\"':
@@ -259,6 +268,21 @@ Token Lexer::nextToken(LexerStream &input) {
     return number(input);
   } else {
     return identifier(input);
+  }
+}
+
+vector<Token> Lexer::lexString(const string &input) {
+  std::istringstream ss(input);
+  LexerStream lex(ss);
+  
+  vector<Token> output;
+  
+  while(true) {
+    Token next = nextToken(lex);
+    output.push_back(next);
+    if(next.type == Lexer::NEWLINE || next.type == Lexer::ERROR) {
+      return output;
+    }
   }
 }
 

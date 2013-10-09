@@ -262,7 +262,8 @@ pred:
  /* begin DE section */
 
 cmd_start:
-    cmd PERIOD     {$$=$1;}
+    cmd PERIOD     {$$=$1;} /* optionally, commands end with . */
+  | cmd            {$$=$1;}
   ;
 
 cmd:

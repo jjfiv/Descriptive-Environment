@@ -1,230 +1,230 @@
-string is new vocabulary{S:1}.
-set := new vocabulary{S:1}.
-rgraph :=new vocabulary{E:2, P:2, s, t}.
-gr is new vocabulary{E:2}.
-set2 is new vocabulary{S:1, E:2, P:2}.
-clique is new vocabulary{E:2, s, t, k}.
-agraph is new vocabulary{A:1,E:2}.
-rs is new vocabulary{R:1, S:1}.
-rs2 is new vocabulary{R:1, s}.
-rtring is new vocabulary{R:1}.
-rtrings is new vocabulary{R:1,s}.
-ste is new vocabulary{E:2,S:1,T:1}.
-empty is new vocabulary{}.
+string is new vocabulary{S:1}
+set := new vocabulary{S:1}
+rgraph :=new vocabulary{E:2, P:2, s, t}
+gr is new vocabulary{E:2}
+set2 is new vocabulary{S:1, E:2, P:2}
+clique is new vocabulary{E:2, s, t, k}
+agraph is new vocabulary{A:1,E:2}
+rs is new vocabulary{R:1, S:1}
+rs2 is new vocabulary{R:1, s}
+rtring is new vocabulary{R:1}
+rtrings is new vocabulary{R:1,s}
+ste is new vocabulary{E:2,S:1,T:1}
+empty is new vocabulary{}
 
-line := new structure{graph, 20, E:2 := x2=x1+1, s:=0, t:=19}.
-line.t.
-line.s.
-line.E(0,1).
-line.E(12,10).
-line.E.
+line := new structure{graph, 20, E:2 := x2=x1+1, s:=0, t:=19}
+line.t
+line.s
+line.E(0,1)
+line.E(12,10)
+line.E
 
-primes := new structure{set,1000, S:1 is (\A x, y.(x<=x1 & y<=x) : ((x*y=x1)->(x=1|y=1)))}.
+primes := new structure{set,1000, S:1 is (\A x, y.(x<=x1 & y<=x) : ((x*y=x1)->(x=1|y=1)))}
 primes.S.
 
-rline := new structure{rgraph, 20, E:2 is x2=x1+1, P:2 is TC[x,y:E(x,y)](x1,x2), s is 0, t is 19}.
-rline.P.
+rline := new structure{rgraph, 20, E:2 is x2=x1+1, P:2 is TC[x,y:E(x,y)](x1,x2), s is 0, t is 19}
+rline.P
 
-rch is new bquery{gr, TC[x,y:E(x,y)](0,1)}.
-w5 is new structure{gr, 5, E:2 is (x1=0&x2=3)|(x1=2&x2=1)|(x1=3&x2=4)|(x1=4&x2=2)}.
-rch(w5).
+rch is new bquery{gr, TC[x,y:E(x,y)](0,1)}
+w5 is new structure{gr, 5, E:2 is (x1=0&x2=3)|(x1=2&x2=1)|(x1=3&x2=4)|(x1=4&x2=2)}
+rch(w5)
 
-primes2 is new structure{set2, 300, S:1 is (\A x, y.(x<x1 & y<=x) : ((x*y=x1)->(x=1|y=1))), E:2 is (x1<x2 & S(x1) & S(x2) & \A x.x1<x & x<x2:~S(x)), P:2 is TC[x,y:E(x,y)](x1,x2)}.
-primes2.S.
-primes2.E.
-primes2.P.
+primes2 is new structure{set2, 300, S:1 is (\A x, y.(x<x1 & y<=x) : ((x*y=x1)->(x=1|y=1))), E:2 is (x1<x2 & S(x1) & S(x2) & \A x.x1<x & x<x2:~S(x)), P:2 is TC[x,y:E(x,y)](x1,x2)}
+primes2.S
+primes2.E
+primes2.P
 
-line2 is new structure{graph, 1000, E:2 := x2=x1+1, s:=0, t:=999}.
-Reach is new bquery{graph, TC[x,y:E(x,y)](s,t)}. 
-Reach(line2).
+line2 is new structure{graph, 1000, E:2 := x2=x1+1, s:=0, t:=999}
+Reach is new bquery{graph, TC[x,y:E(x,y)](s,t)} 
+Reach(line2)
 
-line3 is new structure{graph, 100, E:2 := x2=x1+1, s:=0, t:=9}.
-I is new reduction{graph,string,2,\t,S:1 is E(x1,x2)}.
-test is I(line3).
-test.S.
+line3 is new structure{graph, 100, E:2 := x2=x1+1, s:=0, t:=9}
+I is new reduction{graph,string,2,\t,S:1 is E(x1,x2)}
+test is I(line3)
+test.S
 
-k3 is new structure{graph, 3, E:2 is ~(x1=x2), s is 0, t is 2}.
-k4 is new structure{graph, 4, E:2 is ~(x1=x2), s is 0, t is 3}.
-k6 is new structure{graph, 6, E:2 is ~(x1=x2), s is 0, t is 5}.
-k8 is new structure{graph, 8, E:2 is ~(x1=x2), s is 0, t is 7}.
-k10 is new structure{graph, 10, E:2 is ~(x1=x2), s is 0, t is 9}.
-thrcolor is new bquery{graph, \E R:1 : \E G:1 : \E B:1 : \A x, y : ((R(x)|G(x)|B(x)) & (E(x,y)->~((R(x)&R(y))|(G(x)&G(y))|(B(x)&B(y)))))}.
-athrcolor is new bquery{graph, \E C:2 . ( \A x, y : (C(x,y)->y<3) ) : (\A x : \E z : C(x,z) & \A x,y, zx, zy. C(x,zx)&C(y,zy):(E(x,y)->~(zx=zy)))}.
-othrcolor is new bquery{graph, \E C:2.(\Ax:((C(0,x)|C(1,x)|C(2,x))&\Ay:(C(y,x)->y<3))):(\Ax, y.((C(0,x)&C(0,y))|(C(1,x)&C(1,y))|(C(2,x)&C(2,y))):~E(x,y))}.
-thrcolor(k6).
-thrcolor(k8).
-othrcolor(k3).
+k3 is new structure{graph, 3, E:2 is ~(x1=x2), s is 0, t is 2}
+k4 is new structure{graph, 4, E:2 is ~(x1=x2), s is 0, t is 3}
+k6 is new structure{graph, 6, E:2 is ~(x1=x2), s is 0, t is 5}
+k8 is new structure{graph, 8, E:2 is ~(x1=x2), s is 0, t is 7}
+k10 is new structure{graph, 10, E:2 is ~(x1=x2), s is 0, t is 9}
+thrcolor is new bquery{graph, \E R:1 : \E G:1 : \E B:1 : \A x, y : ((R(x)|G(x)|B(x)) & (E(x,y)->~((R(x)&R(y))|(G(x)&G(y))|(B(x)&B(y)))))}
+athrcolor is new bquery{graph, \E C:2 . ( \A x, y : (C(x,y)->y<3) ) : (\A x : \E z : C(x,z) & \A x,y, zx, zy. C(x,zx)&C(y,zy):(E(x,y)->~(zx=zy)))}
+othrcolor is new bquery{graph, \E C:2.(\Ax:((C(0,x)|C(1,x)|C(2,x))&\Ay:(C(y,x)->y<3))):(\Ax, y.((C(0,x)&C(0,y))|(C(1,x)&C(1,y))|(C(2,x)&C(2,y))):~E(x,y))}
+thrcolor(k6)
+thrcolor(k8)
+othrcolor(k3)
 
 # (x1|x2|~x3)&(~x1|x2|x3)&(~x1|~x2|~x3)&(~x1|x2|~x3)
-form1 is new structure{sat, 4, P:2 is (x1=0&(x2=0|x2=1))|(x1=1&(x2=1|x2=2)) | (x1=3&x2=1), N:2 is (x1=0&x2=2)|(x1=1&x2=0)|(x1=2&(x2=0|x2=1|x2=2))|(x1=3&(x2=0|x2=2))}.
-minisat(form1).
-sosat is new bquery{sat, \E S:1 : \Ax:\Ey: ((S(y)&P(x,y))|(~S(y)&N(x,y)))}.
-sosat(form1).
+form1 is new structure{sat, 4, P:2 is (x1=0&(x2=0|x2=1))|(x1=1&(x2=1|x2=2)) | (x1=3&x2=1), N:2 is (x1=0&x2=2)|(x1=1&x2=0)|(x1=2&(x2=0|x2=1|x2=2))|(x1=3&(x2=0|x2=2))}
+minisat(form1)
+sosat is new bquery{sat, \E S:1 : \Ax:\Ey: ((S(y)&P(x,y))|(~S(y)&N(x,y)))}
+sosat(form1)
 
-kg3 is new structure{graph, 3, E:2 is ~(x1=x2), s is 0, t is 2}.
-kg4 is  new structure{graph, 4, E:2 is ~(x1=x2), s is 0, t is 3}.
-kg10 is  new structure{graph, 10, E:2 is ~(x1=x2), s is 0, t is 9}.
-thrcoltosat is new reduction{graph, sat, 3, x1<=3, P:2 is x1=3&x4=0&x2=0&x3=x6&x5<3, N:2 is x4=0 & E(x2,x3) & (x1=x5 & (x6=x2 | x6=x3)) & x1<3}.
-sg3 is thrcoltosat(kg3).
-sg4 is thrcoltosat(kg4).
-sg10 is thrcoltosat(kg10).
-minisat(sg3).
-minisat(sg4).
-minisat(sg10).
+kg3 is new structure{graph, 3, E:2 is ~(x1=x2), s is 0, t is 2}
+kg4 is  new structure{graph, 4, E:2 is ~(x1=x2), s is 0, t is 3}
+kg10 is  new structure{graph, 10, E:2 is ~(x1=x2), s is 0, t is 9}
+thrcoltosat is new reduction{graph, sat, 3, x1<=3, P:2 is x1=3&x4=0&x2=0&x3=x6&x5<3, N:2 is x4=0 & E(x2,x3) & (x1=x5 & (x6=x2 | x6=x3)) & x1<3}
+sg3 is thrcoltosat(kg3)
+sg4 is thrcoltosat(kg4)
+sg10 is thrcoltosat(kg10)
+minisat(sg3)
+minisat(sg4)
+minisat(sg10)
 
-tc5 is new structure{graph,5, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-ntc5 is new structure{graph,5, E:2 is (x1=1 & x2=4) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-tc10 is new structure{graph,10, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-ntc10 is new structure{graph,10, E:2 is (x1=7 & x2=4) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-tc15 is new structure{graph,15, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-ntc15 is new structure{graph,15, E:2 is (x1=11 & x2=14) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-tc100  is new structure{graph,100, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-ntc100 is new structure{graph,100, E:2 is (x1=76 & x2=79) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
+tc5 is new structure{graph,5, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+ntc5 is new structure{graph,5, E:2 is (x1=1 & x2=4) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+tc10 is new structure{graph,10, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+ntc10 is new structure{graph,10, E:2 is (x1=7 & x2=4) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+tc15 is new structure{graph,15, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+ntc15 is new structure{graph,15, E:2 is (x1=11 & x2=14) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+tc100  is new structure{graph,100, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+ntc100 is new structure{graph,100, E:2 is (x1=76 & x2=79) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
 
-tc1000  is new structure{graph,1000, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-ntc1000 is new structure{graph,1000, E:2 is (x1=76 & x2=79) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}.
-threecolorwithsat(tc1000).
-threecolorwithsat(tc100).
-threecolorwithsat(ntc100).
-threecolorwithsat(ntc1000).
+tc1000  is new structure{graph,1000, E:2 is ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+ntc1000 is new structure{graph,1000, E:2 is (x1=76 & x2=79) | ~\E x:(x2=x1+3*x|x1=x2+3*x),s is 0, t is 4}
+threecolorwithsat(tc1000)
+threecolorwithsat(tc100)
+threecolorwithsat(ntc100)
+threecolorwithsat(ntc1000)
 
-cliquetosat is new reduction{clique,sat,4, x1<k&x2<k, P:2 is x1=0&x2=0&x3=0&x4<k&x4=x8&x5=0&x6=0, N:2 is (x1=0&x2<x3&x3<k&x4=x7&x5=0&x6=0&(x8=x2|x8=x3))|(x1!=0&x1<k&x2<x1&(x3=x7|x4=x7)&((x1=x8&x3=x7)|(x2=x8&x4=x7)))}.
-k5 is new structure{clique, 5, E:2 is \t, s is 0, t is 4, k is 3}.
-s5 is cliquetosat(k5).
-minisat(s5).
+cliquetosat is new reduction{clique,sat,4, x1<k&x2<k, P:2 is x1=0&x2=0&x3=0&x4<k&x4=x8&x5=0&x6=0, N:2 is (x1=0&x2<x3&x3<k&x4=x7&x5=0&x6=0&(x8=x2|x8=x3))|(x1!=0&x1<k&x2<x1&(x3=x7|x4=x7)&((x1=x8&x3=x7)|(x2=x8&x4=x7)))}
+k5 is new structure{clique, 5, E:2 is \t, s is 0, t is 4, k is 3}
+s5 is cliquetosat(k5)
+minisat(s5)
 
-sattoclique is new reduction{sat, clique, 3, (x3<=2)|(x1=1&x2=1&x3=3), E:2 is (x1!=x4 & x3<3 & x6<3 & (x2=x5-> x3=x6))|((x3=3&x6=1)&P(x4,x5))|((x3=3&x6=2)&N(x4,x5)), s is x1=0 & x2=0 & x3=0, t is x1=0 & x2=1 & x3=0, k is x1=0 & x2=1 & x3=0}.
-kclique is new bquery{clique, \E R:2.\A x, y, z : ((R(x,y)&R(z,y))->x=z):\Aw,x,y,z.(R(w,y)&R(x,z)):((w!=x&y<k&z<k)->E(w,x))}.
-form2 is new structure{sat, 4, P:2 is (x1=0&(x2=0|x2=1))|(x1=1&(x2=1|x2=2)) | (x1=3&x2=1), N:2 is (x1=0&x2=2)|(x1=1&x2=0)|(x1=2&(x2=0|x2=1|x2=2))|(x1=3&(x2=0|x2=2))}.
-kcl2 is sattoclique(form2).
-kclique(kcl2).
+sattoclique is new reduction{sat, clique, 3, (x3<=2)|(x1=1&x2=1&x3=3), E:2 is (x1!=x4 & x3<3 & x6<3 & (x2=x5-> x3=x6))|((x3=3&x6=1)&P(x4,x5))|((x3=3&x6=2)&N(x4,x5)), s is x1=0 & x2=0 & x3=0, t is x1=0 & x2=1 & x3=0, k is x1=0 & x2=1 & x3=0}
+kclique is new bquery{clique, \E R:2.\A x, y, z : ((R(x,y)&R(z,y))->x=z):\Aw,x,y,z.(R(w,y)&R(x,z)):((w!=x&y<k&z<k)->E(w,x))}
+form2 is new structure{sat, 4, P:2 is (x1=0&(x2=0|x2=1))|(x1=1&(x2=1|x2=2)) | (x1=3&x2=1), N:2 is (x1=0&x2=2)|(x1=1&x2=0)|(x1=2&(x2=0|x2=1|x2=2))|(x1=3&(x2=0|x2=2))}
+kcl2 is sattoclique(form2)
+kclique(kcl2)
 
-yd5 is new structure{graph, 5, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2), s is 0, t is 4}.
-nd5 is new structure{graph, 5, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2) & ((~(x1=1) & ~(x2=1)) | (x1=1 & x2=3)), s is 0, t is 4}.
-yd100 is new structure{graph, 100, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2), s is 0, t is 4}.
-nd100 is new structure{graph, 100, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2) & ((~(x1=1) & ~(x2=1)) | (x1=1 & x2=3)), s is 0, t is 4}.
-yd1000 is new structure{graph, 1000, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2), s is 0, t is 4}.
-nd1000 is new structure{graph, 1000, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2) & ((~(x1=1) & ~(x2=1)) | (x1=1 & x2=3)), s is 0, t is 4}.
-threednp is new bquery{graph, \E A:1:\E B:1:\E C:1: \Ax:\E y,u,v:(((A(x)->~(B(x)|C(x)))&(B(x)->~(A(x)|C(x)))&(C(x)->~(A(x)|B(x)))) & (A(x)|(A(y)&E(x,y))) & (B(x)|(B(u)&E(x,u))) & (C(x)|(C(v)&E(x,v))))}.
-threednptosat is new reduction{graph, sat, 2, (x1<=5), P:2 is ((x1=3&x3=0)|(x1=4&x3=1)|(x1=5&x3=2)) & (x2=x4|E(x2,x4)), N:2 is (x2=x4 & ((x1=0&(x3=0|x3=1)) | (x1=1&(x3=1|x3=2)) | (x1=2&(x3=0|x3=2))))}.
-threednp(yd5).
-threednp(nd5).
-sd100 is threednptosat(yd100).
-minisat(sd100).
-sn100 is threednptosat(nd100).
-minisat(sn100).
+yd5 is new structure{graph, 5, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2), s is 0, t is 4}
+nd5 is new structure{graph, 5, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2) & ((~(x1=1) & ~(x2=1)) | (x1=1 & x2=3)), s is 0, t is 4}
+yd100 is new structure{graph, 100, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2), s is 0, t is 4}
+nd100 is new structure{graph, 100, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2) & ((~(x1=1) & ~(x2=1)) | (x1=1 & x2=3)), s is 0, t is 4}
+yd1000 is new structure{graph, 1000, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2), s is 0, t is 4}
+nd1000 is new structure{graph, 1000, E:2 is (x2=x1+1|x2=x1+2|x1=x2+1|x1=x2+2) & ((~(x1=1) & ~(x2=1)) | (x1=1 & x2=3)), s is 0, t is 4}
+threednp is new bquery{graph, \E A:1:\E B:1:\E C:1: \Ax:\E y,u,v:(((A(x)->~(B(x)|C(x)))&(B(x)->~(A(x)|C(x)))&(C(x)->~(A(x)|B(x)))) & (A(x)|(A(y)&E(x,y))) & (B(x)|(B(u)&E(x,u))) & (C(x)|(C(v)&E(x,v))))}
+threednptosat is new reduction{graph, sat, 2, (x1<=5), P:2 is ((x1=3&x3=0)|(x1=4&x3=1)|(x1=5&x3=2)) & (x2=x4|E(x2,x4)), N:2 is (x2=x4 & ((x1=0&(x3=0|x3=1)) | (x1=1&(x3=1|x3=2)) | (x1=2&(x3=0|x3=2))))}
+threednp(yd5)
+threednp(nd5)
+sd100 is threednptosat(yd100)
+minisat(sd100)
+sn100 is threednptosat(nd100)
+minisat(sn100)
 
-bip6 is mace(graph, \exists x1,x2,x3,x4,y1,y2,y3,y4:(x1!=x2&x1!=x3&x2!=x3&\forall z:(z=x1|z=x2|z=x3|z=x4|z=y1|z=y2|z=y3|z=y4)&\forall z1,z2:(E(z1,z2)->(((z1=x1|z1=x2|z1=x3|z1=x4)&(z2=y1|z2=y2|z2=y3|z2=y4))|((z1=y1|z1=y2|z1=y3|z1=y4)&(z2=x1|z2=x2|z2=x3|z2=x4))))&(x1!=y1&x1!=y2&x1!=y3&x1!=y4&x2!=y1&x2!=y2&x2!=y3&x2!=y4&x3!=y1&x3!=y2&x3!=y3&x3!=y4&x4!=y1&x4!=y2&x4!=y3&x4!=y4)) &\forall x,y:(E(x,y)<->E(y,x)) & \forall x:\exists y:\exists z:\forall z2:(E(x,y)&E(x,z)&y!=z&(E(x,z2)->(y=z2|z=z2)))).
-bip6.E.
-bipq is new bquery{graph, \exists x1,x2,x3,x4,y1,y2,y3,y4:(x1!=x2&x1!=x3&x2!=x3&\forall z:(z=x1|z=x2|z=x3|z=x4|z=y1|z=y2|z=y3|z=y4)&\forall z1,z2:(E(z1,z2)->(((z1=x1|z1=x2|z1=x3|z1=x4)&(z2=y1|z2=y2|z2=y3|z2=y4))|((z1=y1|z1=y2|z1=y3|z1=y4)&(z2=x1|z2=x2|z2=x3|z2=x4))))&(x1!=y1&x1!=y2&x1!=y3&x1!=y4&x2!=y1&x2!=y2&x2!=y3&x2!=y4&x3!=y1&x3!=y2&x3!=y3&x3!=y4&x4!=y1&x4!=y2&x4!=y3&x4!=y4)) &\forall x,y:(E(x,y)<->E(y,x)) & \forall x:\exists y:\exists z:\forall z2:(E(x,y)&E(x,z)&y!=z&(E(x,z2)->(y=z2|z=z2)))}.
-bipq(bip6).
-cfi is mace(agraph, \forall x,y:(E(x,y)<->E(y,x))&\exists x:x=9&\forall x,y:(E(x,y)->(A(x)<->~A(y)))&\forall x,y1,y2,z:((A(x)&E(x,y1)&E(x,y2)&E(x,z)&y1!=y2)->(z=y1|z=y2))&\forall x,y1,y2,y3,z:((~A(x)&E(x,y1)&E(x,y2)&E(x,y3)&E(x,z)&y1!=y2&y2!=y3&y1!=y3)->(z=y1|z=y2|z=y3))&\forall x.A(x):\exists y1,y2.y1!=y2:(E(x,y1)&E(x,y2))&\forall x.~A(x):\exists y1,y2,y3.y1!=y2&y2!=y3&y1!=y3:(E(x,y1)&E(x,y2)&E(x,y3))&\forall x1,x2,y1,y2.A(x1)&A(x2)&y1!=y2:((E(x1,y1)&E(x1,y2)&E(x2,y1)&E(x2,y2))->x1=x2)).
-cfi.E.
+bip6 is mace(graph, \exists x1,x2,x3,x4,y1,y2,y3,y4:(x1!=x2&x1!=x3&x2!=x3&\forall z:(z=x1|z=x2|z=x3|z=x4|z=y1|z=y2|z=y3|z=y4)&\forall z1,z2:(E(z1,z2)->(((z1=x1|z1=x2|z1=x3|z1=x4)&(z2=y1|z2=y2|z2=y3|z2=y4))|((z1=y1|z1=y2|z1=y3|z1=y4)&(z2=x1|z2=x2|z2=x3|z2=x4))))&(x1!=y1&x1!=y2&x1!=y3&x1!=y4&x2!=y1&x2!=y2&x2!=y3&x2!=y4&x3!=y1&x3!=y2&x3!=y3&x3!=y4&x4!=y1&x4!=y2&x4!=y3&x4!=y4)) &\forall x,y:(E(x,y)<->E(y,x)) & \forall x:\exists y:\exists z:\forall z2:(E(x,y)&E(x,z)&y!=z&(E(x,z2)->(y=z2|z=z2))))
+bip6.E
+bipq is new bquery{graph, \exists x1,x2,x3,x4,y1,y2,y3,y4:(x1!=x2&x1!=x3&x2!=x3&\forall z:(z=x1|z=x2|z=x3|z=x4|z=y1|z=y2|z=y3|z=y4)&\forall z1,z2:(E(z1,z2)->(((z1=x1|z1=x2|z1=x3|z1=x4)&(z2=y1|z2=y2|z2=y3|z2=y4))|((z1=y1|z1=y2|z1=y3|z1=y4)&(z2=x1|z2=x2|z2=x3|z2=x4))))&(x1!=y1&x1!=y2&x1!=y3&x1!=y4&x2!=y1&x2!=y2&x2!=y3&x2!=y4&x3!=y1&x3!=y2&x3!=y3&x3!=y4&x4!=y1&x4!=y2&x4!=y3&x4!=y4)) &\forall x,y:(E(x,y)<->E(y,x)) & \forall x:\exists y:\exists z:\forall z2:(E(x,y)&E(x,z)&y!=z&(E(x,z2)->(y=z2|z=z2)))}
+bipq(bip6)
+cfi is mace(agraph, \forall x,y:(E(x,y)<->E(y,x))&\exists x:x=9&\forall x,y:(E(x,y)->(A(x)<->~A(y)))&\forall x,y1,y2,z:((A(x)&E(x,y1)&E(x,y2)&E(x,z)&y1!=y2)->(z=y1|z=y2))&\forall x,y1,y2,y3,z:((~A(x)&E(x,y1)&E(x,y2)&E(x,y3)&E(x,z)&y1!=y2&y2!=y3&y1!=y3)->(z=y1|z=y2|z=y3))&\forall x.A(x):\exists y1,y2.y1!=y2:(E(x,y1)&E(x,y2))&\forall x.~A(x):\exists y1,y2,y3.y1!=y2&y2!=y3&y1!=y3:(E(x,y1)&E(x,y2)&E(x,y3))&\forall x1,x2,y1,y2.A(x1)&A(x2)&y1!=y2:((E(x1,y1)&E(x1,y2)&E(x2,y1)&E(x2,y2))->x1=x2))
+cfi.E
 
-a1 is new bquery{string, \forall x:S(x)}.
-a0 is new bquery{string, \forall x:~S(x)}.
-redfind(a1,a0).
+a1 is new bquery{string, \forall x:S(x)}
+a0 is new bquery{string, \forall x:~S(x)}
+redfind(a1,a0)
 
-f is new bquery{string, \f}.
-t is new bquery{string, \t}.
-redfind(f,t).
+f is new bquery{string, \f}
+t is new bquery{string, \t}
+redfind(f,t)
 
-tg is new bquery{graph, \t}.
-redfind(f,tg).
+tg is new bquery{graph, \t}
+redfind(f,tg)
 
-s0 is new bquery{string, ~S(0)}.
-s1 is new bquery{string, S(0)}.
-redfind(s0,s1).
+s0 is new bquery{string, ~S(0)}
+s1 is new bquery{string, S(0)}
+redfind(s0,s1)
 
-a0 is new bquery{string, \forall x:~S(x)}.
-a1 is new bquery{string, \forall x: S(x)}.
-redfind(a0,a1).
+a0 is new bquery{string, \forall x:~S(x)}
+a1 is new bquery{string, \forall x: S(x)}
+redfind(a0,a1)
 
-ge1 is new bquery{gr, E(0,1)}.
-gn1 is new bquery{gr, ~E(1,0)}.
-redfind(ge1,gn1).
+ge1 is new bquery{gr, E(0,1)}
+gn1 is new bquery{gr, ~E(1,0)}
+redfind(ge1,gn1)
 
-eras is new bquery{rs, \exists x:R(x)&\forall y:S(y)}.
-e1 is new bquery{string, \exists x:S(x)}.
-redfind(e1, eras).
-axey is new bquery{gr, \forall x:\exists y:E(x,y)}.
-redfind(eras,axey).
+eras is new bquery{rs, \exists x:R(x)&\forall y:S(y)}
+e1 is new bquery{string, \exists x:S(x)}
+redfind(e1, eras)
+axey is new bquery{gr, \forall x:\exists y:E(x,y)}
+redfind(eras,axey)
 
-es is new bquery{string, \exists x:S(x)}.
-qrs2 is new bquery{rs2, \exists x.x=s:R(x)}.
-redfind(qrs2, es).
-redfind(qrs2, es, 3,4,6).
+es is new bquery{string, \exists x:S(x)}
+qrs2 is new bquery{rs2, \exists x.x=s:R(x)}
+redfind(qrs2, es)
+redfind(qrs2, es, 3,4,6)
 
-qrs2 is new bquery{rs2, \exists x.x=s:R(x)}.
-nqrs2 is new bquery{rs2, ~\exists x.x=s:R(x)}.
-redfind(qrs2,nqrs2).
-redfind(qrs2,nqrs2,2,2,3).
-redfind(qrs2,nqrs2,2,1,5).
+qrs2 is new bquery{rs2, \exists x.x=s:R(x)}
+nqrs2 is new bquery{rs2, ~\exists x.x=s:R(x)}
+redfind(qrs2,nqrs2)
+redfind(qrs2,nqrs2,2,2,3)
+redfind(qrs2,nqrs2,2,1,5)
 
-p2 is new bquery{rtring, \exists x:R(x)}.
-p3 is new bquery{rtring, \forall x:R(x)}.
-p4 is new bquery{rs, \exists x:R(x) | \forall y:S(y)}.
-p5 is new bquery{rs, \exists x:R(x) & \forall y:S(y)}.
-p6 is new bquery{graph, \forall x:\exists y:E(x,y)}.
-p7 is new bquery{graph, \exists x:\forall y:E(x,y)}.
-pp1 is new bquery{rtrings, \exists x.x=s:R(x)}.
-redfind(pp1,p2).
-redfind(pp1,p3).
-redfind(p2,p3).
-redfind(p2,p3,2,3,7).
-redfind(p2,pp1).
-redfind(p2,p4).
-redfind(p3,p4).
-redfind(p4,p2).
-redfind(p2,p5).
-redfind(p3,p5).
-redfind(p4,p6).
-redfind(p4,p6,1,2,7).
-redfind(p4,p7,1,2,7).
-redfind(p5,p6).
-redfind(p5,p7).
-redfind(p6,p7).
-redfind(p6,p7,1,2,4).
-redfind(p7,p6,1,2,4).
-redfind(p7,p5,2,2,3).
+p2 is new bquery{rtring, \exists x:R(x)}
+p3 is new bquery{rtring, \forall x:R(x)}
+p4 is new bquery{rs, \exists x:R(x) | \forall y:S(y)}
+p5 is new bquery{rs, \exists x:R(x) & \forall y:S(y)}
+p6 is new bquery{graph, \forall x:\exists y:E(x,y)}
+p7 is new bquery{graph, \exists x:\forall y:E(x,y)}
+pp1 is new bquery{rtrings, \exists x.x=s:R(x)}
+redfind(pp1,p2)
+redfind(pp1,p3)
+redfind(p2,p3)
+redfind(p2,p3,2,3,7)
+redfind(p2,pp1)
+redfind(p2,p4)
+redfind(p3,p4)
+redfind(p4,p2)
+redfind(p2,p5)
+redfind(p3,p5)
+redfind(p4,p6)
+redfind(p4,p6,1,2,7)
+redfind(p4,p7,1,2,7)
+redfind(p5,p6)
+redfind(p5,p7)
+redfind(p6,p7)
+redfind(p6,p7,1,2,4)
+redfind(p7,p6,1,2,4)
+redfind(p7,p5,2,2,3)
 
-c1 is new bquery{graph, \exists x,y:~E(x,y)}.
-c3 is new bquery{graph, \exists x,y:(E(x,y)&E(y,x))}.
-redfind(c1,c3,1,2,4).
+c1 is new bquery{graph, \exists x,y:~E(x,y)}
+c3 is new bquery{graph, \exists x,y:(E(x,y)&E(y,x))}
+redfind(c1,c3,1,2,4)
 
-a1 is new bquery{graph, \forall x,y:E(x,y)}.
-a2 is new bquery{rs, \forall x:(R(x)&S(x))}.
-a3 is new bquery{rs, \forall x:(R(x)|S(x))}.
-redfind(a1,a2).
-redfind(a1,a2,2,1,4).
-redfind(a2,a1).
-redfind(a1,a3).
-redfind(a3,a1,1,2,4).
-redfind(a2,a3).
-redfind(a3,a2).
-redfind(a3,a2,1,2,4).
-redfind(a3,a2,2,2,7).
-redfind(a3,a2,3,3,7).
+a1 is new bquery{graph, \forall x,y:E(x,y)}
+a2 is new bquery{rs, \forall x:(R(x)&S(x))}
+a3 is new bquery{rs, \forall x:(R(x)|S(x))}
+redfind(a1,a2)
+redfind(a1,a2,2,1,4)
+redfind(a2,a1)
+redfind(a1,a3)
+redfind(a3,a1,1,2,4)
+redfind(a2,a3)
+redfind(a3,a2)
+redfind(a3,a2,1,2,4)
+redfind(a3,a2,2,2,7)
+redfind(a3,a2,3,3,7)
 
-rch is new bquery{gr, TC[x,y:E(x,y)](0,1)}.
-es is new bquery{s,\exists x:S(x)}.
-redfind(rch,es,2,1,5).
-redfind(rch,es,1,1,23).
+rch is new bquery{gr, TC[x,y:E(x,y)](0,1)}
+es is new bquery{s,\exists x:S(x)}
+redfind(rch,es,2,1,5)
+redfind(rch,es,1,1,23)
 
-rchlab is new bquery{graph, TC[x,y:E(x,y)](s,t)}.
-sterch is new bquery{ste, \exists x,y.S(x)&T(y):TC[z1,z2:E(z1,z2)](x,y)}.
-redfind(rchlab,sterch).
+rchlab is new bquery{graph, TC[x,y:E(x,y)](s,t)}
+sterch is new bquery{ste, \exists x,y.S(x)&T(y):TC[z1,z2:E(z1,z2)](x,y)}
+redfind(rchlab,sterch)
 
-allrch is new bquery{gr, \forall z1,z2:TC[x,y:E(x,y)](z1,z2)}.
-redfind(rchlab,allrch).
-redfind(rchlab,allrch,2,1,3).
-redfind(rchlab,allrch,1,3,4).
-redfind(rchlab,allrch,1,3,5).
-redfind(sterch,allrch,1,3,4).
+allrch is new bquery{gr, \forall z1,z2:TC[x,y:E(x,y)](z1,z2)}
+redfind(rchlab,allrch)
+redfind(rchlab,allrch,2,1,3)
+redfind(rchlab,allrch,1,3,4)
+redfind(rchlab,allrch,1,3,5)
+redfind(sterch,allrch,1,3,4)
 
-ev2 is new bquery{empty, \exists x,y: (x+x=y & (\forall z:\exists z1:(z+z1=y)))}.
-redfind(ev2,allrch).
-redfind(ev2,allrch,1,2,3,6).
+ev2 is new bquery{empty, \exists x,y: (x+x=y & (\forall z:\exists z1:(z+z1=y)))}
+redfind(ev2,allrch)
+redfind(ev2,allrch,1,2,3,6)
 
 quit
 
