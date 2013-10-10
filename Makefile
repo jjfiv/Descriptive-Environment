@@ -204,7 +204,6 @@ run: all mace4/p9m4-v05/bin/mace4
 run_test: $(TEST) mace4/p9m4-v05/bin/mace4
 	PATH=$(PATH):mace4/p9m4-v05/bin ./$(TEST) > test/actual.out
 	diff test/expected.out test/actual.out
-	
 
 tags:
 	ctags src/* include/* logic/* redfind/* extern/solver/* extern/hash/* extern/limboole/* test/*

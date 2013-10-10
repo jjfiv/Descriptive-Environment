@@ -85,9 +85,7 @@ int get_interp_value(const char *name, const Interp *interp) {
  * Take it out and reinsert at the head of the list in reverse order, seting
  * values to tup.  Add things not there (should not happen).
  */
-Interp *fake_add_tup_to_interp(Interp *interp, int *tup,
-    int arity)
-{
+Interp *fake_add_tup_to_interp(Interp *interp, int *tup, int arity) {
   char *name = (char*) malloc(sizeof(char)+2+numdigits(arity));
   Interp *ret=interp;
   int i;

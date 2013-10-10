@@ -15,10 +15,11 @@
 
 #include "parse.h"
 #include "protos.h"
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
 #ifdef DEBUG
-#include <stdio.h>
+#include <cstdio>
 #endif
 
 /* setlr is an optimization for teval and eval_rec, we try to avoid recursing
@@ -689,7 +690,6 @@ int eval_exists(Node *form, Interp *interp, const Structure *struc) {
 int eval_pred(Node *form, Interp *interp, const Structure *struc) {
   Relation *rel;
   int arity, i, res;
-  int *tup;
   int size;
   int num;
   Node *relargs;
@@ -705,8 +705,10 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
     printf("4:Relation symbol %s is undefined\n",(char *)form->data);
     return -1;
   }
+
   arity = rel->arity;
-  tup = (int*) malloc(arity * sizeof(int));
+
+  vector<int> tup(arity, 0);
   relargs = form->r;
   size = struc->size;
 
@@ -716,7 +718,6 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
 #ifdef DEBUG
       printf("d: %dth argument to %s out of range\n",i,rel->name);
 #endif
-      free(tup);
       return 0; /* out of range means false      */
       /* TODO should still check arity */
     }
@@ -724,15 +725,13 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
   }
   if (relargs || i!=arity) {
     printf("6: Relation symbol %s used with incorrect arity\n",rel->name);
-    free(tup);
     return -1;
   }
 
   if (rel->cache) {
-    num = tuple_cindex(tup, arity, size);
+    num = tuple_cindex(&tup[0], arity, size);
     if (rel->cache[num]>=0)
     {
-      free(tup);
       return rel->cache[num];
     }
   }
@@ -753,10 +752,9 @@ int eval_pred(Node *form, Interp *interp, const Structure *struc) {
     *(values[i]) = old_values[i];
 
   if (rel->cache) {
-    num = tuple_cindex(tup, arity, size);
+    num = tuple_cindex(&tup[0], arity, size);
     rel->cache[num]=res;
   }
-  free(tup);
   free(old_values);
   return res;
 }

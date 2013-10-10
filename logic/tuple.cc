@@ -107,25 +107,26 @@ int *next_tuple(int *tuple, const int arity, const int size)
 {
   int i;
 
-  if (!tuple)
-  {
+  // if we were given an empty tuple, malloc one here
+  if (!tuple) {
     tuple=(int*)malloc(arity * sizeof(int));
     for (i=0; i<arity; i++)
       tuple[i] = 0;
     return tuple;
   }
-  for (i=arity-1; i>=0; i--)
-  {
-    if (++tuple[i]>=size)
-      tuple[i]=0;
-    else
-      break;
+  
+  // increase one tuple at a time until it overflows, set it back to zero and go to the next
+  for(i=arity-1; i>=0; i--) {
+    tuple[i]++;
+    if(tuple[i] >= size)
+      tuple[i] = 0;
+    else break;
   }
 
-  if (i==-1 && tuple[i+1] == 0)
-  {
+  // if that was the last one,
+  if(tuple[0] == 0 && i<0) {
     free(tuple);
-    return NULL;
+    return nullptr;
   }
 
   return tuple;
