@@ -1045,6 +1045,8 @@ int do_struc_assign(Environment *env, Node *command) {
     cache_pt = (int*) malloc(cache_size*sizeof(int));
 
     tmpr = (Relation*) malloc(sizeof(Relation));
+
+    // the order of the relation list is somehow depended on by redfind code
     if (!prevr)
       new_id->rels=tmpr;
     else
@@ -1070,6 +1072,7 @@ int do_struc_assign(Environment *env, Node *command) {
     rel_form = t->l->r;
 
     tmpc = (Constant*) malloc(sizeof(Constant));
+    // the order of the Constant list is somehow depended on by redfind code
     if (!prevc)
       new_id->cons = tmpc;
     else

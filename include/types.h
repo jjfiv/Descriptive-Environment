@@ -47,7 +47,7 @@ typedef struct Constant {
   char *name;
   /*	char *formula; */
   Node *parse_cache;
-  struct Constant *next;
+  struct Constant *next = nullptr;
   int value;
 } Constant;
 
@@ -65,30 +65,30 @@ typedef struct ConsForm {
 } ConsForm;
 
 typedef struct Identifier {
-  char *name;
-  void *def;
-  int type;
+  char *name = nullptr;
+  void *def = nullptr;
+  int type = -1;
 } Identifier;
 
 typedef struct Environment {
-  struct hash_t *id_hash;
-  int next_id;
+  struct hash_t *id_hash = nullptr;
+  int next_id = 0;
 } Environment;
 
 typedef struct List {
-  void *data;
-  struct List *next;
+  void *data = nullptr;
+  struct List *next = nullptr;
 } List;
 
 typedef struct InterpSymbol {
-  struct InterpSymbol *next;
-  char *name;
-  int value;
+  struct InterpSymbol *next = nullptr;
+  char *name = nullptr;
+  int value = 0;
 } InterpSymbol;
 
 typedef struct Interp {
-  InterpSymbol *symbols;
-  Relation *rel_symbols;
+  InterpSymbol *symbols = nullptr;
+  Relation *rel_symbols = nullptr;
 } Interp;
 
 typedef struct Structure {

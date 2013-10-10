@@ -11,7 +11,6 @@
 
 Interp *new_interp(const Structure *struc) {
   Interp *interp = (Interp*) calloc(1, sizeof(Interp));
-  InterpSymbol *symb;
 
   if (!interp) return nullptr;
   if (!struc || !struc->cons) return interp;
